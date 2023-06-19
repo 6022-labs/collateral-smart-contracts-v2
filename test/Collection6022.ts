@@ -29,4 +29,42 @@ describe("Collection6022", function () {
       expect(await collection6022.ownerOf(3)).to.equal(owner.address);
     });
   });
+
+  describe("Batch transfer from owner to other account", function () {
+    it("Should transfer 2 NFT", async function () {
+      const { collection6022, owner, otherAccount } = await loadFixture(
+        deployCollectionFixture
+      );
+
+      await collection6022.batchTransfer(otherAccount);
+
+      expect(await collection6022.balanceOf(owner.address)).to.equal(1);
+      expect(await collection6022.balanceOf(otherAccount.address)).to.equal(2);
+    });
+
+    it("Should fail if not owner", async function () {
+      const { collection6022, otherAccount } = await loadFixture(
+        deployCollectionFixture
+      );
+
+      await expect(
+        collection6022.connect(otherAccount).batchTransfer(otherAccount)
+      ).to.be.revertedWith("ERC721: caller is not token owner or approved");
+    });
+
+    it("Should fail if not enough balance", async function () {
+      const { collection6022, otherAccount } = await loadFixture(
+        deployCollectionFixture
+      );
+
+      // First call should work
+      await expect(collection6022.batchTransfer(otherAccount)).to.not.be
+        .reverted;
+
+      // Second call should fail
+      await expect(
+        collection6022.batchTransfer(otherAccount)
+      ).to.be.revertedWith("ERC721: caller is not token owner or approved");
+    });
+  });
 });

@@ -4,14 +4,32 @@ pragma solidity ^0.8.9;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Collection6022 is ERC721 {
+contract Collection6022 is ERC721, ReentrancyGuard {
     uint public constant MAX_TOKENS = 3;
 
-    constructor(address to_, string memory name_) ERC721(name_, "6022") {
+    IERC20 public token;
+
+    // How much Ether and Tokens each address has deposited
+    mapping(address => uint256) public etherBalances;
+    mapping(address => uint256) public tokenBalances;
+
+    // The block number when the last token was minted for each address
+    mapping(address => uint256) public lastMintedBlock;
+
+    bool public isLocked;
+
+    constructor(string memory name_, IERC20 token_) ERC721(name_, "6022") {
+        token = token_;
+
+        isLocked = false;
+
+        // Mint tokens to this contract's address
         for(uint i = 1; i <= MAX_TOKENS; i++) {
-            _safeMint(to_, i);
+            _mint(address(this), i);
         }
     }
 
@@ -19,5 +37,36 @@ contract Collection6022 is ERC721 {
         for (uint i = 1; i < MAX_TOKENS; i++) {
             safeTransferFrom(_msgSender(), to, i);
         }
+    }
+
+    function depositEther() public payable nonReentrant {
+        require(!isLocked, "The contract is locked, a deposit has already been made");
+
+        etherBalances[msg.sender] += msg.value;
+
+        // Transfer all tokens from contract to sender
+        for(uint256 i = 1; i <= MAX_TOKENS; i++) {
+            _transfer(address(this), msg.sender, i);
+        }
+
+        // Lock the contract
+        isLocked = true;
+    }
+
+    function depositToken(uint256 amount) public nonReentrant {
+        require(!isLocked, "The contract is locked, a deposit has already been made");
+
+        tokenBalances[msg.sender] += amount;
+
+        // Call external function
+        token.transferFrom(msg.sender, address(this), amount);
+
+        // Transfer all tokens from contract to sender
+        for(uint256 i = 1; i <= MAX_TOKENS; i++) {
+            _transfer(address(this), msg.sender, i);
+        }
+
+        // Lock the contract
+        isLocked = true;
     }
 }

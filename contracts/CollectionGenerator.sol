@@ -6,6 +6,7 @@ pragma solidity ^0.8.9;
 
 import "./Collection6022.sol";
 import "./interfaces/ICollectionGenerator.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CollectionGenerator is ICollectionGenerator {
     address private controllerAddress;
@@ -14,9 +15,9 @@ contract CollectionGenerator is ICollectionGenerator {
         controllerAddress = controllerAddress_;
     }
 
-    function createCollection(address to, string memory name) public override returns (address) {
+    function createCollection(string memory name, IERC20 token) public override returns (address) {
         require (msg.sender == controllerAddress, "Only the controller can create collections");
         
-        return address(new Collection6022(to, name));
+        return address(new Collection6022(name, token));
     }
 }

@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 describe("CollectionGenerator", function () {
-  async function deployCollectionGeneratorFixture() {
+  async function deployCollectionGeneratorAndTokenFixture() {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
@@ -18,13 +18,18 @@ describe("CollectionGenerator", function () {
       await controller6022.getAddress()
     );
 
-    return { collectionGenerator, owner, otherAccount };
+    const totalSupply = ethers.parseUnits("5", 16);
+
+    const Token6022 = await ethers.getContractFactory("Token6022");
+    const token6022 = await Token6022.deploy(totalSupply);
+
+    return { collectionGenerator, token6022, owner, otherAccount };
   }
 
   describe("Deployment", function () {
     it("Should work", async function () {
-      const { collectionGenerator, owner } = await loadFixture(
-        deployCollectionGeneratorFixture
+      const { collectionGenerator } = await loadFixture(
+        deployCollectionGeneratorAndTokenFixture
       );
 
       expect(await collectionGenerator.getAddress()).not.to.be.null;
@@ -33,12 +38,15 @@ describe("CollectionGenerator", function () {
 
   describe("Generate collection", function () {
     it("Should not work directly", async function () {
-      const { collectionGenerator, owner } = await loadFixture(
-        deployCollectionGeneratorFixture
+      const { collectionGenerator, token6022 } = await loadFixture(
+        deployCollectionGeneratorAndTokenFixture
       );
 
       await expect(
-        collectionGenerator.createCollection(owner.address, "Test Collection")
+        collectionGenerator.createCollection(
+          "Test Collection",
+          await token6022.getAddress()
+        )
       ).to.be.revertedWith("Only the controller can create collections");
     });
   });

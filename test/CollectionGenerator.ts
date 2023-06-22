@@ -1,9 +1,14 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import {
+  reset,
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("CollectionGenerator", function () {
   async function deployCollectionGeneratorAndTokenFixture() {
+    await reset();
+
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
@@ -15,7 +20,8 @@ describe("CollectionGenerator", function () {
       "CollectionGenerator"
     );
     const collectionGenerator = await CollectionGenerator.deploy(
-      await controller6022.getAddress()
+      await controller6022.getAddress(),
+      ethers.ZeroAddress
     );
 
     const totalSupply = ethers.parseUnits("5", 16);

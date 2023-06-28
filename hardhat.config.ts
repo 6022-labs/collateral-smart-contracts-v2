@@ -9,11 +9,16 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {},
-    // bsctest: {
-    //   chainId: 97,
-    //   accounts: [privateKey],
-    //   url: "https://bsc-testnet.public.blastapi.io",
-    // },
+    polygon: {
+      chainId: 137,
+      accounts: [privateKey],
+      url: "https://polygon.llamarpc.com",
+    },
+    "polygon-mumbai": {
+      chainId: 80001,
+      accounts: [privateKey],
+      url: "https://polygon-testnet.public.blastapi.io",
+    },
   },
   solidity: {
     version: "0.8.18",

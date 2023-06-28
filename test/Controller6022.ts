@@ -146,7 +146,7 @@ describe("Controller6022", function () {
   // -------------------- CREATE COLLECTION -------------------- //
   describe("Create collection", function () {
     it("Should work", async function () {
-      const { controller6022, collectionGenerator, token6022, owner } =
+      const { controller6022, collectionGenerator, token6022 } =
         await loadFixture(
           deployController6022AndCollectionGeneratorAndTokenFixture
         );

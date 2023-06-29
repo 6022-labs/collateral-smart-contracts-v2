@@ -7,7 +7,7 @@ const WMATIC_ADDRESS = "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889"; // WMATIC f
 async function main() {
   const network = await ethers.provider.getNetwork();
 
-  if (network.name != "polygon-mumbai") {
+  if (network.name != "mumbai") {
     throw new Error("This script should be run on Polygon Mumbai network");
   }
 

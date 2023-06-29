@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 // Uncomment this line to use console.log
@@ -13,6 +13,8 @@ contract Collection6022 is ERC721, ReentrancyGuard {
     uint public constant WITHDRAWAL_PERIOD = 36 * 30 days;
     uint public constant WITHDRAW_NFTS_EARLY = 2;
     uint public constant WITHDRAW_NFTS_LATE = 1;
+
+    uint public totalSupply = 3;
 
     IERC20 public token;
     address public weth;

@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 export async function deploy(totalSupply: bigint, wETHAddress: string) {
   const Controller6022 = await ethers.getContractFactory("Controller6022");
   const controller6022 = await Controller6022.deploy();
+  await controller6022.waitForDeployment();
 
   let controller6022Address = await controller6022.getAddress();
 
@@ -15,6 +16,7 @@ export async function deploy(totalSupply: bigint, wETHAddress: string) {
     controller6022Address,
     wETHAddress
   );
+  await collectionGenerator.waitForDeployment();
 
   let collectionGeneratorAddress = await collectionGenerator.getAddress();
 
@@ -22,6 +24,7 @@ export async function deploy(totalSupply: bigint, wETHAddress: string) {
 
   const Token6022 = await ethers.getContractFactory("Token6022");
   const token6022 = await Token6022.deploy(totalSupply);
+  await token6022.waitForDeployment();
 
   let token6022Address = await token6022.getAddress();
 
@@ -33,6 +36,7 @@ export async function deploy(totalSupply: bigint, wETHAddress: string) {
   let receipt = await tx.wait();
 
   if (!receipt?.status) {
+    console.log(receipt?.toJSON());
     throw new Error("updateCollectionGenerator failed");
   }
 
@@ -42,6 +46,7 @@ export async function deploy(totalSupply: bigint, wETHAddress: string) {
   receipt = await tx.wait();
 
   if (!receipt?.status) {
+    console.log(receipt?.toJSON());
     throw new Error("updateCollectionGenerator failed");
   }
 
@@ -51,6 +56,7 @@ export async function deploy(totalSupply: bigint, wETHAddress: string) {
   receipt = await tx.wait();
 
   if (!receipt?.status) {
+    console.log(receipt?.toJSON());
     throw new Error("updateCollectionGenerator failed");
   }
 

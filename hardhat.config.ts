@@ -1,7 +1,14 @@
-import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import { HardhatUserConfig } from "hardhat/config";
+import deployEverything from "./tasks/deploy-everything";
+import deployCollectionGenerator from "./tasks/deploy-collection-generator";
 
 require("dotenv").config();
+
+deployEverything.setDescription("Deploys all contracts to the network");
+deployCollectionGenerator.setDescription(
+  "Deploys the CollectionGenerator contract to the network"
+);
 
 const privateKey = process?.env?.PRIVATE_KEY?.trim() ?? "";
 const polygonScanApiKey = process?.env?.POLYGONSCAN_API_KEY?.trim() ?? "";
@@ -37,9 +44,10 @@ const config: HardhatUserConfig = {
     },
   },
   paths: {
-    sources: "./contracts",
+    root: "./",
     tests: "./test",
     cache: "./cache",
+    sources: "./contracts",
     artifacts: "./artifacts",
   },
 };

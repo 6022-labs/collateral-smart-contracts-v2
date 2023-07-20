@@ -44,14 +44,15 @@ describe("CollectionGenerator", function () {
 
   describe("Generate collection", function () {
     it("Should not work directly", async function () {
-      const { collectionGenerator, token6022 } = await loadFixture(
+      const { collectionGenerator, token6022, owner } = await loadFixture(
         deployCollectionGeneratorAndTokenFixture
       );
 
       await expect(
         collectionGenerator.createCollection(
           "Test Collection",
-          await token6022.getAddress()
+          await token6022.getAddress(),
+          owner.address
         )
       ).to.be.revertedWith("Only the controller can create collections");
     });

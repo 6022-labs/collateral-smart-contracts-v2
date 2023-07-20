@@ -4,6 +4,7 @@ import {
   reset,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { EventLog } from "ethers";
 
 describe("Controller6022", function () {
   async function deployController6022AndCollectionGeneratorAndTokenFixture() {
@@ -23,7 +24,7 @@ describe("Controller6022", function () {
       ethers.ZeroAddress
     );
 
-    const totalSupply = ethers.parseUnits("5", 16);
+    const totalSupply = ethers.parseEther("5000000");
 
     const Token6022 = await ethers.getContractFactory("Token6022");
     const token6022 = await Token6022.deploy(totalSupply);
@@ -181,6 +182,87 @@ describe("Controller6022", function () {
           await token6022.getAddress()
         )
       ).be.revertedWith("Token not allowed");
+    });
+  });
+
+  // -------------------- GET COLLECTIONS BY CREATOR -------------------- //
+  describe("Get collections by creator", function () {
+    it("Should work", async function () {
+      const { controller6022, collectionGenerator, token6022, owner } =
+        await loadFixture(
+          deployController6022AndCollectionGeneratorAndTokenFixture
+        );
+
+      await controller6022.updateCollectionGenerator(
+        await collectionGenerator.getAddress()
+      );
+
+      controller6022.allowToken(await token6022.getAddress());
+
+      let tx = await controller6022.createCollection(
+        "Test collection",
+        await token6022.getAddress()
+      );
+
+      let receipt = await tx.wait();
+
+      let event = <EventLog>(
+        receipt?.logs.filter((x) => x instanceof EventLog)[0]
+      );
+      let arg1 = event?.args.at(0);
+
+      let creatorCollections = await controller6022.getCollectionsByCreator(
+        owner.address
+      );
+
+      expect(creatorCollections.length).to.be.equal(1);
+      expect(creatorCollections[0]).to.be.equal(arg1);
+    });
+  });
+
+  // -------------------- GET COLLECTIONS BY OWNER -------------------- //
+  describe("Get collections by owner", function () {
+    it("Should work", async function () {
+      const { controller6022, collectionGenerator, token6022, owner } =
+        await loadFixture(
+          deployController6022AndCollectionGeneratorAndTokenFixture
+        );
+
+      await controller6022.updateCollectionGenerator(
+        await collectionGenerator.getAddress()
+      );
+
+      controller6022.allowToken(await token6022.getAddress());
+
+      let tx = await controller6022.createCollection(
+        "Test collection",
+        await token6022.getAddress()
+      );
+
+      let receipt = await tx.wait();
+
+      let event = <EventLog>(
+        receipt?.logs.filter((x) => x instanceof EventLog)[0]
+      );
+      let arg1 = event?.args.at(0);
+
+      let ownerCollections = await controller6022.getCollectionsByOwner(
+        owner.address
+      );
+      expect(ownerCollections.length).to.be.equal(0);
+
+      const Collection6022 = await ethers.getContractFactory("Collection6022");
+      const collection6022Contract = Collection6022.attach(arg1) as any;
+
+      await token6022.approve(arg1, ethers.parseEther("1"));
+      await collection6022Contract.depositToken(ethers.parseEther("1"));
+
+      ownerCollections = await controller6022.getCollectionsByOwner(
+        owner.address
+      );
+
+      expect(ownerCollections.length).to.be.equal(1);
+      expect(ownerCollections[0]).to.be.equal(arg1);
     });
   });
 });

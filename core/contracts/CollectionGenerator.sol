@@ -17,9 +17,9 @@ contract CollectionGenerator is ICollectionGenerator {
         WETH = WETH_;
     }
 
-    function createCollection(string memory name, IERC20 token) public override returns (address) {
+    function createCollection(string memory name, IERC20 token, address creator) public override returns (address) {
         require (msg.sender == controllerAddress, "Only the controller can create collections");
         
-        return address(new Collection6022(name, token, WETH));
+        return address(new Collection6022(name, token, creator, WETH));
     }
 }

@@ -25,6 +25,7 @@ describe("Collection6022", function () {
     const collection6022 = await Collection6022.deploy(
       "Test Collection 6022",
       WMATIC_ADDRESS,
+      owner.address,
       WMATIC_ADDRESS
     );
 
@@ -46,7 +47,8 @@ describe("Collection6022", function () {
     const collection6022 = await Collection6022.deploy(
       "Test Collection 6022",
       await token6022.getAddress(),
-      "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270" // WMATIC from the forked network
+      owner.address,
+      WMATIC_ADDRESS
     );
 
     return { collection6022, token6022, owner, otherAccount };
@@ -54,9 +56,14 @@ describe("Collection6022", function () {
 
   describe("Deployment", function () {
     it("Should work", async function () {
-      const { collection6022 } = await deployCollectionWithTokenFixture();
+      const { collection6022, owner } =
+        await deployCollectionWithTokenFixture();
 
       expect(await collection6022.isLocked()).to.be.false;
+      expect(await collection6022.creator()).to.be.equal(owner.address);
+      expect(
+        await collection6022.balanceOf(await collection6022.getAddress())
+      ).to.equal(3);
     });
   });
 

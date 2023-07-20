@@ -6,6 +6,6 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface ICollectionGenerator {
-    function createCollection(string memory name, IERC20 token, address creator) external returns (address);
+interface ICollection6022 {
+    function creator() external view returns (address);
 }

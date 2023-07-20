@@ -7,12 +7,13 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./interfaces/ICollection6022.sol";
 
-contract Collection6022 is ERC721, ReentrancyGuard {
+contract Collection6022 is ERC721, ReentrancyGuard, ICollection6022 {
     uint public constant MAX_TOKENS = 3;
-    // uint public constant WITHDRAWAL_PERIOD = 36 * 30 days;
+    uint public constant WITHDRAWAL_PERIOD = 36 * 30 days;
     
-    uint public constant WITHDRAWAL_PERIOD = 5 * 1 minutes; // ONLY FOR THE DEMO
+    // uint public constant WITHDRAWAL_PERIOD = 5 * 1 minutes; // ONLY FOR THE DEMO
 
     uint public constant WITHDRAW_NFTS_EARLY = 2;
     uint public constant WITHDRAW_NFTS_LATE = 1;
@@ -27,10 +28,13 @@ contract Collection6022 is ERC721, ReentrancyGuard {
     
     bool public isLocked;
     uint256 public depositTimestamp;
+    uint256 public creationTimestamp;
+    address public creator;
 
-    constructor(string memory name_, IERC20 token_, address weth_) ERC721(name_, "6022") {
-        token = token_;
+    constructor(string memory name_, IERC20 token_, address creator_, address weth_) ERC721(name_, "6022") {
         weth = weth_;
+        token = token_;
+        creator = creator_;
 
         etherBalance = 0;
         tokenBalance = 0;

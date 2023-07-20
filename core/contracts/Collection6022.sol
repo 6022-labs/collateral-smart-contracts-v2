@@ -12,7 +12,7 @@ contract Collection6022 is ERC721, ReentrancyGuard {
     uint public constant MAX_TOKENS = 3;
     // uint public constant WITHDRAWAL_PERIOD = 36 * 30 days;
     
-    uint public constant WITHDRAWAL_PERIOD = 5 * 36 seconds; // ONLY FOR THE DEMO
+    uint public constant WITHDRAWAL_PERIOD = 5 * 1 minutes; // ONLY FOR THE DEMO
 
     uint public constant WITHDRAW_NFTS_EARLY = 2;
     uint public constant WITHDRAW_NFTS_LATE = 1;

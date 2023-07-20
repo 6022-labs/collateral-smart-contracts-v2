@@ -1,37 +1,13 @@
-# 6022 Protocol
+# PROTOCOL 6022
 
-## 0. Install
+This repository contains the source code for the protocol 6022.
 
-To use the project you must install hardhat package:
+## Details
 
-```bash
-npm install -g hardhat
-```
+The protocol 6022 is a protocol for insurer and policyholders in order to deposit founds in a secure way. The protocol is based on the blockchain technology and the Polygon network.
 
-## 1. Deploy
+---
 
-To deploy you can use tasks that are already defined in the tasks folder. To deploy the contract you can use the following command:
-
-```bash
-npx hardhat deploy-everything --total-supply <supply> --weth-address <weth-address> --network <network>
-```
-
-To only deploy a contract generator and assign it to the controller :
-
-```bash
-npx hardhat deploy-collection-generator --controller-6022-address <address> --weth-address <weth-address> --network <network>
-```
-
-## 2. Documentation
-
-Here the link to the documentation written by Unblocked team :
-
-https://lofty-pyramid-206.notion.site/Documentation-97ff50ea2f694e09ab437af3a22cbfdd?pvs=4
-
-## 3. Tests
-
-To run the tests you can use the following command:
-
-```bash
-npx hardhat test
-```
+The repository is a monorepo for the entire project.
+See the [core](./core) folder for smart contract details.
+See the [interface](./interface) folder for the interface details.

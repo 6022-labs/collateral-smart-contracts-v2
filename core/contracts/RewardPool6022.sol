@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// Uncomment this line to use console.log
+// import "hardhat/console.sol";
+
 import {Vault6022} from "./Vault6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
@@ -33,6 +36,12 @@ contract RewardPool6022 is IRewardPool6022 {
     /// @dev Emitted when a vault is pushed
     event VaultCreated(address vault);
 
+    /// @dev Emitted when a vault rewards are harvested
+    event Harvested(address vault);
+
+    /// @dev Emitted when a vault rewards are reinvested
+    event Reinvested(address vault);
+
     // ----------------- ERRORS ----------------- //
     error CallerNotVault();
 
@@ -60,9 +69,11 @@ contract RewardPool6022 is IRewardPool6022 {
         uint256 _backedValueProtocolToken) public {
 
         uint256 _protocolTokenFees = _backedValueProtocolToken / FEES_PERCENT;
-
-        protocolToken.transferFrom(msg.sender, address(this), _protocolTokenFees);
-        _updateRewards(_protocolTokenFees);
+        
+        if (allVaults.length > 0) {
+            protocolToken.transferFrom(msg.sender, address(this), _protocolTokenFees);
+            _updateRewards(_protocolTokenFees);
+        }
 
         Vault6022 vault = new Vault6022(
             msg.sender, 
@@ -86,6 +97,8 @@ contract RewardPool6022 is IRewardPool6022 {
         rewards[msg.sender] = 0;
 
         protocolToken.transfer(to, valueToHarvest);
+
+        emit Harvested(msg.sender);
     }
 
     function reinvestRewards() external onlyVault {
@@ -93,6 +106,8 @@ contract RewardPool6022 is IRewardPool6022 {
         rewards[msg.sender] = 0;
 
         _updateRewards(valueToReinvest);
+
+        emit Reinvested(msg.sender);
     }
 
     function _updateRewards(uint256 amount) internal {
@@ -100,7 +115,7 @@ contract RewardPool6022 is IRewardPool6022 {
 
         for (uint i = 0; i < allVaults.length; i++) {
             Vault6022 vault = Vault6022(allVaults[i]);
-            if (vault.depositTimestamp() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
+            if (vault.lockedUntil() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
                 totalRewardableVaults += recoltedFees[address(vault)];
             }
         }
@@ -109,7 +124,7 @@ contract RewardPool6022 is IRewardPool6022 {
 
         for (uint i = 0; i < allVaults.length; i++) {
             Vault6022 vault = Vault6022(allVaults[i]);
-            if (vault.depositTimestamp() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
+            if (vault.lockedUntil() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
                 rewards[address(vault)] += amount * recoltedFees[address(vault)] / totalRewardableVaults;
             }
         }

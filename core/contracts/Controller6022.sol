@@ -5,10 +5,11 @@ pragma solidity ^0.8.20;
 // import "hardhat/console.sol";
 
 import {IVault6022} from "./interfaces/IVault6022.sol";
+import {IController6022} from "./interfaces/IController6022.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Controller6022 is AccessControl {
+contract Controller6022 is AccessControl, IController6022 {
     // ----------------- CONST ----------------- //
     /// @notice The role that allows an account to use admin functions
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -23,8 +24,8 @@ contract Controller6022 is AccessControl {
     /// @notice List of all reward pools
     address[] public allRewardPools;
 
-    /// @notice Mapping of all rewards pools related to creator
-    mapping(address => address) public rewardsPools;
+    /// @notice Mapping of all reward pools
+    mapping(address => bool) public isRewardPool;
 
     // ----------------- EVENTS ----------------- //
     /// @dev Emitted when a admin is added
@@ -43,22 +44,43 @@ contract Controller6022 is AccessControl {
     event VaultPushed(address vault);
 
     /// @dev Emitted when a reward pool is pushed
-    event RewardPoolPushed(address rewardPool, address creator);
+    event RewardPoolPushed(address rewardPool);
 
-    // ----------------- FUNC ----------------- //
+    // ----------------- ERRORS ----------------- //
+    /// @dev Error when the caller is not a reward pool
+    error NotRewardPool();
+
+    constructor() {
+        _grantRole(ADMIN_ROLE, msg.sender);
+        emit AdminAdded(msg.sender);
+    }
+
+    // ----------------- MODIFIERS ----------------- //
+    modifier onlyRewardPool() {
+        if (!isRewardPool[msg.sender]) {
+            revert NotRewardPool();
+        }
+        _;
+    }
+
+    // ----------------- FUNCS ----------------- //
     function allVaultsLength() external view returns (uint) {
         return allVaults.length;
     }
 
-    function pushVault(address _vault) external onlyRole(FACTORY_ROLE) {
+    function allRewardPoolsLength() external view returns (uint) {
+        return allRewardPools.length;
+    }
+
+    function pushVault(address _vault) external onlyRewardPool {
         allVaults.push(_vault);
         emit VaultPushed(_vault);
     }
 
-    function pushRewardPool(address _rewardPool, address _creator) external onlyRole(FACTORY_ROLE) {
+    function pushRewardPool(address _rewardPool) external onlyRole(FACTORY_ROLE) {
         allRewardPools.push(_rewardPool);
-        rewardsPools[_creator] = _rewardPool;
-        emit RewardPoolPushed(_rewardPool, _creator);
+        isRewardPool[_rewardPool] = true;
+        emit RewardPoolPushed(_rewardPool);
     }
 
     function addFactory(address account) external onlyRole(ADMIN_ROLE) {

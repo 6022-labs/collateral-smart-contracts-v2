@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 // Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 import {IVault6022} from "./interfaces/IVault6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
@@ -52,6 +52,9 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     // ----------------- ERRORS ----------------- //
     /// @dev Error when user tries to deposit after the lockedUntil timestamp
     error TooLateToDeposit();
+
+    /// @dev Error when the contract is not deposited
+    error ContractNotDeposited();
 
     /// @dev Error when trying to deposit without enough NFTs
     error NotEnoughtNFTToDeposit();
@@ -105,6 +108,10 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     }
 
     function withdraw() public nonReentrant {
+        if (!isDeposited) {
+            revert ContractNotDeposited();
+        }
+
         uint256 requiredNFTs = getRequiredNftsToWithdraw();
         if (requiredNFTs > balanceOf(msg.sender)) {
             revert NotEnoughtNFTToWithdraw();
@@ -127,6 +134,6 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     }
 
     function getRequiredNftsToWithdraw() public view returns (uint256) {
-        return block.timestamp <= lockedUntil ? WITHDRAW_NFTS_LATE : WITHDRAW_NFTS_EARLY;
+        return block.timestamp < lockedUntil ? WITHDRAW_NFTS_EARLY : WITHDRAW_NFTS_LATE;
     }
 }

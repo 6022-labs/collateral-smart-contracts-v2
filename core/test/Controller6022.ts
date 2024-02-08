@@ -1,13 +1,17 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { EventLog } from "ethers";
+import { Vault6022, Controller6022, RewardPool6022 } from "../typechain-types";
 import {
   reset,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { EventLog } from "ethers";
 
 describe("Controller6022", function () {
-  async function deployController6022AndCollectionGeneratorAndTokenFixture() {
+  // We define a fixture to reuse the same setup in every test.
+  // We use loadFixture to run this setup once, snapshot that state,
+  // and reset Hardhat Network to that snapshot in every test.
+  async function deployController() {
     await reset();
 
     // Contracts are deployed using the first signer/account by default
@@ -16,253 +20,296 @@ describe("Controller6022", function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const CollectionGenerator = await ethers.getContractFactory(
-      "CollectionGenerator"
-    );
-    const collectionGenerator = await CollectionGenerator.deploy(
-      await controller6022.getAddress(),
-      ethers.ZeroAddress
-    );
-
-    const totalSupply = ethers.parseEther("5000000");
-
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(totalSupply);
-
     return {
       controller6022,
-      collectionGenerator,
-      token6022,
       owner,
       otherAccount,
     };
   }
 
-  async function deployController6022AndCollectionGeneratorFixture() {
-    await reset();
+  async function deployRewardPool(controller: Controller6022) {
+    const Token6022 = await ethers.getContractFactory("Token6022");
+    const token6022 = await Token6022.deploy(ethers.parseEther("100000"));
 
-    // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await ethers.getSigners();
-
-    const Controller6022 = await ethers.getContractFactory("Controller6022");
-    const controller6022 = await Controller6022.deploy();
-
-    const CollectionGenerator = await ethers.getContractFactory(
-      "CollectionGenerator"
+    const RewardPoolFactory6022 = await ethers.getContractFactory(
+      "RewardPoolFactory6022"
     );
-    const collectionGenerator = await CollectionGenerator.deploy(
-      await controller6022.getAddress(),
-      ethers.ZeroAddress
+    const rewardPoolFactory6022 = await RewardPoolFactory6022.deploy(
+      await controller.getAddress(),
+      await token6022.getAddress()
     );
 
-    return { controller6022, collectionGenerator, owner, otherAccount };
+    await controller.addFactory(await rewardPoolFactory6022.getAddress());
+
+    const tx = await rewardPoolFactory6022.createRewardPool();
+
+    const txReceipt = await tx.wait();
+
+    const events = <EventLog[]>(
+      txReceipt?.logs.filter((x) => x instanceof EventLog)
+    );
+    const rewardPoolCreatedEvent = events.filter(
+      (x) =>
+        x.fragment.name ===
+        rewardPoolFactory6022.filters["RewardPoolCreated(address)"].name
+    )[0];
+
+    const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
+    const rewardPool6022 = RewardPool6022.attach(
+      rewardPoolCreatedEvent.args[0]
+    ) as RewardPool6022;
+
+    await token6022.approve(
+      await rewardPool6022.getAddress(),
+      ethers.parseEther("100000")
+    );
+
+    return rewardPool6022;
   }
 
-  async function deployController6022Fixture() {
-    await reset();
+  async function deployVault(rewardPool: RewardPool6022) {
+    const lockedUntil = Date.now() + 1000 * 60 * 60;
 
-    // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await ethers.getSigners();
+    const tx = await rewardPool.createVault(
+      "TestVault",
+      Math.floor(lockedUntil),
+      ethers.parseEther("1"),
+      await rewardPool.protocolToken(),
+      ethers.parseEther("1")
+    );
 
-    const Controller6022 = await ethers.getContractFactory("Controller6022");
-    const controller6022 = await Controller6022.deploy();
+    const txReceipt = await tx.wait();
 
-    return { controller6022, owner, otherAccount };
+    const events = <EventLog[]>(
+      txReceipt?.logs.filter((x) => x instanceof EventLog)
+    );
+    const vaultCreatedEvent = events.filter(
+      (x) =>
+        x.fragment.name === rewardPool.filters["VaultCreated(address)"].name
+    )[0];
+
+    const Vault6022 = await ethers.getContractFactory("Vault6022");
+    return Vault6022.attach(vaultCreatedEvent.args[0]) as Vault6022;
   }
 
-  // -------------------- DEPLOYMENT -------------------- //
-  describe("Deployment", function () {
+  describe("Deployement", function () {
     it("Should work", async function () {
-      const { controller6022, owner } = await loadFixture(
-        deployController6022Fixture
-      );
-
-      expect(await controller6022.getAddress()).not.to.be.null;
-      expect(await controller6022.owner()).to.be.equal(owner.address);
+      const { controller6022 } = await loadFixture(deployController);
+      expect(await controller6022.getAddress()).not.be.undefined;
     });
   });
 
-  // -------------------- UPDATE COLLECTION GENERATOR -------------------- //
-  describe("Update collection generator", function () {
-    it("Should work when i'm the owner", async function () {
-      const { controller6022, collectionGenerator } = await loadFixture(
-        deployController6022AndCollectionGeneratorFixture
-      );
-
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
-      );
-
-      expect(await controller6022.getCollectionGeneratorAddress()).to.be.equal(
-        await collectionGenerator.getAddress()
-      );
-    });
-
-    it("Should fail when i'm not the owner", async function () {
-      const { controller6022, collectionGenerator, otherAccount } =
-        await loadFixture(deployController6022AndCollectionGeneratorFixture);
+  describe("addAdmin", function () {
+    it("Should fail if not called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
 
       await expect(
         controller6022
           .connect(otherAccount)
-          .updateCollectionGenerator(await collectionGenerator.getAddress())
-      ).to.be.reverted;
+          .addAdmin(await otherAccount.getAddress())
+      ).to.be.revertedWithCustomError(
+        controller6022,
+        "AccessControlUnauthorizedAccount"
+      );
+    });
+
+    it("Should work if called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
+
+      await expect(
+        controller6022.addAdmin(await otherAccount.getAddress())
+      ).to.emit(controller6022, "AdminAdded");
     });
   });
 
-  // -------------------- ALLOW TOKEN -------------------- //
-  describe("Allow token", function () {
-    it("Should work when i'm the owner", async function () {
-      const { controller6022, collectionGenerator, token6022 } =
-        await loadFixture(
-          deployController6022AndCollectionGeneratorAndTokenFixture
-        );
-
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
-      );
-
-      await expect(controller6022.allowToken(await token6022.getAddress())).not
-        .be.reverted;
-    });
-
-    it("Should fail when i'm not the owner", async function () {
-      const { controller6022, collectionGenerator, token6022, otherAccount } =
-        await loadFixture(
-          deployController6022AndCollectionGeneratorAndTokenFixture
-        );
-
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
-      );
+  describe("removeAdmin", function () {
+    it("Should fail if not called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
 
       await expect(
         controller6022
           .connect(otherAccount)
-          .allowToken(await token6022.getAddress())
-      ).be.reverted;
-    });
-  });
-
-  // -------------------- CREATE COLLECTION -------------------- //
-  describe("Create collection", function () {
-    it("Should work", async function () {
-      const { controller6022, collectionGenerator, token6022 } =
-        await loadFixture(
-          deployController6022AndCollectionGeneratorAndTokenFixture
-        );
-
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
+          .removeAdmin(await otherAccount.getAddress())
+      ).to.be.revertedWithCustomError(
+        controller6022,
+        "AccessControlUnauthorizedAccount"
       );
+    });
 
-      controller6022.allowToken(await token6022.getAddress());
+    it("Should work if called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
+
+      await controller6022.addAdmin(await otherAccount.getAddress());
 
       await expect(
-        controller6022.createCollection(
-          "Test collection",
-          await token6022.getAddress()
-        )
-      ).to.emit(controller6022, "CollectionCreated");
+        controller6022.removeAdmin(await otherAccount.getAddress())
+      ).to.emit(controller6022, "AdminRemoved");
     });
+  });
 
-    it("Should fail when the token is not allowed", async function () {
-      const { controller6022, collectionGenerator, token6022 } =
-        await loadFixture(
-          deployController6022AndCollectionGeneratorAndTokenFixture
-        );
-
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
-      );
+  describe("addFactory", function () {
+    it("Should fail if not called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
 
       await expect(
-        controller6022.createCollection(
-          "Test collection",
-          await token6022.getAddress()
-        )
-      ).be.revertedWith("Token not allowed");
+        controller6022
+          .connect(otherAccount)
+          .addFactory(await otherAccount.getAddress())
+      ).to.be.revertedWithCustomError(
+        controller6022,
+        "AccessControlUnauthorizedAccount"
+      );
+    });
+
+    it("Should work if called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
+
+      await expect(
+        controller6022.addFactory(await otherAccount.getAddress())
+      ).to.emit(controller6022, "FactoryAdded");
     });
   });
 
-  // -------------------- GET COLLECTIONS BY CREATOR -------------------- //
-  describe("Get collections by creator", function () {
-    it("Should work", async function () {
-      const { controller6022, collectionGenerator, token6022, owner } =
-        await loadFixture(
-          deployController6022AndCollectionGeneratorAndTokenFixture
-        );
+  describe("removeFactory", function () {
+    it("Should fail if not called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
 
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
+      await expect(
+        controller6022
+          .connect(otherAccount)
+          .removeFactory(await otherAccount.getAddress())
+      ).to.be.revertedWithCustomError(
+        controller6022,
+        "AccessControlUnauthorizedAccount"
       );
+    });
 
-      controller6022.allowToken(await token6022.getAddress());
+    it("Should work if called by admin", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
 
-      let tx = await controller6022.createCollection(
-        "Test collection",
-        await token6022.getAddress()
-      );
+      await controller6022.addFactory(await otherAccount.getAddress());
 
-      let receipt = await tx.wait();
-
-      let event = <EventLog>(
-        receipt?.logs.filter((x) => x instanceof EventLog)[0]
-      );
-      let arg1 = event?.args.at(0);
-
-      let creatorCollections = await controller6022.getCollectionsByCreator(
-        owner.address
-      );
-
-      expect(creatorCollections.length).to.be.equal(1);
-      expect(creatorCollections[0]).to.be.equal(arg1);
+      await expect(
+        controller6022.removeFactory(await otherAccount.getAddress())
+      ).to.emit(controller6022, "FactoryRemoved");
     });
   });
 
-  // -------------------- GET COLLECTIONS BY OWNER -------------------- //
-  describe("Get collections by owner", function () {
-    it("Should work", async function () {
-      const { controller6022, collectionGenerator, token6022, owner } =
-        await loadFixture(
-          deployController6022AndCollectionGeneratorAndTokenFixture
-        );
+  describe("pushVault", function () {
+    it("Should fail if not called by a reward pool", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
 
-      await controller6022.updateCollectionGenerator(
-        await collectionGenerator.getAddress()
+      await expect(
+        controller6022.pushVault(await otherAccount.getAddress())
+      ).to.be.revertedWithCustomError(controller6022, "NotRewardPool");
+    });
+
+    it("Should work if called by a reward pool", async function () {
+      const { controller6022, otherAccount, owner } =
+        await loadFixture(deployController);
+
+      await controller6022.addFactory(await owner.getAddress());
+      await controller6022.pushRewardPool(await owner.getAddress());
+
+      await expect(
+        controller6022.pushVault(await otherAccount.getAddress())
+      ).to.emit(controller6022, "VaultPushed");
+    });
+  });
+
+  describe("pushRewardPool", function () {
+    it("Should fail if not called by factory", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
+
+      await expect(
+        controller6022
+          .connect(otherAccount)
+          .pushRewardPool(await otherAccount.getAddress())
+      ).to.be.revertedWithCustomError(
+        controller6022,
+        "AccessControlUnauthorizedAccount"
+      );
+    });
+
+    it("Should work if called by factory", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
+
+      await controller6022.addFactory(await otherAccount.getAddress());
+
+      await expect(
+        controller6022
+          .connect(otherAccount)
+          .pushRewardPool(await otherAccount.getAddress())
+      ).to.emit(controller6022, "RewardPoolPushed");
+    });
+  });
+
+  describe("getVaultsByOwner", function () {
+    it("Should work and return one vault", async function () {
+      const { controller6022, owner } = await loadFixture(deployController);
+
+      const rewardPool6022 = await deployRewardPool(controller6022);
+      const firstVault = await deployVault(rewardPool6022);
+
+      const vaults = await controller6022.getVaultsByOwner(
+        await owner.getAddress()
+      );
+      expect(vaults.length).to.equal(1);
+      expect(vaults[0]).to.equal(await firstVault.getAddress());
+    });
+
+    it("Should work and return nothing", async function () {
+      const { controller6022, otherAccount } =
+        await loadFixture(deployController);
+
+      const rewardPool6022 = await deployRewardPool(controller6022);
+      await deployVault(rewardPool6022);
+
+      const vaults = await controller6022.getVaultsByOwner(
+        await otherAccount.getAddress()
+      );
+      expect(vaults.length).to.equal(0);
+    });
+
+    it("Should work and return multiple vaults", async function () {
+      const { controller6022, owner, otherAccount } =
+        await loadFixture(deployController);
+
+      const rewardPool6022 = await deployRewardPool(controller6022);
+      const firstVault = await deployVault(rewardPool6022);
+      const secondVault = await deployVault(rewardPool6022);
+
+      let vaults = await controller6022.getVaultsByOwner(
+        await otherAccount.getAddress()
+      );
+      expect(vaults.length).to.equal(0);
+
+      await firstVault.transferFrom(
+        owner.getAddress(),
+        otherAccount.getAddress(),
+        1
+      );
+      await secondVault.transferFrom(
+        owner.getAddress(),
+        otherAccount.getAddress(),
+        1
       );
 
-      controller6022.allowToken(await token6022.getAddress());
-
-      let tx = await controller6022.createCollection(
-        "Test collection",
-        await token6022.getAddress()
+      vaults = await controller6022.getVaultsByOwner(
+        await otherAccount.getAddress()
       );
-
-      let receipt = await tx.wait();
-
-      let event = <EventLog>(
-        receipt?.logs.filter((x) => x instanceof EventLog)[0]
-      );
-      let arg1 = event?.args.at(0);
-
-      let ownerCollections = await controller6022.getCollectionsByOwner(
-        owner.address
-      );
-      expect(ownerCollections.length).to.be.equal(0);
-
-      const Collection6022 = await ethers.getContractFactory("Collection6022");
-      const collection6022Contract = Collection6022.attach(arg1) as any;
-
-      await token6022.approve(arg1, ethers.parseEther("1"));
-      await collection6022Contract.depositToken(ethers.parseEther("1"));
-
-      ownerCollections = await controller6022.getCollectionsByOwner(
-        owner.address
-      );
-
-      expect(ownerCollections.length).to.be.equal(1);
-      expect(ownerCollections[0]).to.be.equal(arg1);
+      expect(vaults.length).to.equal(2);
     });
   });
 });

@@ -23,7 +23,10 @@ contract RewardPoolFactory6022 is IRewardPoolFactory6022 {
     }
 
     function createRewardPool() external {
-        RewardPool6022 rewardPool = new RewardPool6022(address(controller), protocolTokenAddress);
+        RewardPool6022 rewardPool = new RewardPool6022(
+            msg.sender,
+            address(controller), 
+            protocolTokenAddress);
         
         controller.pushRewardPool(address(rewardPool));
         emit RewardPoolCreated(address(rewardPool));

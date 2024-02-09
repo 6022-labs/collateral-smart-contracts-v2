@@ -98,6 +98,26 @@ describe("RewardPool6022", function () {
   }
 
   describe("createVault", function () {
+    it("Should fail if the caller is not the owner", async function () {
+      const { rewardPool6022, otherAccount } =
+        await loadFixture(deployRewardPool6022);
+
+      await expect(
+        rewardPool6022
+          .connect(otherAccount)
+          .createVault(
+            "TestVault",
+            lockedUntil,
+            ethers.parseEther("1"),
+            await rewardPool6022.protocolToken(),
+            ethers.parseEther("1")
+          )
+      ).to.revertedWithCustomError(
+        rewardPool6022,
+        "OwnableUnauthorizedAccount"
+      );
+    });
+
     it("Should fail the second time without approving token usage", async function () {
       const { rewardPool6022, token6022 } =
         await loadFixture(deployRewardPool6022);

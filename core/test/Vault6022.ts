@@ -29,6 +29,7 @@ describe("Vault6022", function () {
 
     const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
     const rewardPool6022 = await RewardPool6022.deploy(
+      await owner.getAddress(),
       await controller6022.getAddress(),
       await token6022.getAddress()
     );

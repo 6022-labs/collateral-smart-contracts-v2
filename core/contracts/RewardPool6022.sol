@@ -7,9 +7,10 @@ pragma solidity ^0.8.20;
 import {Vault6022} from "./Vault6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract RewardPool6022 is IRewardPool6022 {
+contract RewardPool6022 is Ownable, IRewardPool6022 {
     // ----------------- CONST ----------------- //
     uint8 public constant FEES_PERCENT = 10;
 
@@ -33,19 +34,22 @@ contract RewardPool6022 is IRewardPool6022 {
     mapping(address => uint256) public recoltedFees;
 
     // ----------------- EVENTS ----------------- //
-    /// @dev Emitted when a vault is pushed
-    event VaultCreated(address vault);
-
     /// @dev Emitted when a vault rewards are harvested
     event Harvested(address vault);
 
     /// @dev Emitted when a vault rewards are reinvested
     event Reinvested(address vault);
 
+    /// @dev Emitted when a vault is pushed
+    event VaultCreated(address vault);
+
     // ----------------- ERRORS ----------------- //
     error CallerNotVault();
 
-    constructor(address _controllerAddress, address _protocolTokenAddress) {
+    constructor(
+        address _creator,
+        address _controllerAddress, 
+        address _protocolTokenAddress) Ownable(_creator) {
         protocolToken = IERC20(_protocolTokenAddress);
         controller = IController6022(_controllerAddress);
     }
@@ -66,7 +70,7 @@ contract RewardPool6022 is IRewardPool6022 {
         uint256 _lockedUntil, 
         uint256 _wantedAmount,
         address _wantedTokenAddress, 
-        uint256 _backedValueProtocolToken) public {
+        uint256 _backedValueProtocolToken) public onlyOwner {
 
         uint256 _protocolTokenFees = _backedValueProtocolToken / FEES_PERCENT;
         

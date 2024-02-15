@@ -1,29 +1,58 @@
-import Switch from "./Switch";
+import HeaderLink from "./HeaderLink";
+import HeaderButton from "./HeaderButton";
+import { useLocation } from "react-router-dom";
 import WalletConnectButton from "./WalletConnectButton";
-import { useScreenContext } from "../contexts/ScreenContext";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+const Links = [
+  {
+    href: "/",
+    label: "Dashboard",
+  },
+  {
+    href: "/markets",
+    label: "Markets",
+  },
+  {
+    href: "/stake",
+    label: "Stake",
+  },
+  {
+    href: "/governance",
+    label: "Governance",
+  },
+];
 
 export default function Header() {
-  const { screenState, switchScreenState } = useScreenContext();
+  const location = useLocation();
 
   return (
-    <header className="py-4 bg-primary text-white lg:px-20 2xl:px-36">
+    <header className="py-1 bg-primary text-white px-8 border-b-2 border-b-secondary">
       <div className="flex items-center">
         <div className="flex w-full justify-start items-center">
-          <img className="h-12" src="/logo.svg" alt="logo" />
+          <img className="h-10" src="/logo.svg" alt="logo" />
+          <nav>
+            <ul className="flex gap-x-4 ml-8">
+              {Links.map((link) => {
+                return (
+                  <HeaderLink
+                    key={link.href}
+                    href={link.href}
+                    current={link.href == location.pathname}
+                  >
+                    {link.label}
+                  </HeaderLink>
+                );
+              })}
+            </ul>
+          </nav>
         </div>
-        <div className="flex justify-center gap-x-10 items-center">
-          <div className="flex items-center gap-x-4">
-            <span className="font-semibold">Client</span>
-            <Switch
-              className="h-min"
-              setEnabled={() => {
-                switchScreenState();
-              }}
-              enabled={screenState === "insurer"}
-            />
-            <span className="font-semibold">Insurer</span>
-          </div>
+        <div className="flex justify-center gap-x-2 items-center">
           <WalletConnectButton />
+          <HeaderButton onClick={() => {}} type="button">
+            <FontAwesomeIcon icon={faGear} />
+          </HeaderButton>
         </div>
       </div>
     </header>

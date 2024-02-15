@@ -1,4 +1,4 @@
-import Button from "./Button";
+import HeaderButton from "./HeaderButton";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function WalletConnectButton() {
@@ -32,24 +32,24 @@ export default function WalletConnectButton() {
             {(() => {
               if (!connected) {
                 return (
-                  <Button type="button" onClick={openConnectModal}>
+                  <HeaderButton type="button" onClick={openConnectModal}>
                     Connect Wallet
-                  </Button>
+                  </HeaderButton>
                 );
               }
 
               if (chain.unsupported) {
                 return (
-                  <Button onClick={openChainModal} type="button">
+                  <HeaderButton onClick={openChainModal} type="button">
                     Wrong Network
-                  </Button>
+                  </HeaderButton>
                 );
               }
 
               return (
-                <Button onClick={openAccountModal} type="button">
+                <HeaderButton onClick={openAccountModal} type="button">
                   {account.displayName}
-                </Button>
+                </HeaderButton>
               );
             })()}
           </div>

@@ -1,44 +1,30 @@
 import "./index.css";
 import React from "react";
 import App from "./App.tsx";
+import { WagmiProvider } from "wagmi";
 import ReactDOM from "react-dom/client";
 import "@rainbow-me/rainbowkit/styles.css";
 import { polygonMumbai } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
-import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { ScreenContextProvider } from "./contexts/ScreenContext.tsx";
-import {
-  RainbowKitProvider,
-  connectorsForWallets,
-} from "@rainbow-me/rainbowkit";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
-const { chains, publicClient } = configureChains(
-  [polygonMumbai],
-  [publicProvider()]
-);
-
-const connectors = connectorsForWallets([
-  {
-    groupName: "Recommended",
-    wallets: [injectedWallet({ chains, shimDisconnect: true })],
-  },
-]);
-
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
+const config = getDefaultConfig({
+  ssr: false,
+  chains: [polygonMumbai],
+  appName: "Protocol 6022",
+  projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID as string,
 });
+
+const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <ScreenContextProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
           <App />
-        </ScreenContextProvider>
-      </RainbowKitProvider>
-    </WagmiConfig>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   </React.StrictMode>
 );

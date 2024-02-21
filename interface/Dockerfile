@@ -1,19 +1,22 @@
-FROM node:alpine
+FROM node:20.11.1-alpine3.19 AS build
 
 WORKDIR /app
 
-# add `/app/node_modules/.bin` to $PATH
+COPY package.json ./
+
+RUN yarn install
+
 ENV PATH /app/node_modules/.bin:$PATH
 
-# install app dependencies
-COPY ./package*.json ./
-RUN npm install
-
-# add the app
 COPY . .
 
-# Expose development port
-EXPOSE 3000
+RUN yarn run build
 
-# start the app
-CMD ["npm", "run", "dev"]
+FROM nginx:1.25.4-alpine3.18
+
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /var/www/html/
+
+EXPOSE 80
+
+ENTRYPOINT ["nginx","-g","daemon off;"]

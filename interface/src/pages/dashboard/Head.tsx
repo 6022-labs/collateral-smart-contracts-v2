@@ -36,7 +36,7 @@ export default function Head() {
     setRewardAvailable(rewardAvailable);
     setTotalSmartContractLocked(totalSmartContractLocked);
     setTotalSmartContractAvailable(totalSmartContractAvailable);
-  }, []);
+  }, [ownedVaults]);
 
   return (
     <div className="py-8 px-32 bg-primary text-white">

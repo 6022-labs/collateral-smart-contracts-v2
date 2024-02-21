@@ -2,6 +2,6 @@ type VaultDetailsProps = {
   data: any;
 };
 
-export default function VaultDetails(props: VaultDetailsProps) {
-  return <>Test</>;
+export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
+  return <>{props.data}</>;
 }

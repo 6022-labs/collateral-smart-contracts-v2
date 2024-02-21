@@ -70,7 +70,7 @@ export default function Main() {
                 <Row
                   key={vault.address}
                   collapsible={true}
-                  collapsedContent={<VaultDetails data={vault} />}
+                  collapsedContent={<VaultDetails data={vault.address} />}
                   onClick={(setCollapsed) => {
                     setCollapsed((prev) => !prev);
                   }}

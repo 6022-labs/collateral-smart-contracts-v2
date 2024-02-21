@@ -40,6 +40,9 @@ export default {
       minWidth: {
         lg: "32rem",
       },
+      maxHeight: {
+        120: "30rem",
+      },
     },
   },
   plugins: [],

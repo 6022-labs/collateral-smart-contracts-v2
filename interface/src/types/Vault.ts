@@ -1,11 +1,20 @@
 export type Vault = {
+  name: string;
   address: string;
-  rewardPool: string;
+  ownedNFTs: bigint;
   lockedUntil: bigint;
-  wantedToken: string;
-  isDeposited: boolean;
-  isWithdrawn: boolean;
   wantedAmount: bigint;
+  isWithdrawn: boolean;
+  isDeposited: boolean;
+  collectedFees: bigint;
   depositTimestamp: bigint;
+  collectedRewards: bigint;
+  rewardPoolAddress: string;
+  creationTimestamp: bigint;
   withdrawTimestamp: bigint;
+  wantedTokenSymbol: string;
+  wantedTokenAddress: string;
+  wantedTokenDecimals: number;
+  balanceOfWantedToken: bigint;
+  backedValueProtocolToken: bigint;
 };

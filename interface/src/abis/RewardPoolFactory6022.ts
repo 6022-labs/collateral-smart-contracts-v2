@@ -16,6 +16,11 @@ export const abi = [
     type: "constructor",
   },
   {
+    inputs: [],
+    name: "AlreadyCreatedRewardPool",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {

@@ -315,6 +315,25 @@ export const abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "creator",
+        type: "address",
+      },
+    ],
+    name: "getRewardPoolsByCreator",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "role",
         type: "bytes32",

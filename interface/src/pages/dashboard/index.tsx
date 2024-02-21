@@ -7,13 +7,15 @@ export default function Dashboard() {
 
   return (
     <>
-      {isConnected ? (
+      {!isConnected ? (
+        <div className="flex justify-center items-center h-screen">
+          Please connect your wallet
+        </div>
+      ) : (
         <>
           <Head />
           <Main />
         </>
-      ) : (
-        <></>
       )}
     </>
   );

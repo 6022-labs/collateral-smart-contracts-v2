@@ -20,7 +20,7 @@ export default function Table(props: Readonly<TableProps>) {
       <thead className="text-xs text-gray-700 uppercase bg-gray-50">
         <tr>
           {props.columns.map((column, index) => (
-            <th scope="col" className="px-6 py-3" key={index}>
+            <th scope="col" className="px-4 py-3" key={index}>
               {column.name}
             </th>
           ))}

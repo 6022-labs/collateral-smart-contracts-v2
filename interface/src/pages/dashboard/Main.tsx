@@ -1,59 +1,43 @@
 import React from "react";
-import { Address } from "viem";
+import { formatUnits } from "viem";
+import { Vault } from "@/types/Vault";
 import Table from "@/components/Table";
 import Button from "@/components/Button";
 import { Row } from "@/components/Table/Row";
 import { Cell } from "@/components/Table/Cell";
 import Pagination from "@/components/Pagination";
-import { fetchVaultData } from "@/utils/vault6022";
-import { useAccount, usePublicClient } from "wagmi";
 import VaultDetails from "@/components/VaultDetails";
-import { fetchOwnedVaults } from "@/utils/controller6022";
+import { useOwnedVaults } from "@/contexts/OwnedVaults";
 import NewContractModal from "@/components/Modal/NewContractModal";
 
 export default function Main() {
-  const { address } = useAccount();
-  const client = usePublicClient();
   const elementsPerPage = 10;
 
-  const [ownedVaults, setOwnedVaults] = React.useState<string[]>([]);
+  const { ownedVaults } = useOwnedVaults();
+
+  const [vaultsToDisplay, setVaultsToDisplay] = React.useState<Vault[]>([]);
+
   const [newContractModalIsOpen, setNewContractModalIsOpen] =
     React.useState<boolean>(false);
 
-  const fetchVaultsData = async (page: number) => {
-    let allPromises = [];
-
-    for (
-      let i = page * elementsPerPage - 1;
-      i < (page + 1) * elementsPerPage;
-      i++
-    ) {
-      if (ownedVaults[i]) {
-        let userAddress = address as Address;
-        let vaultAddress = ownedVaults[i] as Address;
-        allPromises.push(
-          fetchVaultData(client, vaultAddress, userAddress).catch((e) =>
-            console.error(e)
-          )
-        );
-      }
+  const getVaultStatus = (vault: Vault) => {
+    if (!vault.isDeposited) {
+      return <span>Waiting for deposit</span>;
+    } else if (vault.lockedUntil > new Date().getTime() / 1000) {
+      return <span className="text-red-600">Locked period</span>;
+    } else {
+      return <span className="text-green-600">Unlocked</span>;
     }
+  };
 
-    let data = await Promise.all(allPromises);
-
-    console.log(data);
+  const paginateVaultsToDisplay = (page: number) => {
+    let start = (page - 1) * elementsPerPage;
+    let end = start + elementsPerPage;
+    setVaultsToDisplay(ownedVaults.slice(start, end));
   };
 
   React.useEffect(() => {
-    if (!address) return;
-    (async () => {
-      const data = await fetchOwnedVaults(client, address);
-      setOwnedVaults(data);
-    })();
-  }, [address]);
-
-  React.useEffect(() => {
-    fetchVaultsData(1);
+    paginateVaultsToDisplay(1);
   }, [ownedVaults]);
 
   return (
@@ -73,6 +57,7 @@ export default function Main() {
           <Table
             columns={[
               { name: "Collateral" },
+              { name: "C. Initial value (T6022)" },
               { name: "Status" },
               { name: "Start date" },
               { name: "End date" },
@@ -80,25 +65,49 @@ export default function Main() {
               { name: "Name" },
             ]}
           >
-            <Row
-              collapsible={true}
-              collapsedContent={<VaultDetails data={undefined} />}
-              onClick={(setCollapsed) => {
-                setCollapsed((prev) => !prev);
-              }}
-            >
-              <Cell>Test</Cell>
-              <Cell>Test</Cell>
-              <Cell>Test</Cell>
-              <Cell>Test</Cell>
-              <Cell>Test</Cell>
-              <Cell>Test</Cell>
-            </Row>
+            {vaultsToDisplay.map((vault) => {
+              return (
+                <Row
+                  key={vault.address}
+                  collapsible={true}
+                  collapsedContent={<VaultDetails data={vault} />}
+                  onClick={(setCollapsed) => {
+                    setCollapsed((prev) => !prev);
+                  }}
+                >
+                  <Cell>
+                    <div className="flex justify-center items-center gap-x-1">
+                      <span>
+                        {formatUnits(
+                          vault.wantedAmount,
+                          vault.wantedTokenDecimals
+                        )}
+                      </span>
+                      <span>{vault.wantedTokenSymbol}</span>
+                    </div>
+                  </Cell>
+                  <Cell>{formatUnits(vault.backedValueProtocolToken, 18)}</Cell>
+                  <Cell>{getVaultStatus(vault)}</Cell>
+                  <Cell>
+                    {new Date(
+                      Number(vault.creationTimestamp) * 1000
+                    ).toLocaleDateString()}
+                  </Cell>
+                  <Cell>
+                    {new Date(
+                      Number(vault.lockedUntil) * 1000
+                    ).toLocaleDateString()}
+                  </Cell>
+                  <Cell>{vault.ownedNFTs.toString()}</Cell>
+                  <Cell>{vault.name}</Cell>
+                </Row>
+              );
+            })}
           </Table>
           {ownedVaults.length > elementsPerPage && (
             <div className="flex w-full justify-end mt-5">
               <Pagination
-                onPaginate={fetchVaultsData}
+                onPaginate={paginateVaultsToDisplay}
                 pages={Math.ceil(ownedVaults.length / elementsPerPage)}
               />
             </div>

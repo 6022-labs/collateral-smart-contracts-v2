@@ -359,6 +359,19 @@ export const abi = [
   },
   {
     inputs: [],
+    name: "creationTimestamp",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "deposit",
     outputs: [],
     stateMutability: "nonpayable",
@@ -658,6 +671,101 @@ export const abi = [
     name: "transferFrom",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "vaultOverview",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "bool",
+            name: "isDeposited",
+            type: "bool",
+          },
+          {
+            internalType: "bool",
+            name: "isWithdrawn",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "lockedUntil",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "wantedAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "collectedFees",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "collectedRewards",
+            type: "uint256",
+          },
+          {
+            internalType: "string",
+            name: "wantedTokenSymbol",
+            type: "string",
+          },
+          {
+            internalType: "uint256",
+            name: "depositTimestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "uint8",
+            name: "wantedTokenDecimals",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "withdrawTimestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "creationTimestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "rewardPoolAddress",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "wantedTokenAddress",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "balanceOfWantedToken",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "backedValueProtocolToken",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Vault6022.VaultOverview",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

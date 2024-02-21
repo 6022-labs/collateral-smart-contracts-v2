@@ -59,7 +59,7 @@ export default function Modal(props: ModalProps) {
           }}
           className="p-0 bg-transparent backdrop:bg-black backdrop:opacity-30"
         >
-          <div className="flex items-end justify-center overflow-y-auto text-center sm:items-center sm:p-0">
+          <div className="flex items-end justify-center text-center sm:items-center sm:p-0">
             <div className={className}>{props.children(handleClose)}</div>
           </div>
         </dialog>

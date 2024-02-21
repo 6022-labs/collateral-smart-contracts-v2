@@ -48,6 +48,21 @@ describe("RewardPoolFactory6022", function () {
   });
 
   describe("createRewardPool", function () {
+    it("Should fail if caller already has a reward pool", async function () {
+      const { rewardPoolFactory6022 } = await loadFixture(
+        deployRewardPoolFactory6022
+      );
+
+      await rewardPoolFactory6022.createRewardPool();
+
+      await expect(
+        rewardPoolFactory6022.createRewardPool()
+      ).to.be.revertedWithCustomError(
+        rewardPoolFactory6022,
+        "AlreadyCreatedRewardPool"
+      );
+    });
+
     it("Should work", async function () {
       const { rewardPoolFactory6022 } = await loadFixture(
         deployRewardPoolFactory6022

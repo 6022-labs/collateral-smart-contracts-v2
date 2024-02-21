@@ -2,6 +2,10 @@
 pragma solidity ^0.8.20;
 
 interface IRewardPool6022 {
+    function reinvestRewards() external;
+
+    function harvestRewards(address to) external;
+    
     function createVault(
         string memory _name, 
         uint256 _lockedUntil, 
@@ -9,9 +13,13 @@ interface IRewardPool6022 {
         address _wantedERC20Address, 
         uint256 _backedValueProtocolToken) external;
 
+    function creator() external view returns (address);
+
+    function FEES_PERCENT() external view returns (uint8);
+
     function allVaultsLength() external view returns (uint);
 
-    function harvestRewards(address to) external;
+    function collectedFees(address) external view returns (uint256);
 
-    function reinvestRewards() external;
+    function collectedRewards(address) external view returns (uint256);
 }

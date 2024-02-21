@@ -27,11 +27,11 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @notice Mapping of all vaults
     mapping(address => bool) public isVault;
 
-    /// @notice Mapping of all rewards
-    mapping(address => uint256) public rewards;
+    /// @notice Mapping of all collected fees
+    mapping(address => uint256) public collectedFees;
 
-    /// @notice Mapping of all recolted fees
-    mapping(address => uint256) public recoltedFees;
+    /// @notice Mapping of all collected rewards
+    mapping(address => uint256) public collectedRewards;
 
     // ----------------- EVENTS ----------------- //
     /// @dev Emitted when a vault rewards are harvested
@@ -61,6 +61,10 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     // ----------------- FUNCS ----------------- //
+    function creator() external view override returns (address) {
+        return owner();
+    }
+
     function allVaultsLength() external view returns (uint) {
         return allVaults.length;
     }
@@ -72,7 +76,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         address _wantedTokenAddress, 
         uint256 _backedValueProtocolToken) public onlyOwner {
 
-        uint256 _protocolTokenFees = _backedValueProtocolToken / FEES_PERCENT;
+        uint256 _protocolTokenFees = (_backedValueProtocolToken / 100) * FEES_PERCENT;
         
         if (allVaults.length > 0) {
             protocolToken.transferFrom(msg.sender, address(this), _protocolTokenFees);
@@ -89,7 +93,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
         allVaults.push(address(vault));
         isVault[address(vault)] = true;
-        recoltedFees[address(vault)] += _protocolTokenFees;
+        collectedFees[address(vault)] += _protocolTokenFees;
 
         controller.pushVault(address(vault));
 
@@ -97,8 +101,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     function harvestRewards(address to) external onlyVault {
-        uint256 valueToHarvest = rewards[msg.sender];
-        rewards[msg.sender] = 0;
+        uint256 valueToHarvest = collectedRewards[msg.sender];
+        collectedRewards[msg.sender] = 0;
 
         protocolToken.transfer(to, valueToHarvest);
 
@@ -106,8 +110,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     function reinvestRewards() external onlyVault {
-        uint256 valueToReinvest = rewards[msg.sender];
-        rewards[msg.sender] = 0;
+        uint256 valueToReinvest = collectedRewards[msg.sender];
+        collectedRewards[msg.sender] = 0;
 
         _updateRewards(valueToReinvest);
 
@@ -120,7 +124,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         for (uint i = 0; i < allVaults.length; i++) {
             Vault6022 vault = Vault6022(allVaults[i]);
             if (vault.lockedUntil() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
-                totalRewardableVaults += recoltedFees[address(vault)];
+                totalRewardableVaults += collectedFees[address(vault)];
             }
         }
 
@@ -129,7 +133,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         for (uint i = 0; i < allVaults.length; i++) {
             Vault6022 vault = Vault6022(allVaults[i]);
             if (vault.lockedUntil() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
-                rewards[address(vault)] += amount * recoltedFees[address(vault)] / totalRewardableVaults;
+                collectedRewards[address(vault)] += amount * collectedFees[address(vault)] / totalRewardableVaults;
             }
         }
     }

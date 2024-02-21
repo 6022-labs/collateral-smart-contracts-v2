@@ -12,6 +12,25 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
+    struct VaultOverview {
+        string name;
+        bool isDeposited;
+        bool isWithdrawn;
+        uint256 lockedUntil;
+        uint256 wantedAmount;
+        uint256 collectedFees;
+        uint256 collectedRewards;
+        string wantedTokenSymbol;
+        uint256 depositTimestamp;
+        uint8 wantedTokenDecimals;
+        uint256 withdrawTimestamp;
+        uint256 creationTimestamp;
+        address rewardPoolAddress;
+        address wantedTokenAddress;
+        uint256 balanceOfWantedToken;
+        uint256 backedValueProtocolToken;
+    }
+
     // ----------------- CONST ----------------- //
     uint public constant MAX_TOKENS = 3;
     uint public constant WITHDRAW_NFTS_EARLY = 2;
@@ -32,9 +51,12 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
 
     /// @notice Indicates the deposit timestamp
     uint256 public depositTimestamp;
-
+    
     /// @notice Indicates the withdraw timestamp
     uint256 public withdrawTimestamp;
+
+    /// @notice Indicates the creation timestamp
+    uint256 public creationTimestamp;
 
     /// @notice Reward pool
     IRewardPool6022 public rewardPool;
@@ -77,6 +99,7 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         isWithdrawn = false;
         lockedUntil = _lockedUntil;
         wantedAmount = _wantedAmount;
+        creationTimestamp = block.timestamp;
         rewardPool = IRewardPool6022(_rewardPoolAddress);
         wantedToken = ITokenOperation(_wantedTokenAddress);
 
@@ -135,5 +158,43 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
 
     function getRequiredNftsToWithdraw() public view returns (uint256) {
         return block.timestamp < lockedUntil ? WITHDRAW_NFTS_EARLY : WITHDRAW_NFTS_LATE;
+    }
+
+    function vaultOverview() external view returns (VaultOverview memory) {
+        string memory wantedTokenSymbol = "N/A";
+        (bool success, bytes memory data) = address(wantedToken).staticcall(abi.encodeWithSignature("symbol()"));
+        if (success) {
+            wantedTokenSymbol = abi.decode(data, (string));
+        } else {
+            (success, data) = address(wantedToken).staticcall(abi.encodeWithSignature("name()"));
+            if (success) {
+                wantedTokenSymbol = abi.decode(data, (string));
+            }
+        }
+
+        uint8 wantedTokenDecimals = 0;
+        (success, data) = address(wantedToken).staticcall(abi.encodeWithSignature("decimals()"));
+        if (success) {
+            wantedTokenDecimals = abi.decode(data, (uint8));
+        }
+
+        return VaultOverview({
+            name: name(),
+            isDeposited: isDeposited,
+            isWithdrawn: isWithdrawn,
+            lockedUntil: lockedUntil,
+            wantedAmount: wantedAmount,
+            depositTimestamp: depositTimestamp,
+            withdrawTimestamp: withdrawTimestamp,
+            creationTimestamp: creationTimestamp,
+            wantedTokenSymbol: wantedTokenSymbol,
+            rewardPoolAddress: address(rewardPool),
+            wantedTokenAddress: address(wantedToken),
+            wantedTokenDecimals: wantedTokenDecimals,
+            collectedFees: rewardPool.collectedFees(address(this)),
+            balanceOfWantedToken: wantedToken.balanceOf(address(this)),
+            collectedRewards: rewardPool.collectedRewards(address(this)),
+            backedValueProtocolToken: rewardPool.collectedFees(address(this)) / rewardPool.FEES_PERCENT() * 100
+        });
     }
 }

@@ -12,6 +12,7 @@ deployCollectionGenerator.setDescription(
 
 const privateKey = process?.env?.PRIVATE_KEY?.trim() ?? "";
 const polygonScanApiKey = process?.env?.POLYGONSCAN_API_KEY?.trim() ?? "";
+const coinmarketcapApiKey = process?.env?.COINMARKETCAP_API_KEY?.trim() ?? "";
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -33,9 +34,20 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       url: "https://polygon-testnet.public.blastapi.io",
     },
+    local: {
+      chainId: 31337,
+      accounts: [privateKey],
+      url: "http://localhost:8545",
+    },
   },
   solidity: {
     version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 100000000, // https://docs.soliditylang.org/en/latest/internals/optimizer.html#optimizer-parameter-runs
+      },
+    },
   },
   etherscan: {
     apiKey: {
@@ -49,6 +61,14 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     sources: "./contracts",
     artifacts: "./artifacts",
+  },
+  gasReporter: {
+    enabled: true,
+    currency: "USD",
+    outputFile: "gas-report-matic.txt",
+    coinmarketcap: coinmarketcapApiKey,
+    noColors: true,
+    token: "MATIC",
   },
 };
 

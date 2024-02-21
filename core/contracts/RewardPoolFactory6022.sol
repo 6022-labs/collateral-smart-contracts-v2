@@ -17,12 +17,22 @@ contract RewardPoolFactory6022 is IRewardPoolFactory6022 {
     /// @dev Emitted when a new vault is created
     event RewardPoolCreated(address rewardPool);
 
+    // ----------------- ERRORS ----------------- //
+    /// @dev Error when the caller has already created a reward pool
+    error AlreadyCreatedRewardPool();
+
     constructor(address _controllerAddress, address _protocolTokenAddress) {
         protocolTokenAddress = _protocolTokenAddress;
         controller = IController6022(_controllerAddress);
     }
 
     function createRewardPool() external {
+        address[] memory alreadyCreatedRewardPools = controller.getRewardPoolsByCreator(msg.sender);
+
+        if (alreadyCreatedRewardPools.length > 0) {
+            revert AlreadyCreatedRewardPool();
+        }
+
         RewardPool6022 rewardPool = new RewardPool6022(
             msg.sender,
             address(controller), 

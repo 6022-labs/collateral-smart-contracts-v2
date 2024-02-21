@@ -48,7 +48,7 @@ export default task("deploy-everything")
 
     console.log("RewardPoolFactory6022 added as factory in Controller6022");
 
-    if (hre.network.name !== "hardhat") {
+    if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
       // Wait for 5 blocks
       let currentBlock = await hre.ethers.provider.getBlockNumber();
       while (currentBlock + 5 > (await hre.ethers.provider.getBlockNumber())) {}

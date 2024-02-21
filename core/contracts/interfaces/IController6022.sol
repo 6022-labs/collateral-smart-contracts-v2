@@ -15,4 +15,6 @@ interface IController6022 {
     function allRewardPoolsLength() external view returns (uint);
 
     function allRewardPools(uint) external view returns (address);
+
+    function getRewardPoolsByCreator(address) external view returns (address[] memory);
 }

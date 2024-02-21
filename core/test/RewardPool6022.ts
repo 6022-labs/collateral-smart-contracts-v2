@@ -158,6 +158,12 @@ describe("RewardPool6022", function () {
           ethers.parseEther("1")
         )
       ).to.emit(rewardPool6022, "VaultCreated");
+
+      const vaultAddress = await rewardPool6022.allVaults(0);
+
+      expect(
+        await rewardPool6022.collectedFees(vaultAddress)
+      ).to.be.greaterThan(0);
     });
 
     it("Should work the second time with approve token usage", async function () {
@@ -188,6 +194,12 @@ describe("RewardPool6022", function () {
           ethers.parseEther("1")
         )
       ).to.emit(rewardPool6022, "VaultCreated");
+
+      const vaultAddress = await rewardPool6022.allVaults(1);
+
+      expect(
+        await rewardPool6022.collectedFees(vaultAddress)
+      ).to.be.greaterThan(0);
     });
   });
 
@@ -289,19 +301,19 @@ describe("RewardPool6022", function () {
 
       let totalRewardsBefore = BigInt(0);
 
-      const rewardFirstPoolBefore = await rewardPool6022.rewards(
+      const rewardFirstPoolBefore = await rewardPool6022.collectedRewards(
         await vault.getAddress()
       );
       totalRewardsBefore += rewardFirstPoolBefore;
       expect(rewardFirstPoolBefore).to.be.equal(ethers.parseEther("0.15"));
 
-      const rewardSecondPoolBefore = await rewardPool6022.rewards(
+      const rewardSecondPoolBefore = await rewardPool6022.collectedRewards(
         await createdVaults[0].getAddress()
       );
       totalRewardsBefore += rewardSecondPoolBefore;
       expect(rewardSecondPoolBefore).to.be.equal(ethers.parseEther("0.05"));
 
-      const rewardThirdPoolBefore = await rewardPool6022.rewards(
+      const rewardThirdPoolBefore = await rewardPool6022.collectedRewards(
         await createdVaults[1].getAddress()
       );
       totalRewardsBefore += rewardThirdPoolBefore;
@@ -314,19 +326,19 @@ describe("RewardPool6022", function () {
 
       let totalRewardsAfter = BigInt(0);
 
-      const rewardFirstPoolAfter = await rewardPool6022.rewards(
+      const rewardFirstPoolAfter = await rewardPool6022.collectedRewards(
         await vault.getAddress()
       );
       totalRewardsAfter += rewardFirstPoolAfter;
       expect(rewardFirstPoolAfter).to.be.equal(0);
 
-      const rewardSecondPoolAfter = await rewardPool6022.rewards(
+      const rewardSecondPoolAfter = await rewardPool6022.collectedRewards(
         await createdVaults[0].getAddress()
       );
       totalRewardsAfter += rewardSecondPoolAfter;
       expect(rewardSecondPoolAfter).to.be.equal(ethers.parseEther("0.125"));
 
-      const rewardThirdPoolAfter = await rewardPool6022.rewards(
+      const rewardThirdPoolAfter = await rewardPool6022.collectedRewards(
         await createdVaults[1].getAddress()
       );
       totalRewardsAfter += rewardThirdPoolAfter;

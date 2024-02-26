@@ -2,12 +2,12 @@ import React from "react";
 import { formatUnits } from "viem";
 import { Vault } from "@/types/Vault";
 import Table from "@/components/Table";
-import Button from "@/components/Button";
+import Button from "@/components/Button/Button";
 import { Row } from "@/components/Table/Row";
 import { Cell } from "@/components/Table/Cell";
 import Pagination from "@/components/Pagination";
 import VaultDetails from "@/components/VaultDetails";
-import { useOwnedVaults } from "@/contexts/OwnedVaults";
+import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 import NewContractModal from "@/components/Modal/NewContractModal";
 
 export default function Main() {
@@ -70,7 +70,7 @@ export default function Main() {
                 <Row
                   key={vault.address}
                   collapsible={true}
-                  collapsedContent={<VaultDetails data={vault.address} />}
+                  collapsedContent={<VaultDetails data={vault} />}
                   onClick={(setCollapsed) => {
                     setCollapsed((prev) => !prev);
                   }}

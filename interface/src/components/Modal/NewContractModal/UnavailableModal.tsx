@@ -2,13 +2,13 @@ import React from "react";
 import { parseEventLogs } from "viem";
 import { toast } from "react-toastify";
 import { approve } from "@/utils/erc20";
-import Button from "@/components/Button";
+import Button from "@/components/Button/Button";
 import { abi } from "@/abis/RewardPoolFactory6022";
 import { usePublicClient, useWriteContract } from "wagmi";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { createRewardPool } from "@/utils/rewardPoolFactory6022";
+import { useCreatedRewardPool } from "@/contexts/CreatedRewardPoolContext";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
-import { useCreatedRewardPool } from "@/contexts/CreatedRewardPool";
 
 type UnavailableModalProps = {
   handleClose: () => void;

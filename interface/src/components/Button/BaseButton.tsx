@@ -1,22 +1,23 @@
 import clsx from "clsx";
-import { ClassNameProps } from "../types/ClassNameProps";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ClassNameProps } from "@/types/ClassNameProps";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-type ButtonProps = ClassNameProps & {
-  onClick: () => void;
+export type BaseButtonProps = ClassNameProps & {
+  color?: string;
   isLoading?: boolean;
+  onClick?: () => void;
   type: "button" | "submit" | "reset";
   children: React.ReactNode | React.ReactNode[];
 };
 
-export default function Button(props: Readonly<ButtonProps>) {
+export default function BaseButton(props: Readonly<BaseButtonProps>) {
   const className = clsx(
     props.className,
+    "border border-black font-medium",
     "flex gap-x-2 justify-center items-center",
-    "bg-slate-300 text-black border border-black",
-    "w-fit whitespace-nowrap font-medium py-2 px-8",
-    props.isLoading ? "opacity-80" : "hover:opacity-80"
+    props.isLoading ? "opacity-80" : "hover:opacity-80",
+    props.color ?? "bg-slate-200 text-black"
   );
 
   return (

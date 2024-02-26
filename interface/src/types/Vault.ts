@@ -1,6 +1,8 @@
+import { Address } from "viem";
+
 export type Vault = {
   name: string;
-  address: string;
+  address: Address;
   ownedNFTs: bigint;
   lockedUntil: bigint;
   wantedAmount: bigint;
@@ -13,7 +15,7 @@ export type Vault = {
   creationTimestamp: bigint;
   withdrawTimestamp: bigint;
   wantedTokenSymbol: string;
-  wantedTokenAddress: string;
+  wantedTokenAddress: Address;
   wantedTokenDecimals: number;
   balanceOfWantedToken: bigint;
   backedValueProtocolToken: bigint;

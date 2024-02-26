@@ -20,8 +20,8 @@ export default function RadioGroupInput(props: RadioGroupInputProps) {
           key={choice.value}
           className={`flex items-center justify-center cursor-pointer py-2 px-8 border-b border-t border-r border-black ${
             props.value === choice.value
-              ? "bg-slate-300"
-              : "bg-slate-200 hover:bg-slate-300"
+              ? "bg-slate-200"
+              : "bg-slate-100 hover:bg-slate-200"
           } ${index === 0 ? "rounded-l border-l" : ""} ${
             index === props.choices.length - 1 ? "rounded-r" : ""
           }`}

@@ -2,11 +2,10 @@ import Modal from "..";
 import AvailableModal from "./AvailableModal";
 import UnavailableModal from "./UnavailableModal";
 import { ClassNameProps } from "@/types/ClassNameProps";
-import { useCreatedRewardPool } from "@/contexts/CreatedRewardPool";
+import { useCreatedRewardPool } from "@/contexts/CreatedRewardPoolContext";
 
 type NewContractModalProps = ClassNameProps & {
   isOpen: boolean;
-  closeOnBackdropClick?: boolean;
   setOpen: (isOpen: boolean) => void;
 };
 

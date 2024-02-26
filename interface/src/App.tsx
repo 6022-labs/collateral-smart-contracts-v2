@@ -6,23 +6,26 @@ import Governance from "./pages/governance";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
-import { CreatedRewardPoolContextProvider } from "./contexts/CreatedRewardPool";
-import { OwnedVaultsContextProvider } from "./contexts/OwnedVaults";
+import { CreatedRewardPoolContextProvider } from "./contexts/CreatedRewardPoolContext";
+import { OwnedVaultsContextProvider } from "./contexts/OwnedVaultsContext";
+import { SendableNFTModalContextProvider } from "./contexts/SendableNFTModalContext";
 
 function App() {
   return (
     <CreatedRewardPoolContextProvider>
       <OwnedVaultsContextProvider>
-        <ToastContainer />
-        <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="stake" element={<Stake />} />
-            <Route path="markets" element={<Markets />} />
-            <Route path="governance" element={<Governance />} />
-          </Routes>
-        </BrowserRouter>
+        <SendableNFTModalContextProvider>
+          <ToastContainer />
+          <BrowserRouter>
+            <Header />
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="stake" element={<Stake />} />
+              <Route path="markets" element={<Markets />} />
+              <Route path="governance" element={<Governance />} />
+            </Routes>
+          </BrowserRouter>
+        </SendableNFTModalContextProvider>
       </OwnedVaultsContextProvider>
     </CreatedRewardPoolContextProvider>
   );

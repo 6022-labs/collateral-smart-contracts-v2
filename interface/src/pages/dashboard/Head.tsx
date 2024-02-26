@@ -1,7 +1,7 @@
 import React from "react";
 import { useAccount } from "wagmi";
 import { truncateEthAddress } from "../../utils/eth-address";
-import { useOwnedVaults } from "@/contexts/OwnedVaults";
+import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 
 export default function Head() {
   const { address } = useAccount();

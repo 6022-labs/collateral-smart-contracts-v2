@@ -1,8 +1,8 @@
 import React from "react";
-import { parseEther, parseUnits } from "viem";
 import { toast } from "react-toastify";
-import Button from "@/components/Button";
+import Button from "@/components/Button/Button";
 import { Field, Form, Formik } from "formik";
+import { parseEther, parseUnits } from "viem";
 import TextInput from "@/components/Input/TextInput";
 import ErrorMessage from "@/components/ErrorMessage";
 import { createVault } from "@/utils/rewardPool6022";
@@ -11,7 +11,7 @@ import DatetimeInput from "@/components/Input/DatetimeInput";
 import { allowance, approve, getDecimals } from "@/utils/erc20";
 import RadioGroupInput from "@/components/Input/RadioGroupInput";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useCreatedRewardPool } from "@/contexts/CreatedRewardPool";
+import { useCreatedRewardPool } from "@/contexts/CreatedRewardPoolContext";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 

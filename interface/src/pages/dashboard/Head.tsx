@@ -1,8 +1,8 @@
 import React from "react";
 import { useAccount } from "wagmi";
+import { roundWei } from "@/utils/wei";
 import { truncateEthAddress } from "../../utils/eth-address";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
-import { formatEther } from "viem";
 
 export default function Head() {
   const { address } = useAccount();
@@ -76,8 +76,8 @@ export default function Head() {
               <div className="flex flex-col">
                 <span>{totalSmartContractLocked}</span>
                 <span>{totalSmartContractAvailable}</span>
-                <span>{formatEther(rewardLocked)}</span>
-                <span>{formatEther(rewardAvailable)}</span>
+                <span>{roundWei(rewardLocked, 18, 4)}</span>
+                <span>{roundWei(rewardAvailable, 18, 4)}</span>
               </div>
               <div className="flex flex-col">
                 <span>Smart Contract</span>

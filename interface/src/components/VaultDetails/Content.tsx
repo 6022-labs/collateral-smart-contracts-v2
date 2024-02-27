@@ -5,13 +5,13 @@ import Button from "../Button/Button";
 import { Vault } from "@/types/Vault";
 import ButtonLink from "../ButtonLink";
 import { toast } from "react-toastify";
+import { roundWei } from "@/utils/wei";
 import { getApproved } from "@/utils/erc721";
-import { formatEther, formatUnits } from "viem";
 import { allowance, approve } from "@/utils/erc20";
 import { deposit, withdraw } from "@/utils/vault6022";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
-import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { useVaultDetails } from "@/contexts/VaultDetailsContext";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 
 type ContentProps = {
   data: Vault;
@@ -39,6 +39,8 @@ export default function Content(props: Readonly<ContentProps>) {
   >();
 
   const depositAction = async () => {
+    refreshSpecificVault(data.address);
+
     let isApproved = false;
     try {
       let allowed = await allowance(
@@ -122,7 +124,7 @@ export default function Content(props: Readonly<ContentProps>) {
     refreshSpecificVault(data.address);
   };
 
-  React.useEffect(() => {
+  const refreshVaultAction = () => {
     if (nftOwners.length > 0) {
       if (data.isWithdrawn) {
         setVaultAction({
@@ -177,7 +179,11 @@ export default function Content(props: Readonly<ContentProps>) {
         });
       }
     }
-  }, [nftOwners]);
+  };
+
+  React.useEffect(() => {
+    refreshVaultAction();
+  }, [nftOwners, props.data]);
 
   return (
     <div className="flex justify-between text-sm p-5">
@@ -208,7 +214,7 @@ export default function Content(props: Readonly<ContentProps>) {
           <div className="text-center">Pending rewards</div>
           <div className="flex flex-col justify-center">
             <span className="text-center">
-              {formatEther(data.collectedRewards)} T6022
+              {roundWei(data.collectedRewards, 18, 4)} T6022
             </span>
             <span className="text-center">≈437,05 USD</span>
           </div>
@@ -218,9 +224,10 @@ export default function Content(props: Readonly<ContentProps>) {
         <Card className="flex flex-col justify-center gap-y-4">
           <div className="text-center">Collateral</div>
           <div className="flex flex-col justify-center">
-            <span className="text-center">{`${formatUnits(
+            <span className="text-center">{`${roundWei(
               data.balanceOfWantedToken,
-              data.wantedTokenDecimals
+              data.wantedTokenDecimals,
+              4
             )} ${data.wantedTokenSymbol}`}</span>
             <span className="text-center">≈3500 USD</span>
           </div>

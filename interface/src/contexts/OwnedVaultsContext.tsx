@@ -113,6 +113,7 @@ export function OwnedVaultsContextProvider(
   };
 
   React.useEffect(() => {
+    console.log("address changed to: ", address);
     fetchOwnedVaults();
   }, [address]);
 
@@ -128,7 +129,7 @@ export function OwnedVaultsContextProvider(
         {props.children}
       </OwnedVaultsContext.Provider>
     );
-  }, [ownedVaults]);
+  }, [ownedVaults, address]);
 }
 
 export function useOwnedVaults() {

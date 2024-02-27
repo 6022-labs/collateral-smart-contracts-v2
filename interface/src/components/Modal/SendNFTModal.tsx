@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { useVaultDetails } from "@/contexts/VaultDetailsContext";
+import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 
 type SendNFTModalProps = ClassNameProps & {
   isOpen: boolean;
@@ -22,6 +23,7 @@ type SendNFTModalProps = ClassNameProps & {
 
 export default function SendNFTModal(props: Readonly<SendNFTModalProps>) {
   const { refreshNftOwners } = useVaultDetails();
+  const { refreshSpecificVault } = useOwnedVaults();
   const { address = `0x${"default"}` } = useAccount();
 
   const writeClient = useWriteContract();
@@ -63,6 +65,7 @@ export default function SendNFTModal(props: Readonly<SendNFTModalProps>) {
                           hash: hash,
                         });
 
+                        refreshSpecificVault(props.smartContractAddress);
                         refreshNftOwners();
                         handleClose();
                       } catch (e) {

@@ -15,7 +15,7 @@ export default function PaginationButton(
     props.className,
     props.current && "bg-slate-400",
     "bg-slate-200 text-black border border-black hover:bg-slate-100",
-    "w-fit whitespace-nowrap font-medium w-10 h-10 flex justify-center items-center"
+    "whitespace-nowrap font-medium w-10 h-10 flex justify-center items-center"
   );
 
   return (

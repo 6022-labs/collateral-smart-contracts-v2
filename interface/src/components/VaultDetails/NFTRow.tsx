@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
-import SmallButton from "./Button/SmallButton";
+import SmallButton from "../Button/SmallButton";
 import { ClassNameProps } from "@/types/ClassNameProps";
 import { truncateEthAddress } from "@/utils/eth-address";
 import { useSendableNFTModal } from "@/contexts/SendableNFTModalContext";

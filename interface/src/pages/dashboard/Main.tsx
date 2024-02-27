@@ -2,9 +2,9 @@ import React from "react";
 import { formatUnits } from "viem";
 import { Vault } from "@/types/Vault";
 import Table from "@/components/Table";
-import Button from "@/components/Button/Button";
 import { Row } from "@/components/Table/Row";
 import { Cell } from "@/components/Table/Cell";
+import Button from "@/components/Button/Button";
 import Pagination from "@/components/Pagination";
 import VaultDetails from "@/components/VaultDetails";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
@@ -21,12 +21,20 @@ export default function Main() {
     React.useState<boolean>(false);
 
   const getVaultStatus = (vault: Vault) => {
-    if (!vault.isDeposited) {
-      return <span>Waiting for deposit</span>;
-    } else if (vault.lockedUntil > new Date().getTime() / 1000) {
-      return <span className="text-red-600">Locked period</span>;
-    } else {
+    if (vault.isWithdrawn) {
+      return <span className="text-green-600">Withdrawn</span>;
+    } else if (vault.isDeposited) {
+      if (vault.lockedUntil > new Date().getTime() / 1000) {
+        return <span className="text-red-600">Locked period</span>;
+      }
+
       return <span className="text-green-600">Unlocked</span>;
+    } else {
+      if (vault.lockedUntil > new Date().getTime() / 1000) {
+        return <span>Waiting for deposit</span>;
+      }
+
+      return <span className="text-red-600">Too late</span>;
     }
   };
 
@@ -115,7 +123,6 @@ export default function Main() {
         </div>
       </div>
       <NewContractModal
-        closeOnBackdropClick={true}
         isOpen={newContractModalIsOpen}
         setOpen={setNewContractModalIsOpen}
       />

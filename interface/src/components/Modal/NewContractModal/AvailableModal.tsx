@@ -8,6 +8,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 import { createVault } from "@/utils/rewardPool6022";
 import NumberInput from "@/components/Input/NumberInput";
 import DatetimeInput from "@/components/Input/DatetimeInput";
+import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 import { allowance, approve, getDecimals } from "@/utils/erc20";
 import RadioGroupInput from "@/components/Input/RadioGroupInput";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -29,6 +30,7 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
   const inOneYear = new Date();
   inOneYear.setFullYear(inOneYear.getFullYear() + 1);
 
+  const { refreshOwnedVaults } = useOwnedVaults();
   const { address = `0x${"default"}` } = useAccount();
 
   const publicClient = usePublicClient();
@@ -113,9 +115,10 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
       }
 
       setError(undefined);
-      props.handleClose();
-
+      refreshOwnedVaults();
       toast.success("Vault created successfully");
+
+      props.handleClose();
     } catch (error: any) {
       console.error(error);
       toast.error("An error occurred, please try again.");

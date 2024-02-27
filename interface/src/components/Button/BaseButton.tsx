@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export type BaseButtonProps = ClassNameProps & {
   color?: string;
+  disabled?: boolean;
   isLoading?: boolean;
   onClick?: () => void;
   type: "button" | "submit" | "reset";
@@ -16,7 +17,7 @@ export default function BaseButton(props: Readonly<BaseButtonProps>) {
     props.className,
     "border border-black font-medium",
     "flex gap-x-2 justify-center items-center",
-    props.isLoading ? "opacity-80" : "hover:opacity-80",
+    props.isLoading || props.disabled ? "opacity-80" : "hover:opacity-80",
     props.color ?? "bg-slate-200 text-black"
   );
 
@@ -25,10 +26,10 @@ export default function BaseButton(props: Readonly<BaseButtonProps>) {
       type={props.type}
       className={className}
       onClick={props.onClick}
-      disabled={props.isLoading}
+      disabled={props.isLoading ?? props.disabled}
     >
       {props.isLoading && <FontAwesomeIcon icon={faSpinner} spin={true} />}
-      <>{props.children}</>
+      {props.children}
     </button>
   );
 }

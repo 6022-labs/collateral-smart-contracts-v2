@@ -38,6 +38,9 @@ export function CreatedRewardPoolContextProvider(
     if (rewardPoolAddress.length > 0) {
       setHasCreatedRewardPool(true);
       setCreatedRewardPoolAddress(rewardPoolAddress[0]);
+    } else {
+      setHasCreatedRewardPool(false);
+      setCreatedRewardPoolAddress(undefined);
     }
   };
 

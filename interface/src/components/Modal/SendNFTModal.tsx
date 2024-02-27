@@ -11,6 +11,7 @@ import { ClassNameProps } from "@/types/ClassNameProps";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { useVaultDetails } from "@/contexts/VaultDetailsContext";
 
 type SendNFTModalProps = ClassNameProps & {
   isOpen: boolean;
@@ -20,6 +21,7 @@ type SendNFTModalProps = ClassNameProps & {
 };
 
 export default function SendNFTModal(props: Readonly<SendNFTModalProps>) {
+  const { refreshNftOwners } = useVaultDetails();
   const { address = `0x${"default"}` } = useAccount();
 
   const writeClient = useWriteContract();
@@ -60,6 +62,9 @@ export default function SendNFTModal(props: Readonly<SendNFTModalProps>) {
                         await publicClient?.waitForTransactionReceipt({
                           hash: hash,
                         });
+
+                        refreshNftOwners();
+                        handleClose();
                       } catch (e) {
                         console.error(e);
                         toast.error("An error occurred, please try again.");
@@ -71,7 +76,7 @@ export default function SendNFTModal(props: Readonly<SendNFTModalProps>) {
                       return (
                         <Form className="flex flex-col gap-y-3 px-2">
                           <div className="flex flex-col gap-y-2">
-                            <label htmlFor="address">Vault address</label>
+                            <label htmlFor="address">Address</label>
                             <Field
                               as={TextInput}
                               placeholder="0x..."

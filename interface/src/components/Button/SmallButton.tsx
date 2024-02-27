@@ -10,6 +10,7 @@ export default function Button(props: Readonly<BaseButtonProps>) {
       color={props.color}
       className={className}
       onClick={props.onClick}
+      disabled={props.disabled}
       isLoading={props.isLoading}
     >
       {props.children}

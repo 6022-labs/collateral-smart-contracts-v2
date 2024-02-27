@@ -31,7 +31,7 @@ export default function Header() {
     <header className="py-1 bg-primary text-white px-8 border-b-2 border-b-secondary">
       <div className="flex items-center">
         <div className="flex w-full justify-start items-center">
-          <img className="h-10" src="/logo.svg" alt="logo" />
+          <img className="h-10" src="/logo.png" alt="logo" />
           <nav>
             <ul className="flex gap-x-4 ml-8">
               {Links.map((link) => {

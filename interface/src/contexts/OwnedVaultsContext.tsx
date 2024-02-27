@@ -28,12 +28,48 @@ export function OwnedVaultsContextProvider(
 
   const addOrReplaceVaults = (vaults: Vault[]) => {
     setOwnedVaults((oldVaults) => {
-      let newVaults = oldVaults.filter(
-        (oldVault) =>
-          !vaults.find((vault) => vault.address === oldVault.address)
-      );
-      return [...newVaults, ...vaults];
+      let newVaults = [];
+
+      // Loop in the old vaults to keep the same order
+      for (let vault of oldVaults) {
+        let foundedVault = vaults.find((v) => v.address === vault.address);
+        if (foundedVault) {
+          newVaults.push(foundedVault);
+        } else {
+          newVaults.push(vault);
+        }
+      }
+
+      // Add the new vaults
+      for (let vault of vaults) {
+        let foundedVault = newVaults.find((v) => v.address === vault.address);
+        if (!foundedVault) {
+          newVaults.push(vault);
+        }
+      }
+
+      return newVaults;
     });
+  };
+
+  const fetchOwnedVaults = async () => {
+    if (!address) return;
+    let ownedVaultsAddress = await getVaultsByOwner(publicClient, address);
+
+    let allPromises = [];
+
+    for (let vaultAddress of ownedVaultsAddress) {
+      let typedVaultAddress = vaultAddress as `0x${string}`;
+
+      allPromises.push(
+        vaultOverview(publicClient, typedVaultAddress, address).catch((e) =>
+          console.error(e)
+        )
+      );
+    }
+
+    let data = await Promise.all(allPromises);
+    setOwnedVaults(data);
   };
 
   const refreshOwnedVaults = async () => {
@@ -77,8 +113,7 @@ export function OwnedVaultsContextProvider(
   };
 
   React.useEffect(() => {
-    setOwnedVaults([]);
-    refreshOwnedVaults();
+    fetchOwnedVaults();
   }, [address]);
 
   return React.useMemo(() => {

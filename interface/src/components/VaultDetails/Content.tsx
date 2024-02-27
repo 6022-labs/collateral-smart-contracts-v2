@@ -1,17 +1,19 @@
 import React from "react";
-import Card from "./Card";
+import Card from "../Card";
 import NFTRow from "./NFTRow";
-import { Address } from "viem";
-import Button from "./Button/Button";
+import Button from "../Button/Button";
 import { Vault } from "@/types/Vault";
-import ButtonLink from "./ButtonLink";
+import ButtonLink from "../ButtonLink";
 import { toast } from "react-toastify";
 import { getApproved } from "@/utils/erc721";
+import { formatEther, formatUnits } from "viem";
 import { allowance, approve } from "@/utils/erc20";
-import { deposit, ownerOf, withdraw } from "@/utils/vault6022";
+import { deposit, withdraw } from "@/utils/vault6022";
+import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { useVaultDetails } from "@/contexts/VaultDetailsContext";
 
-type VaultDetailsProps = {
+type ContentProps = {
   data: Vault;
 };
 
@@ -22,14 +24,15 @@ type VaultAction = {
   onClick?: () => Promise<void>;
 };
 
-export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
+export default function Content(props: Readonly<ContentProps>) {
   const { data } = props;
   const { address = `0x${"default"}` } = useAccount();
 
   const writeClient = useWriteContract();
   const publicClient = usePublicClient();
 
-  const [nftOwners, setNftOwners] = React.useState<Address[]>([]);
+  const { nftOwners } = useVaultDetails();
+  const { refreshSpecificVault } = useOwnedVaults();
 
   const [vaultAction, setVaultAction] = React.useState<
     VaultAction | undefined
@@ -96,7 +99,10 @@ export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
       });
     } catch {
       toast.error("An error occurred while deposit funds. Please try again.");
+      return;
     }
+
+    refreshSpecificVault(data.address);
   };
 
   const withdrawAction = async () => {
@@ -110,61 +116,64 @@ export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
       toast.error(
         "An error occurred while withdrawing funds, please try again."
       );
+      return;
     }
+
+    refreshSpecificVault(data.address);
   };
 
   React.useEffect(() => {
-    if (address) {
-      let ownerOfFirstPromise = ownerOf(publicClient, data.address, 1);
-      let ownerOfSecondPromise = ownerOf(publicClient, data.address, 1);
-      let ownerOfThirdPromise = ownerOf(publicClient, data.address, 1);
-
-      Promise.all([
-        ownerOfFirstPromise,
-        ownerOfSecondPromise,
-        ownerOfThirdPromise,
-      ]).then((values) => {
-        setNftOwners(values.map((value) => value as Address));
-      });
-    }
-  }, []);
-
-  React.useEffect(() => {
     if (nftOwners.length > 0) {
-      let ownedByCurrentUser = nftOwners.filter(
-        (nftOwner) => nftOwner === address
-      );
-
-      if (!data.isDeposited) {
+      if (data.isWithdrawn) {
         setVaultAction({
-          disabled: false,
-          color: "bg-green-600",
-          onClick: depositAction,
-          text: "Make the Deposit",
+          disabled: true,
+          text: "Take collateral",
         });
 
         return;
-      }
+      } else if (data.isDeposited) {
+        if (data.lockedUntil > new Date().getTime() / 1000) {
+          let ownedByCurrentUser = nftOwners.filter(
+            (nftOwner) => nftOwner === address
+          );
+          if (ownedByCurrentUser.length >= 2) {
+            setVaultAction({
+              disabled: false,
+              text: "Take collateral",
+              onClick: withdrawAction,
+            });
 
-      if (data.lockedUntil > new Date().getTime() / 1000) {
-        if (ownedByCurrentUser.length >= 2) {
-          setVaultAction({
-            disabled: false,
-            text: "Take collateral",
-            onClick: withdrawAction,
-          });
-        } else {
+            return;
+          }
+
           setVaultAction({
             disabled: true,
             text: "Take collateral",
           });
+
+          return;
         }
-      } else {
+
         setVaultAction({
           disabled: false,
           color: "bg-green-600",
           text: "Take collateral",
-          onClick: withdrawAction,
+        });
+      } else {
+        if (data.lockedUntil > new Date().getTime() / 1000) {
+          setVaultAction({
+            disabled: false,
+            color: "bg-green-600",
+            onClick: depositAction,
+            text: "Make the Deposit",
+          });
+
+          return;
+        }
+
+        setVaultAction({
+          disabled: true,
+          text: "Make the Deposit",
         });
       }
     }
@@ -189,6 +198,7 @@ export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
               className="h-fit w-full"
               color={vaultAction.color}
               onClick={vaultAction.onClick}
+              disabled={vaultAction.onClick === undefined}
             >
               {vaultAction.text}
             </Button>
@@ -198,9 +208,9 @@ export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
           <div className="text-center">Pending rewards</div>
           <div className="flex flex-col justify-center">
             <span className="text-center">
-              {data.collectedRewards.toString()} T6022
+              {formatEther(data.collectedRewards)} T6022
             </span>
-            <span className="text-center">=437,05 USD</span>
+            <span className="text-center">≈437,05 USD</span>
           </div>
         </Card>
       </div>
@@ -208,10 +218,11 @@ export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
         <Card className="flex flex-col justify-center gap-y-4">
           <div className="text-center">Collateral</div>
           <div className="flex flex-col justify-center">
-            <span className="text-center">{`${data.balanceOfWantedToken.toString()} ${
-              data.wantedTokenSymbol
-            }`}</span>
-            <span className="text-center">=3500 USD</span>
+            <span className="text-center">{`${formatUnits(
+              data.balanceOfWantedToken,
+              data.wantedTokenDecimals
+            )} ${data.wantedTokenSymbol}`}</span>
+            <span className="text-center">≈3500 USD</span>
           </div>
         </Card>
         <div className="flex flex-col justify-between h-full">

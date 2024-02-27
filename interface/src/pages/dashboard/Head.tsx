@@ -2,6 +2,7 @@ import React from "react";
 import { useAccount } from "wagmi";
 import { truncateEthAddress } from "../../utils/eth-address";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
+import { formatEther } from "viem";
 
 export default function Head() {
   const { address } = useAccount();
@@ -23,12 +24,14 @@ export default function Head() {
     let totalSmartContractAvailable = 0;
 
     ownedVaults.forEach((vault) => {
-      if (vault.lockedUntil > new Date().getTime() / 1000) {
-        totalSmartContractLocked += 1;
-        rewardLocked += vault.collectedRewards;
-      } else {
-        totalSmartContractAvailable += 1;
-        rewardAvailable += vault.collectedRewards;
+      if (vault.isDeposited && !vault.isWithdrawn) {
+        if (vault.lockedUntil > new Date().getTime() / 1000) {
+          totalSmartContractLocked += 1;
+          rewardLocked += vault.collectedRewards;
+        } else {
+          totalSmartContractAvailable += 1;
+          rewardAvailable += vault.collectedRewards;
+        }
       }
     });
 
@@ -41,9 +44,9 @@ export default function Head() {
   return (
     <div className="py-8 px-32 bg-primary text-white">
       <div className="flex justify-between">
-        <div className="py-4">
+        <div className="">
           <div className="flex gap-x-4 items-center">
-            <img className="h-10" src="/logo.svg" alt="logo" />
+            <img className="h-20" src="/logo.png" alt="logo" />
             <span className="font-semibold">Protocol 6022</span>
           </div>
         </div>
@@ -73,8 +76,8 @@ export default function Head() {
               <div className="flex flex-col">
                 <span>{totalSmartContractLocked}</span>
                 <span>{totalSmartContractAvailable}</span>
-                <span>{rewardLocked.toString()}</span>
-                <span>{rewardAvailable.toString()}</span>
+                <span>{formatEther(rewardLocked)}</span>
+                <span>{formatEther(rewardAvailable)}</span>
               </div>
               <div className="flex flex-col">
                 <span>Smart Contract</span>

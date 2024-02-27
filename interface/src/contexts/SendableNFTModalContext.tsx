@@ -1,5 +1,6 @@
 import React from "react";
 import { Address } from "viem";
+import { useAccount } from "wagmi";
 import SendNFTModal from "@/components/Modal/SendNFTModal";
 
 type SendableNFTModalContextType = {

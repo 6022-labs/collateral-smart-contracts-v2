@@ -48,19 +48,19 @@ export function CreatedRewardPoolContextProvider(
     refreshCreatedRewardPool();
   }, [address]);
 
-  return React.useMemo(() => {
-    return (
-      <CreatedRewardPoolContext.Provider
-        value={{
-          hasCreatedRewardPool,
-          refreshCreatedRewardPool,
-          createdRewardPoolAddress,
-        }}
-      >
-        {props.children}
-      </CreatedRewardPoolContext.Provider>
-    );
-  }, [hasCreatedRewardPool, createdRewardPoolAddress]);
+  let value = React.useMemo(() => {
+    return {
+      hasCreatedRewardPool,
+      refreshCreatedRewardPool,
+      createdRewardPoolAddress,
+    };
+  }, [address, hasCreatedRewardPool, createdRewardPoolAddress]);
+
+  return (
+    <CreatedRewardPoolContext.Provider value={value}>
+      {props.children}
+    </CreatedRewardPoolContext.Provider>
+  );
 }
 
 export function useCreatedRewardPool() {

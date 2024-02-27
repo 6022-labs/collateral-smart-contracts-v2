@@ -160,6 +160,7 @@ export default function Content(props: Readonly<ContentProps>) {
           disabled: false,
           color: "bg-green-600",
           text: "Take collateral",
+          onClick: withdrawAction,
         });
       } else {
         if (data.lockedUntil > new Date().getTime() / 1000) {
@@ -183,7 +184,7 @@ export default function Content(props: Readonly<ContentProps>) {
 
   React.useEffect(() => {
     refreshVaultAction();
-  }, [nftOwners, props.data]);
+  }, [nftOwners, props.data.isDeposited, props.data.isWithdrawn]);
 
   return (
     <div className="flex justify-between text-sm p-5">

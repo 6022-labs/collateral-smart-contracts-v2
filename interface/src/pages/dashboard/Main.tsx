@@ -1,5 +1,6 @@
 import React from "react";
 import { formatUnits } from "viem";
+import { useAccount } from "wagmi";
 import { Vault } from "@/types/Vault";
 import Table from "@/components/Table";
 import { Row } from "@/components/Table/Row";
@@ -13,10 +14,10 @@ import NewContractModal from "@/components/Modal/NewContractModal";
 export default function Main() {
   const elementsPerPage = 10;
 
+  const { address } = useAccount();
   const { ownedVaults } = useOwnedVaults();
 
   const [vaultsToDisplay, setVaultsToDisplay] = React.useState<Vault[]>([]);
-
   const [newContractModalIsOpen, setNewContractModalIsOpen] =
     React.useState<boolean>(false);
 
@@ -41,10 +42,11 @@ export default function Main() {
   const paginateVaultsToDisplay = (page: number) => {
     let start = (page - 1) * elementsPerPage;
     let end = start + elementsPerPage;
-    setVaultsToDisplay(ownedVaults.slice(start, end));
+    setVaultsToDisplay([...ownedVaults.slice(start, end)]);
   };
 
   React.useEffect(() => {
+    console.log("ownedVaults", ownedVaults);
     paginateVaultsToDisplay(1);
   }, [ownedVaults]);
 
@@ -76,7 +78,8 @@ export default function Main() {
             {vaultsToDisplay.map((vault) => {
               return (
                 <Row
-                  key={vault.address}
+                  // Key must be very complex for rerendering reasons
+                  key={`${address}-${vault.address}-${vault.isDeposited}-${vault.isWithdrawn}`}
                   collapsible={true}
                   collapsedContent={<VaultDetails data={vault} />}
                   onClick={(setCollapsed) => {

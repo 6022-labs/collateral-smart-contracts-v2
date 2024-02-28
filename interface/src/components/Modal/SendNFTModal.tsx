@@ -39,7 +39,7 @@ export default function SendNFTModal(props: Readonly<SendNFTModalProps>) {
     >
       {(handleClose) => {
         return (
-          <div className="bg-white min-w-lg px-4 text-black space-y-8 pb-4 pt-5 overflow-y-auto max-h-96 md:max-h-120 sm:p-6 sm:pb-4 md:min-w-lg">
+          <div className="bg-white sm:min-w-lg px-4 text-black space-y-8 pb-4 pt-5 overflow-y-auto min-w-90-screen max-h-96 sm:min-w-lg md:max-h-120 sm:p-6 sm:pb-4">
             <div className="flex flex-col space-y-5">
               <div className="flex flex-col space-y-4">
                 <h1 className="text-xl font-semibold">Send Vault NFT</h1>

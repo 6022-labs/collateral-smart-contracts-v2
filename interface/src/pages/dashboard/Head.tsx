@@ -42,20 +42,20 @@ export default function Head() {
   }, [ownedVaults]);
 
   return (
-    <div className="py-8 px-32 bg-primary text-white">
+    <div className="py-8 px-4 bg-primary text-white lg:px-32">
       <div className="flex justify-between">
         <div className="">
           <div className="flex gap-x-4 items-center">
-            <img className="h-20" src="/logo.png" alt="logo" />
-            <span className="font-semibold">Protocol 6022</span>
+            <img className="h-16 lg:h-20" src="/logo.png" alt="logo" />
+            <span className="hidden font-semibold lg:block">Protocol 6022</span>
           </div>
         </div>
-        <div className="flex flex-col gap-y-2">
+        <div className="text-xs flex flex-col gap-y-2 lg:text-base">
           <div className="flex items-center gap-x-2">
             <span className="font-semibold underline underline-offset-4">
               My Collateral on
             </span>
-            <span>{truncateEthAddress(address, 12, 10)}</span>
+            <span>{truncateEthAddress(address, 8, 8)}</span>
           </div>
           <div className="flex justify-between">
             <div className="flex gap-x-2">
@@ -72,7 +72,7 @@ export default function Head() {
                 <span>:</span>
               </div>
             </div>
-            <div className="flex gap-x-2 ml-6">
+            <div className="flex gap-x-2 ml-3 md:ml-6">
               <div className="flex flex-col">
                 <span>{totalSmartContractLocked}</span>
                 <span>{totalSmartContractAvailable}</span>
@@ -80,8 +80,10 @@ export default function Head() {
                 <span>{roundWei(rewardAvailable, 18, 4)}</span>
               </div>
               <div className="flex flex-col">
-                <span>Smart Contract</span>
-                <span>Smart Contract</span>
+                <span className="sm:hidden">SC</span>
+                <span className="hidden sm:block">Smart Contract</span>
+                <span className="sm:hidden">SC</span>
+                <span className="hidden sm:block">Smart Contract</span>
                 <span>T6022</span>
                 <span>T6022</span>
               </div>

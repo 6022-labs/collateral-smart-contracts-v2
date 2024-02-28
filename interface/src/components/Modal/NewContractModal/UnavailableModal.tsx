@@ -40,7 +40,7 @@ export default function UnavailableModal(
         To create a RewardPool, you just have to click to the button below
         "Create RewardPool" and validate the transaction on your wallet.
       </p>
-      <div className="flex w-full justify-center gap-x-4">
+      <div className="flex justify-center gap-x-4">
         <Button
           type="button"
           isLoading={isLoading}

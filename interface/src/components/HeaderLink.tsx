@@ -11,6 +11,7 @@ type HeaderLinkProps = ClassNameProps & {
 
 export default function HeaderLink(props: Readonly<HeaderLinkProps>) {
   const className = clsx(
+    props.className,
     "py-1 relative inline-block",
     "after:content[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-white after:origin-bottom-right",
     props.current

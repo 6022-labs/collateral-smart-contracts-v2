@@ -13,9 +13,10 @@ export default function PaginationButton(
 ) {
   const className = clsx(
     props.className,
-    props.current && "bg-slate-400",
-    "bg-slate-200 text-black border border-black hover:bg-slate-100",
-    "whitespace-nowrap font-medium w-10 h-10 flex justify-center items-center"
+    props.current ? "bg-slate-400" : "bg-slate-200",
+    "text-black border border-black hover:bg-slate-100",
+    "whitespace-nowrap font-medium flex justify-center items-center",
+    "text-sm w-8 h-8 sm:text-base sm:w-10 sm:h-10"
   );
 
   return (

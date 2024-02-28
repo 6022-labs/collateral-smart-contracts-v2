@@ -21,7 +21,7 @@ export default function NFTRow(props: Readonly<NFTRowProps>) {
   const className = clsx(
     props.className,
     "pl-4 pr-2 py-1",
-    "text-black border border-black",
+    "text-xxs text-black border border-black md:text-xs lg:text-sm",
     "flex justify-between items-center gap-x-4",
     props.owner === address ? "bg-blue-400" : "bg-slate-200"
   );

@@ -12,7 +12,7 @@ export default function ButtonLink(props: Readonly<ButtonLinkProps>) {
     props.className,
     "flex justify-center items-center",
     "bg-slate-200 text-black border border-black",
-    "w-fit whitespace-nowrap font-medium py-2 px-8 hover:opacity-80"
+    "w-fit whitespace-nowrap font-medium py-2 px-3 md:px-6 lg:px-8 hover:opacity-80"
   );
 
   return (

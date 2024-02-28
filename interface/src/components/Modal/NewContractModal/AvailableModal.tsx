@@ -166,8 +166,8 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
         handleChange,
       }) => {
         return (
-          <Form className="flex flex-col gap-y-3 px-2">
-            <div className="flex flex-col gap-y-2">
+          <Form className="flex w-full flex-col gap-y-3 px-2">
+            <div className="flex w-full flex-col gap-y-2">
               <label htmlFor="name">Type of collateral*</label>
               <Field
                 name="type"
@@ -184,7 +184,7 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
               />
               {errors.type && <ErrorMessage error={errors.type} />}
             </div>
-            <div className="flex flex-col gap-y-2">
+            <div className="flex w-full flex-col gap-y-2">
               <label htmlFor="name">Name*</label>
               <Field
                 name="name"

@@ -12,7 +12,7 @@ type ModalProps = ClassNameProps & {
 
 export default function Modal(props: ModalProps) {
   const className = clsx(
-    "relative transform overflow-hidden rounded-2xl text-left transition-all sm:max-w-lg",
+    "relative transform overflow-hidden rounded-2xl text-left transition-all",
     props.className
   );
 

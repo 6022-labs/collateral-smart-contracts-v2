@@ -11,7 +11,7 @@ export default function VaultDetails(props: Readonly<VaultDetailsProps>) {
   return (
     <VaultDetailsContextProvider vaultAddress={props.data.address}>
       <SendableNFTModalContextProvider>
-        <Content data={props.data} />
+        <Content vault={props.data} />
       </SendableNFTModalContextProvider>
     </VaultDetailsContextProvider>
   );

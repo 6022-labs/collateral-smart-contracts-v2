@@ -12,8 +12,6 @@ export async function vaultOverview(
     address: address,
   };
 
-  console.log("fetching vault overview with address", userAddress);
-
   let informationPromise = client?.readContract({
     ...baseConfig,
     functionName: "vaultOverview",

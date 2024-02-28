@@ -52,7 +52,7 @@ export default function Main() {
 
   return (
     <>
-      <div className="py-8 px-32">
+      <div className="py-8 px-4 lg:px-32">
         <div className="flex flex-row-reverse gap-x-4 w-full">
           <Button
             onClick={() => {
@@ -67,11 +67,14 @@ export default function Main() {
           <Table
             columns={[
               { name: "Collateral" },
-              { name: "C. Initial value (T6022)" },
+              {
+                name: "C. Initial value (T6022)",
+                className: "hidden md:table-cell",
+              },
               { name: "Status" },
               { name: "Start date" },
               { name: "End date" },
-              { name: "NFT owned by me" },
+              { name: "NFT owned by me", className: "hidden md:table-cell" },
               { name: "Name" },
             ]}
           >
@@ -97,7 +100,9 @@ export default function Main() {
                       <span>{vault.wantedTokenSymbol}</span>
                     </div>
                   </Cell>
-                  <Cell>{formatUnits(vault.backedValueProtocolToken, 18)}</Cell>
+                  <Cell className="hidden md:table-cell">
+                    {formatUnits(vault.backedValueProtocolToken, 18)}
+                  </Cell>
                   <Cell>{getVaultStatus(vault)}</Cell>
                   <Cell>
                     {new Date(
@@ -109,7 +114,9 @@ export default function Main() {
                       Number(vault.lockedUntil) * 1000
                     ).toLocaleDateString()}
                   </Cell>
-                  <Cell>{vault.ownedNFTs.toString()}</Cell>
+                  <Cell className="hidden md:table-cell">
+                    {vault.ownedNFTs.toString()}
+                  </Cell>
                   <Cell>{vault.name}</Cell>
                 </Row>
               );

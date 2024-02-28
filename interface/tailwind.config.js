@@ -39,9 +39,13 @@ export default {
       },
       minWidth: {
         lg: "32rem",
+        "90-screen": "90vw",
       },
       maxHeight: {
         120: "30rem",
+      },
+      fontSize: {
+        xxs: ["0.625rem", "0.875rem"],
       },
     },
   },

@@ -88,12 +88,23 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
       let wantedAmount = BigInt(values.wantedAmount);
 
       if (values.type === "erc20") {
-        let decimals = await getDecimals(
-          publicClient,
-          values.wantedTokenAddress
-        );
+        try {
+          let decimals = await getDecimals(
+            publicClient,
+            values.wantedTokenAddress
+          );
 
-        wantedAmount = parseUnits(values.wantedAmount.toString(), decimals);
+          wantedAmount = parseUnits(values.wantedAmount.toString(), decimals);
+        } catch (error: any) {
+          console.error(error);
+          toast.error(
+            "An error occurred, it seems that the given address is not a valid ERC20."
+          );
+          setError(
+            "An error occurred, it seems that the given address is not a valid ERC20."
+          );
+          return;
+        }
       }
 
       let hash = await createVault(
@@ -342,10 +353,10 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
               </Button>
             </div>
             {error && (
-              <div className="flex w-full px-8 justify-center">
-                <div className="flex justify-center items-center gap-x-2 px-6 py-3 bg-red-600/40">
+              <div className="flex px-8 justify-center">
+                <div className="flex w-72 justify-center items-center gap-x-2 px-6 py-3 bg-red-600/40">
                   <FontAwesomeIcon icon={faCircleExclamation} />
-                  <span>{error}</span>
+                  <span className="text-wrap">{error}</span>
                 </div>
               </div>
             )}

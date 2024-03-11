@@ -46,7 +46,6 @@ export default function Main() {
   };
 
   React.useEffect(() => {
-    console.log("ownedVaults", ownedVaults);
     paginateVaultsToDisplay(1);
   }, [ownedVaults]);
 

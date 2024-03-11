@@ -102,10 +102,10 @@ export default function UnavailableModal(
         </Button>
       </div>
       {error && (
-        <div className="flex w-full px-8 justify-center">
-          <div className="flex justify-center items-center gap-x-2 px-6 py-3 bg-red-600/40">
+        <div className="flex px-8 justify-center">
+          <div className="flex w-72 justify-center items-center gap-x-2 px-6 py-3 bg-red-600/40">
             <FontAwesomeIcon icon={faCircleExclamation} />
-            <span>{error}</span>
+            <span className="text-wrap">{error}</span>
           </div>
         </div>
       )}

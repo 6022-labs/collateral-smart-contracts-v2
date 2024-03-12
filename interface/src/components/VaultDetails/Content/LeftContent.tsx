@@ -214,7 +214,7 @@ const LeftContent = React.forwardRef(
             <span className="text-center">
               {roundWei(props.vault.collectedRewards, 18, 4)} T6022
             </span>
-            <span className="text-center">≈437,05 USD</span>
+            {/* <span className="text-center">≈437,05 USD</span> */}
           </div>
         </Card>
       </div>

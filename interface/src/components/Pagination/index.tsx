@@ -3,17 +3,16 @@ import PaginationButton from "./PaginationButton";
 
 type PaginationProps = {
   pages: number;
+  currentPage: number;
   onPaginate: (page: number) => void;
 };
 
 export default function Pagination(props: Readonly<PaginationProps>) {
-  const [currentPage, setCurrentPage] = React.useState(1);
-
   const visiblePages = () => {
     const pages = [];
-    if (currentPage > 1) pages.push(currentPage - 1);
-    pages.push(currentPage);
-    if (currentPage < props.pages) pages.push(currentPage + 1);
+    if (props.currentPage > 1) pages.push(props.currentPage - 1);
+    pages.push(props.currentPage);
+    if (props.currentPage < props.pages) pages.push(props.currentPage + 1);
     return pages;
   };
 
@@ -22,9 +21,8 @@ export default function Pagination(props: Readonly<PaginationProps>) {
       <PaginationButton
         current={false}
         onClick={() => {
-          if (currentPage > 1) {
-            setCurrentPage((prev) => prev - 1);
-            props.onPaginate(currentPage - 1);
+          if (props.currentPage > 1) {
+            props.onPaginate(props.currentPage - 1);
           }
         }}
       >
@@ -32,9 +30,8 @@ export default function Pagination(props: Readonly<PaginationProps>) {
       </PaginationButton>
       {visiblePages().map((page) => (
         <PaginationButton
-          current={page === currentPage}
+          current={page === props.currentPage}
           onClick={() => {
-            setCurrentPage(page);
             props.onPaginate(page);
           }}
           key={page}
@@ -45,9 +42,8 @@ export default function Pagination(props: Readonly<PaginationProps>) {
       <PaginationButton
         current={false}
         onClick={() => {
-          if (currentPage < props.pages) {
-            setCurrentPage((prev) => prev + 1);
-            props.onPaginate(currentPage + 1);
+          if (props.currentPage < props.pages) {
+            props.onPaginate(props.currentPage + 1);
           }
         }}
       >

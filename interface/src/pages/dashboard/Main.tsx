@@ -17,6 +17,8 @@ export default function Main() {
   const { address } = useAccount();
   const { ownedVaults } = useOwnedVaults();
 
+  const [currentPage, setCurrentPage] = React.useState(1);
+
   const [vaultsToDisplay, setVaultsToDisplay] = React.useState<Vault[]>([]);
   const [newContractModalIsOpen, setNewContractModalIsOpen] =
     React.useState<boolean>(false);
@@ -46,8 +48,8 @@ export default function Main() {
   };
 
   React.useEffect(() => {
-    paginateVaultsToDisplay(1);
-  }, [ownedVaults]);
+    paginateVaultsToDisplay(currentPage);
+  }, [ownedVaults, currentPage]);
 
   return (
     <>
@@ -124,7 +126,10 @@ export default function Main() {
           {ownedVaults.length > elementsPerPage && (
             <div className="flex w-full justify-end mt-5">
               <Pagination
-                onPaginate={paginateVaultsToDisplay}
+                currentPage={currentPage}
+                onPaginate={(page) => {
+                  setCurrentPage(page);
+                }}
                 pages={Math.ceil(ownedVaults.length / elementsPerPage)}
               />
             </div>

@@ -1,4 +1,3 @@
-import React from "react";
 import PaginationButton from "./PaginationButton";
 
 type PaginationProps = {

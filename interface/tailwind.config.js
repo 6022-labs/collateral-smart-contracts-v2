@@ -8,8 +8,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "rgb(42,45,60)",
-        secondary: "rgb(56,61,81)",
+        "very-black": "rgb(7,7,12)",
+        "lime-green": "rgb(53,201,106)",
+        "bright-blue": "rgb(77,48,251)",
+        "strong-blue": "rgb(66,41,214)",
       },
       keyframes: {
         "fade-in-down": {
@@ -47,6 +49,9 @@ export default {
       },
       fontSize: {
         xxs: ["0.625rem", "0.875rem"],
+      },
+      borderRadius: {
+        sxl: "0.625rem",
       },
     },
   },

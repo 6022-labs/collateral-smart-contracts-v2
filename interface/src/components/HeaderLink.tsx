@@ -5,6 +5,7 @@ import { ClassNameProps } from "../types/ClassNameProps";
 
 type HeaderLinkProps = ClassNameProps & {
   href: string;
+  target?: string;
   current: boolean;
   children: React.ReactNode | React.ReactNode[];
 };
@@ -21,7 +22,9 @@ export default function HeaderLink(props: Readonly<HeaderLinkProps>) {
 
   return (
     <li className={className}>
-      <Link to={props.href}>{props.children}</Link>
+      <Link to={props.href} target={props.target}>
+        {props.children}
+      </Link>
     </li>
   );
 }

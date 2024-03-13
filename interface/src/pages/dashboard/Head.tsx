@@ -42,7 +42,7 @@ export default function Head() {
   }, [ownedVaults]);
 
   return (
-    <div className="py-8 px-4 bg-primary text-white lg:px-32">
+    <div className="py-8 px-4 bg-very-black text-white lg:px-32">
       <div className="flex justify-between">
         <div className="">
           <div className="flex gap-x-4 items-center">

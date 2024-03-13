@@ -12,16 +12,9 @@ const Links = [
     label: "Dashboard",
   },
   {
-    href: "/markets",
-    label: "Markets",
-  },
-  {
-    href: "/stake",
-    label: "Stake",
-  },
-  {
-    href: "/governance",
+    target: "_blank",
     label: "Governance",
+    href: "http://6022.io",
   },
 ];
 
@@ -31,7 +24,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = React.useState<boolean>(false);
 
   return (
-    <header className="py-2 relative bg-primary text-white border-b-2 border-b-secondary">
+    <header className="py-2 relative bg-very-black text-white border-b-2 border-b-white/10">
       <div className="flex items-center px-3 sm:px-8">
         <div className="flex w-full justify-start items-center">
           <img className="h-10" src="/logo.png" alt="logo" />
@@ -42,6 +35,7 @@ export default function Header() {
                   <HeaderLink
                     key={link.href}
                     href={link.href}
+                    target={link.target}
                     current={link.href == location.pathname}
                   >
                     {link.label}
@@ -80,6 +74,7 @@ export default function Header() {
                     className="w-fit"
                     key={link.href}
                     href={link.href}
+                    target={link.target}
                     current={link.href == location.pathname}
                   >
                     {link.label}

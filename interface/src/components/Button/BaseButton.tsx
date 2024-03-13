@@ -17,8 +17,11 @@ export default function BaseButton(props: Readonly<BaseButtonProps>) {
     props.className,
     "border border-black font-medium",
     "flex gap-x-2 justify-center items-center",
-    props.isLoading || props.disabled ? "opacity-80" : "hover:opacity-80",
-    props.color ?? "bg-slate-200 text-black"
+    props.isLoading && "opacity-80",
+    props.onClick && "cursor-pointer hover:opacity-80",
+    props.disabled
+      ? "bg-bright-blue text-white"
+      : props.color ?? "bg-strong-blue text-white"
   );
 
   return (

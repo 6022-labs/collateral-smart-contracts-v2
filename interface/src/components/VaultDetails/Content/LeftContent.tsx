@@ -40,6 +40,13 @@ const LeftContent = React.forwardRef(
 
     const depositAction = async () => {
       let isApproved = false;
+      console.log("Running depositAction");
+
+      console.log("Using address: ", address);
+      console.log("Using vault: ", props.vault);
+
+      console.log("Checking if approved");
+
       try {
         let allowed = await allowance(
           publicClient,
@@ -47,6 +54,9 @@ const LeftContent = React.forwardRef(
           address,
           props.vault.address
         );
+
+        console.log("allowed: ", allowed);
+        console.log("wantedAmount: ", props.vault.wantedAmount);
 
         if (allowed >= props.vault.wantedAmount) {
           isApproved = true;
@@ -59,6 +69,8 @@ const LeftContent = React.forwardRef(
             props.vault.wantedAmount
           );
 
+          console.log("approved: ", approved);
+
           if (approved === address) {
             isApproved = true;
           }
@@ -69,6 +81,8 @@ const LeftContent = React.forwardRef(
           return;
         }
       }
+
+      console.log("isApproved: ", isApproved);
 
       if (!isApproved) {
         try {
@@ -90,6 +104,8 @@ const LeftContent = React.forwardRef(
           return;
         }
       }
+
+      console.log("Running deposit");
 
       try {
         let hash = await deposit(writeClient, props.vault.address);
@@ -127,7 +143,7 @@ const LeftContent = React.forwardRef(
         if (props.vault.isWithdrawn) {
           setVaultAction({
             disabled: true,
-            text: "Take collateral",
+            text: "Take Collateral",
           });
 
           return;
@@ -139,7 +155,7 @@ const LeftContent = React.forwardRef(
             if (ownedByCurrentUser.length >= 2) {
               setVaultAction({
                 disabled: false,
-                text: "Take collateral",
+                text: "Take Collateral",
                 onClick: withdrawAction,
               });
 
@@ -148,7 +164,7 @@ const LeftContent = React.forwardRef(
 
             setVaultAction({
               disabled: true,
-              text: "Take collateral",
+              text: "Take Collateral",
             });
 
             return;
@@ -156,17 +172,15 @@ const LeftContent = React.forwardRef(
 
           setVaultAction({
             disabled: false,
-            color: "bg-green-600",
-            text: "Take collateral",
+            text: "Take Collateral",
             onClick: withdrawAction,
           });
         } else {
           if (props.vault.lockedUntil > new Date().getTime() / 1000) {
             setVaultAction({
               disabled: false,
-              color: "bg-green-600",
               onClick: depositAction,
-              text: "Make the Deposit",
+              text: "Make Deposit",
             });
 
             return;
@@ -174,7 +188,7 @@ const LeftContent = React.forwardRef(
 
           setVaultAction({
             disabled: true,
-            text: "Make the Deposit",
+            text: "Make Deposit",
           });
         }
       }

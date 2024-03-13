@@ -23,7 +23,7 @@ export default function NFTRow(props: Readonly<NFTRowProps>) {
     "pl-4 pr-2 py-1",
     "text-xxs text-black border border-black md:text-xs lg:text-sm",
     "flex justify-between items-center gap-x-4",
-    props.owner === address ? "bg-blue-400" : "bg-slate-200"
+    props.owner === address ? "bg-lime-green" : "bg-slate-200"
   );
 
   return (
@@ -38,6 +38,7 @@ export default function NFTRow(props: Readonly<NFTRowProps>) {
       {props.displaySendButton && (
         <SmallButton
           type="button"
+          color="bg-white/30"
           onClick={() => {
             openModal(props.smartContractAddress, props.tokenId);
           }}

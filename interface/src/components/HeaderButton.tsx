@@ -12,7 +12,7 @@ export default function HeaderButton(props: Readonly<HeaderButtonProps>) {
     <button
       type={props.type}
       onClick={props.onClick}
-      className={`bg-secondary w-fit whitespace-nowrap hover:opacity-60 text-white font-semibold text-sm py-2 px-4 rounded-lg ${props.className}`}
+      className={`bg-white/10 w-fit whitespace-nowrap hover:opacity-60 text-white font-semibold text-sm py-2 px-4 rounded-lg ${props.className}`}
     >
       {props.children}
     </button>

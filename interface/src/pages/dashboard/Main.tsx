@@ -25,13 +25,13 @@ export default function Main() {
 
   const getVaultStatus = (vault: Vault) => {
     if (vault.isWithdrawn) {
-      return <span className="text-green-600">Withdrawn</span>;
+      return <span className="text-lime-green">Withdrawn</span>;
     } else if (vault.isDeposited) {
       if (vault.lockedUntil > new Date().getTime() / 1000) {
         return <span className="text-red-600">Locked period</span>;
       }
 
-      return <span className="text-green-600">Unlocked</span>;
+      return <span className="text-lime-green">Unlocked</span>;
     } else {
       if (vault.lockedUntil > new Date().getTime() / 1000) {
         return <span>Waiting for deposit</span>;

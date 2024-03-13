@@ -29,6 +29,7 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
 
   const inOneYear = new Date();
   inOneYear.setFullYear(inOneYear.getFullYear() + 1);
+  inOneYear.setHours(inOneYear.getHours() + 1);
 
   const { refreshOwnedVaults } = useOwnedVaults();
   const { address = `0x${"default"}` } = useAccount();

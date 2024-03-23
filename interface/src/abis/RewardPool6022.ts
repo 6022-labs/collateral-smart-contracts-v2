@@ -224,6 +224,11 @@ export const abi = [
         type: "address",
       },
       {
+        internalType: "enum VaultStorageEnum",
+        name: "_storageType",
+        type: "uint8",
+      },
+      {
         internalType: "uint256",
         name: "_backedValueProtocolToken",
         type: "uint256",

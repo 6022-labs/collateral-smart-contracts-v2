@@ -69,6 +69,7 @@ describe("RewardPool6022", function () {
       Math.floor(lockedUntil),
       amount,
       await token6022.getAddress(),
+      BigInt(0),
       amount
     );
 
@@ -110,6 +111,7 @@ describe("RewardPool6022", function () {
             lockedUntil,
             ethers.parseEther("1"),
             await rewardPool6022.protocolToken(),
+            BigInt(0),
             ethers.parseEther("1")
           )
       ).to.revertedWithCustomError(
@@ -118,7 +120,7 @@ describe("RewardPool6022", function () {
       );
     });
 
-    it("Should fail the second time without approving token usage", async function () {
+    it("Should fail if there is rewardable vault without approving token usage", async function () {
       const { rewardPool6022, token6022 } =
         await loadFixture(deployRewardPool6022);
 
@@ -130,8 +132,19 @@ describe("RewardPool6022", function () {
         lockedUntil,
         ethers.parseEther("1"),
         await rewardPool6022.protocolToken(),
+        BigInt(0),
         ethers.parseEther("1")
       );
+
+      // Make deposit in the first vault to set it to "rewardable"
+      const firstVaultAddress = await rewardPool6022.allVaults(0);
+      const firstVault = await ethers.getContractAt(
+        "Vault6022",
+        firstVaultAddress
+      );
+
+      await token6022.approve(firstVaultAddress, ethers.parseEther("1"));
+      await firstVault.deposit();
 
       await expect(
         rewardPool6022.createVault(
@@ -139,6 +152,7 @@ describe("RewardPool6022", function () {
           lockedUntil,
           ethers.parseEther("1"),
           await rewardPool6022.protocolToken(),
+          BigInt(0),
           ethers.parseEther("1")
         )
       ).to.be.revertedWithCustomError(token6022, "ERC20InsufficientAllowance");
@@ -155,6 +169,7 @@ describe("RewardPool6022", function () {
           lockedUntil,
           ethers.parseEther("1"),
           await rewardPool6022.protocolToken(),
+          BigInt(0),
           ethers.parseEther("1")
         )
       ).to.emit(rewardPool6022, "VaultCreated");
@@ -166,7 +181,7 @@ describe("RewardPool6022", function () {
       ).to.be.greaterThan(0);
     });
 
-    it("Should work the second time with approve token usage", async function () {
+    it("Should work if there is rewardable vault with approve token usage", async function () {
       const { rewardPool6022, token6022 } =
         await loadFixture(deployRewardPool6022);
 
@@ -177,8 +192,19 @@ describe("RewardPool6022", function () {
         lockedUntil,
         ethers.parseEther("1"),
         await rewardPool6022.protocolToken(),
+        BigInt(0),
         ethers.parseEther("1")
       );
+
+      // Make deposit in the first vault to set it to "rewardable"
+      const firstVaultAddress = await rewardPool6022.allVaults(0);
+      const firstVault = await ethers.getContractAt(
+        "Vault6022",
+        firstVaultAddress
+      );
+
+      await token6022.approve(firstVaultAddress, ethers.parseEther("1"));
+      await firstVault.deposit();
 
       await token6022.approve(
         await rewardPool6022.getAddress(),
@@ -191,6 +217,7 @@ describe("RewardPool6022", function () {
           Math.floor(lockedUntil),
           ethers.parseEther("1"),
           await rewardPool6022.protocolToken(),
+          BigInt(0),
           ethers.parseEther("1")
         )
       ).to.emit(rewardPool6022, "VaultCreated");
@@ -305,13 +332,13 @@ describe("RewardPool6022", function () {
         await vault.getAddress()
       );
       totalRewardsBefore += rewardFirstPoolBefore;
-      expect(rewardFirstPoolBefore).to.be.equal(ethers.parseEther("0.15"));
+      expect(rewardFirstPoolBefore).to.be.equal(ethers.parseEther("0.03"));
 
       const rewardSecondPoolBefore = await rewardPool6022.collectedRewards(
         await createdVaults[0].getAddress()
       );
       totalRewardsBefore += rewardSecondPoolBefore;
-      expect(rewardSecondPoolBefore).to.be.equal(ethers.parseEther("0.05"));
+      expect(rewardSecondPoolBefore).to.be.equal(ethers.parseEther("0.01"));
 
       const rewardThirdPoolBefore = await rewardPool6022.collectedRewards(
         await createdVaults[1].getAddress()
@@ -319,7 +346,7 @@ describe("RewardPool6022", function () {
       totalRewardsBefore += rewardThirdPoolBefore;
       expect(rewardThirdPoolBefore).to.be.equal(0);
 
-      expect(totalRewardsBefore).to.be.equal(ethers.parseEther("0.2"));
+      expect(totalRewardsBefore).to.be.equal(ethers.parseEther("0.04"));
 
       // "withdraw" will call "reinvestRewards" function in the reward pool
       await expect(vault.withdraw()).to.emit(rewardPool6022, "Reinvested");
@@ -336,13 +363,13 @@ describe("RewardPool6022", function () {
         await createdVaults[0].getAddress()
       );
       totalRewardsAfter += rewardSecondPoolAfter;
-      expect(rewardSecondPoolAfter).to.be.equal(ethers.parseEther("0.125"));
+      expect(rewardSecondPoolAfter).to.be.equal(ethers.parseEther("0.025"));
 
       const rewardThirdPoolAfter = await rewardPool6022.collectedRewards(
         await createdVaults[1].getAddress()
       );
       totalRewardsAfter += rewardThirdPoolAfter;
-      expect(rewardThirdPoolAfter).to.be.equal(ethers.parseEther("0.075"));
+      expect(rewardThirdPoolAfter).to.be.equal(ethers.parseEther("0.015"));
 
       expect(totalRewardsBefore).to.be.equal(totalRewardsAfter);
 

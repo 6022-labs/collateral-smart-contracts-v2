@@ -9,6 +9,7 @@ export async function createVault(
   lockedUntil: number,
   wantedAmount: bigint,
   wantedTokenAddress: string,
+  storageType: bigint,
   backedValueProtocolToken: bigint
 ) {
   return await client?.writeContractAsync({
@@ -20,6 +21,7 @@ export async function createVault(
       lockedUntil,
       wantedAmount,
       wantedTokenAddress,
+      storageType,
       backedValueProtocolToken,
     ],
   });

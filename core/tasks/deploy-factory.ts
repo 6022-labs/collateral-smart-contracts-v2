@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { Controller6022 } from "../typechain-types";
 
-export default task("deploy-collection-generator")
+export default task("deploy-factory")
   .addParam(
     "controller6022Address",
     "The address of the Controller6022 contract"

@@ -86,7 +86,7 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
 
   const submitCreateVault = async (values: any) => {
     try {
-      let wantedAmount = BigInt(values.wantedAmount);
+      let wantedAmount = BigInt(0);
 
       if (values.type === "erc20") {
         try {
@@ -108,6 +108,21 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
         }
       }
 
+      if (values.type === "erc721") {
+        try {
+          wantedAmount = BigInt(values.wantedAmount);
+        } catch (error: any) {
+          console.error(error);
+          toast.error(
+            "An error occurred, cannot use a decimal number for NFT ID."
+          );
+          setError(
+            "An error occurred, cannot use a decimal number for NFT ID."
+          );
+          return;
+        }
+      }
+
       let hash = await createVault(
         writeContract,
         createdRewardPoolAddress,
@@ -115,6 +130,7 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
         new Date(values.lockedUntil).getTime() / 1000,
         wantedAmount,
         values.wantedTokenAddress,
+        values.type === "erc20" ? BigInt(0) : BigInt(1),
         parseUnits(values.backedValueProtocolToken.toString(), 18)
       );
 
@@ -276,6 +292,13 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
 
                   if (Number(value) <= 0) {
                     return "Must be greater than 0";
+                  }
+
+                  if (
+                    values.type === "erc721" &&
+                    !Number.isInteger(Number(value))
+                  ) {
+                    return "Must be an integer";
                   }
 
                   if (!value) {

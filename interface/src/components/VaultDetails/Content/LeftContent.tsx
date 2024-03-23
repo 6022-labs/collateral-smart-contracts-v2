@@ -128,7 +128,8 @@ const LeftContent = React.forwardRef(
         await publicClient?.waitForTransactionReceipt({
           hash: hash,
         });
-      } catch {
+      } catch (e) {
+        console.error(e);
         toast.error(
           "An error occurred while withdrawing funds, please try again."
         );

@@ -47,6 +47,7 @@ describe("Vault6022", function () {
       lockUntil,
       ethers.parseEther("10"),
       await token6022.getAddress(),
+      BigInt(0),
       ethers.parseEther("10")
     );
 

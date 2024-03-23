@@ -9,9 +9,26 @@ type PaginationProps = {
 export default function Pagination(props: Readonly<PaginationProps>) {
   const visiblePages = () => {
     const pages = [];
-    if (props.currentPage > 1) pages.push(props.currentPage - 1);
+    // Previous page
+    if (props.currentPage > 1) {
+      for (let index = 1; index < 3; index++) {
+        if (props.currentPage - index > 0) {
+          pages.push(props.currentPage - index);
+        }
+      }
+    }
+
+    // Current page
     pages.push(props.currentPage);
-    if (props.currentPage < props.pages) pages.push(props.currentPage + 1);
+
+    // Next page
+    if (props.currentPage < props.pages) {
+      for (let index = 1; index < 3; index++) {
+        if (props.currentPage + index <= props.pages) {
+          pages.push(props.currentPage + index);
+        }
+      }
+    }
     return pages;
   };
 

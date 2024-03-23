@@ -31,6 +31,11 @@ export const abi = [
         name: "_wantedTokenAddress",
         type: "address",
       },
+      {
+        internalType: "enum VaultStorageEnum",
+        name: "_storageType",
+        type: "uint8",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -191,6 +196,31 @@ export const abi = [
       },
     ],
     name: "Approval",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "ApprovalFailed",
     type: "event",
   },
   {
@@ -461,6 +491,19 @@ export const abi = [
   },
   {
     inputs: [],
+    name: "isRewardable",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "isWithdrawn",
     outputs: [
       {
@@ -597,6 +640,19 @@ export const abi = [
     name: "setApprovalForAll",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "storageType",
+    outputs: [
+      {
+        internalType: "enum VaultStorageEnum",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -760,7 +816,7 @@ export const abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct Vault6022.VaultOverview",
+        internalType: "struct VaultOverview",
         name: "",
         type: "tuple",
       },
@@ -783,10 +839,10 @@ export const abi = [
   },
   {
     inputs: [],
-    name: "wantedToken",
+    name: "wantedTokenAddress",
     outputs: [
       {
-        internalType: "contract ITokenOperation",
+        internalType: "address",
         name: "",
         type: "address",
       },

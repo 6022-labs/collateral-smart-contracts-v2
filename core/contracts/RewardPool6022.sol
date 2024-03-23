@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 // import "hardhat/console.sol";
 
 import {Vault6022} from "./Vault6022.sol";
+import {VaultStorageEnum} from "./VaultStorageEnum.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -12,7 +13,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract RewardPool6022 is Ownable, IRewardPool6022 {
     // ----------------- CONST ----------------- //
-    uint8 public constant FEES_PERCENT = 10;
+    uint8 public constant FEES_PERCENT = 2;
 
     // ----------------- VARIABLES ----------------- //
     /// @notice List of all vaults related to this reward pool
@@ -73,12 +74,13 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         string memory _name, 
         uint256 _lockedUntil, 
         uint256 _wantedAmount,
-        address _wantedTokenAddress, 
+        address _wantedTokenAddress,
+        VaultStorageEnum _storageType,
         uint256 _backedValueProtocolToken) public onlyOwner {
 
         uint256 _protocolTokenFees = (_backedValueProtocolToken / 100) * FEES_PERCENT;
         
-        if (allVaults.length > 0) {
+        if (_rewardablePools() > 0) {
             protocolToken.transferFrom(msg.sender, address(this), _protocolTokenFees);
             _updateRewards(_protocolTokenFees);
         }
@@ -89,7 +91,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
             _lockedUntil,
             _wantedAmount,
             address(this),
-            _wantedTokenAddress);
+            _wantedTokenAddress,
+            _storageType);
 
         allVaults.push(address(vault));
         isVault[address(vault)] = true;
@@ -119,22 +122,33 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     function _updateRewards(uint256 amount) internal {
-        uint256 totalRewardableVaults = 0;
-
-        for (uint i = 0; i < allVaults.length; i++) {
-            Vault6022 vault = Vault6022(allVaults[i]);
-            if (vault.lockedUntil() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
-                totalRewardableVaults += collectedFees[address(vault)];
-            }
-        }
+        uint256 totalRewardableVaults = _rewardablePools();
 
         if (totalRewardableVaults == 0) return; // No vaults to reward and avoid division by zero
 
         for (uint i = 0; i < allVaults.length; i++) {
             Vault6022 vault = Vault6022(allVaults[i]);
-            if (vault.lockedUntil() > block.timestamp && vault.isDeposited() && !vault.isWithdrawn()) {
-                collectedRewards[address(vault)] += amount * collectedFees[address(vault)] / totalRewardableVaults;
+            if (vault.isRewardable()) {
+                // If there is only one vault, it will get all the past rewards
+                if (totalRewardableVaults == 1) {
+                    collectedRewards[address(vault)] = protocolToken.balanceOf(address(this));
+                } else {
+                    collectedRewards[address(vault)] += amount * collectedFees[address(vault)] / totalRewardableVaults;
+                }
             }
         }
+    }
+
+    function _rewardablePools() internal view returns (uint256) {
+        uint256 totalRewardableVaults = 0;
+
+        for (uint i = 0; i < allVaults.length; i++) {
+            Vault6022 vault = Vault6022(allVaults[i]);
+            if (vault.isRewardable()) {
+                totalRewardableVaults += collectedFees[address(vault)];
+            }
+        }
+
+        return totalRewardableVaults;
     }
 }

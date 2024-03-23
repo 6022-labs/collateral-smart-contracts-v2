@@ -75,6 +75,7 @@ describe("Controller6022", function () {
       Math.floor(lockedUntil),
       ethers.parseEther("1"),
       await rewardPool.protocolToken(),
+      BigInt(0),
       ethers.parseEther("1")
     );
 

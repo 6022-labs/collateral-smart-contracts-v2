@@ -2,17 +2,18 @@
 pragma solidity ^0.8.20;
 
 // Uncomment this line to use console.log
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 import {IVault6022} from "./interfaces/IVault6022.sol";
+import {VaultStorageEnum} from "./VaultStorageEnum.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {ITokenOperation} from "./interfaces/ITokenOperation.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
-    struct VaultOverview {
+struct VaultOverview {
         string name;
         bool isDeposited;
         bool isWithdrawn;
@@ -31,6 +32,7 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         uint256 backedValueProtocolToken;
     }
 
+contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     // ----------------- CONST ----------------- //
     uint public constant MAX_TOKENS = 3;
     uint public constant WITHDRAW_NFTS_EARLY = 2;
@@ -62,7 +64,10 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     IRewardPool6022 public rewardPool;
 
     /// @notice ERC20 or ERC721 token address
-    ITokenOperation public wantedToken;
+    address public wantedTokenAddress;
+
+    /// @notice Indicates the storage type of the vault
+    VaultStorageEnum public storageType;
 
     // ----------------- EVENTS ----------------- //
     /// @dev Emitted when the contract is deposited
@@ -70,6 +75,9 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
 
     /// @dev Emitted when the contract is withdrawn
     event Withdrawn(address withdrawer, uint256 amount);
+
+    /// @dev Emitted when the approval fail
+    event ApprovalFailed(address owner, address spender, uint256 value);
 
     // ----------------- ERRORS ----------------- //
     /// @dev Error when user tries to deposit after the lockedUntil timestamp
@@ -93,15 +101,17 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         uint256 _lockedUntil,
         uint256 _wantedAmount,
         address _rewardPoolAddress,
-        address _wantedTokenAddress) ERC721(_name, "6022") {
+        address _wantedTokenAddress,
+        VaultStorageEnum _storageType) ERC721(_name, "6022") {
         
         isDeposited = false;
         isWithdrawn = false;
         lockedUntil = _lockedUntil;
+        storageType = _storageType;
         wantedAmount = _wantedAmount;
         creationTimestamp = block.timestamp;
+        wantedTokenAddress = _wantedTokenAddress;
         rewardPool = IRewardPool6022(_rewardPoolAddress);
-        wantedToken = ITokenOperation(_wantedTokenAddress);
 
         // Mint tokens to this contract's address
         for(uint i = 1; i <= MAX_TOKENS; i++) {
@@ -122,8 +132,9 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
             revert TooLateToDeposit();
         }
 
+        ITokenOperation wantedToken = ITokenOperation(wantedTokenAddress);
         wantedToken.transferFrom(msg.sender, address(this), wantedAmount);
-        
+
         isDeposited = true;
         depositTimestamp = block.timestamp;
 
@@ -140,9 +151,18 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
             revert NotEnoughtNFTToWithdraw();
         }
 
-        uint256 tokenAmount = wantedToken.balanceOf(address(this));
-        wantedToken.approve(address(this), tokenAmount);
-        wantedToken.transferFrom(address(this), msg.sender, tokenAmount);
+        if (storageType == VaultStorageEnum.ERC721) {
+            IERC721 wantedToken = IERC721(wantedTokenAddress);
+
+            wantedToken.transferFrom(address(this), msg.sender, wantedAmount);
+            emit Withdrawn(msg.sender, wantedAmount);
+        } else {
+            IERC20 wantedToken = IERC20(wantedTokenAddress);
+            uint256 balance = wantedToken.balanceOf(address(this));
+
+            wantedToken.transfer(msg.sender, balance);
+            emit Withdrawn(msg.sender, balance);
+        }
 
         isWithdrawn = true;
         withdrawTimestamp = block.timestamp;
@@ -152,31 +172,35 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         } else {
             rewardPool.reinvestRewards();
         }
-
-        emit Withdrawn(msg.sender, tokenAmount);
     }
 
     function getRequiredNftsToWithdraw() public view returns (uint256) {
         return block.timestamp < lockedUntil ? WITHDRAW_NFTS_EARLY : WITHDRAW_NFTS_LATE;
     }
 
+    function isRewardable() external view returns (bool) {
+        return lockedUntil > block.timestamp && isDeposited && !isWithdrawn;
+    }
+
     function vaultOverview() external view returns (VaultOverview memory) {
         string memory wantedTokenSymbol = "N/A";
-        (bool success, bytes memory data) = address(wantedToken).staticcall(abi.encodeWithSignature("symbol()"));
+        (bool success, bytes memory data) = wantedTokenAddress.staticcall(abi.encodeWithSignature("symbol()"));
         if (success) {
             wantedTokenSymbol = abi.decode(data, (string));
         } else {
-            (success, data) = address(wantedToken).staticcall(abi.encodeWithSignature("name()"));
+            (success, data) = wantedTokenAddress.staticcall(abi.encodeWithSignature("name()"));
             if (success) {
                 wantedTokenSymbol = abi.decode(data, (string));
             }
         }
 
         uint8 wantedTokenDecimals = 0;
-        (success, data) = address(wantedToken).staticcall(abi.encodeWithSignature("decimals()"));
+        (success, data) = wantedTokenAddress.staticcall(abi.encodeWithSignature("decimals()"));
         if (success) {
             wantedTokenDecimals = abi.decode(data, (uint8));
         }
+
+        ITokenOperation wantedToken = ITokenOperation(wantedTokenAddress);
 
         return VaultOverview({
             name: name(),
@@ -189,7 +213,7 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
             creationTimestamp: creationTimestamp,
             wantedTokenSymbol: wantedTokenSymbol,
             rewardPoolAddress: address(rewardPool),
-            wantedTokenAddress: address(wantedToken),
+            wantedTokenAddress: wantedTokenAddress,
             wantedTokenDecimals: wantedTokenDecimals,
             collectedFees: rewardPool.collectedFees(address(this)),
             balanceOfWantedToken: wantedToken.balanceOf(address(this)),

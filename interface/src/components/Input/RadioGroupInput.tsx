@@ -18,11 +18,11 @@ export default function RadioGroupInput(props: RadioGroupInputProps) {
       {props.choices.map((choice, index) => (
         <label
           key={choice.value}
-          className={`flex items-center justify-center cursor-pointer py-2 px-8 border-b border-t border-r border-black ${
+          className={`flex items-center justify-center cursor-pointer py-2 px-8 border-y-2 border-r-2 border-very-black ${
             props.value === choice.value
-              ? "bg-slate-200"
-              : "bg-slate-100 hover:bg-slate-200"
-          } ${index === 0 ? "rounded-l border-l" : ""} ${
+              ? "bg-very-black text-white"
+              : "bg-slate-200 hover:bg-very-black hover:text-white"
+          } ${index === 0 ? "rounded-l border-l-2" : ""} ${
             index === props.choices.length - 1 ? "rounded-r" : ""
           }`}
         >
@@ -35,7 +35,7 @@ export default function RadioGroupInput(props: RadioGroupInputProps) {
             onChange={props.onChange}
             checked={props.value === choice.value}
           />
-          <span className="text-black">{choice.label}</span>
+          <span>{choice.label}</span>
         </label>
       ))}
     </div>

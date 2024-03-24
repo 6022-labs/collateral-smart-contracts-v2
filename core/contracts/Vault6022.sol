@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
 import {IVault6022} from "./interfaces/IVault6022.sol";
 import {VaultStorageEnum} from "./VaultStorageEnum.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
@@ -15,6 +12,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 struct VaultOverview {
         string name;
+        address creator;
         bool isDeposited;
         bool isWithdrawn;
         uint256 lockedUntil;
@@ -29,6 +27,7 @@ struct VaultOverview {
         address rewardPoolAddress;
         address wantedTokenAddress;
         uint256 balanceOfWantedToken;
+        VaultStorageEnum storageType;
         uint256 backedValueProtocolToken;
     }
 
@@ -39,6 +38,9 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     uint public constant WITHDRAW_NFTS_LATE = 1;
 
     // ----------------- VARIABLES ----------------- //
+    /// @notice Creator of the contract
+    address public creator;
+
     /// @notice Indicates if the contract is deposited
     bool public isDeposited;
 
@@ -104,6 +106,7 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         address _wantedTokenAddress,
         VaultStorageEnum _storageType) ERC721(_name, "6022") {
         
+        creator = _creator;
         isDeposited = false;
         isWithdrawn = false;
         lockedUntil = _lockedUntil;
@@ -204,9 +207,11 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
 
         return VaultOverview({
             name: name(),
+            creator: creator,
             isDeposited: isDeposited,
             isWithdrawn: isWithdrawn,
             lockedUntil: lockedUntil,
+            storageType: storageType,
             wantedAmount: wantedAmount,
             depositTimestamp: depositTimestamp,
             withdrawTimestamp: withdrawTimestamp,

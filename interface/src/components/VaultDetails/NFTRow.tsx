@@ -2,8 +2,11 @@ import clsx from "clsx";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
 import SmallButton from "../Button/SmallButton";
+import SmallCopyButton from "../Button/SmallCopyButton";
 import { ClassNameProps } from "@/types/ClassNameProps";
 import { truncateEthAddress } from "@/utils/eth-address";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSendableNFTModal } from "@/contexts/SendableNFTModalContext";
 
 type NFTRowProps = ClassNameProps & {
@@ -27,24 +30,33 @@ export default function NFTRow(props: Readonly<NFTRowProps>) {
   );
 
   return (
-    <div className={className}>
+    <div
+      className={className}
+      title={props.owner !== address ? props.owner : undefined}
+    >
       <div>
-        {`NFT key ${props.tokenId.toString()} owned by ${
-          props.owner === address
-            ? "you"
-            : truncateEthAddress(props.owner, 6, 6)
+        {`Key ${props.tokenId.toString()} owned by ${
+          props.owner === address ? "me" : truncateEthAddress(props.owner, 6, 6)
         }`}
       </div>
       {props.displaySendButton && (
         <SmallButton
           type="button"
-          color="bg-white/30"
+          className="py-1"
+          color="bg-white/30 text-black"
           onClick={() => {
             openModal(props.smartContractAddress, props.tokenId);
           }}
         >
-          Send
+          <FontAwesomeIcon className="w-3 h-3" icon={faPaperPlane} />
         </SmallButton>
+      )}
+      {props.owner !== address && (
+        <SmallCopyButton
+          className="py-1"
+          color="bg-white/30 text-black"
+          valueToCopy={props.owner}
+        />
       )}
     </div>
   );

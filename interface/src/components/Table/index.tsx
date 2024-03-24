@@ -1,6 +1,6 @@
 import clsx from "clsx";
+import Row from "./Row";
 import React from "react";
-import { Row } from "./Row";
 import { ClassNameProps } from "@/types/ClassNameProps";
 
 type ColumnProps = ClassNameProps & {
@@ -17,7 +17,7 @@ type TableProps = {
 export default function Table(props: Readonly<TableProps>) {
   return (
     <table className="table-fixed w-full">
-      <thead className="text-xxs md:text-xs text-gray-700 md:uppercase bg-gray-50">
+      <thead className="text-xxs md:text-xs text-gray-700 uppercase bg-gray-50">
         <tr>
           {props.columns.map((column) => {
             let className = clsx("px-2 md:px-4 py-3", column.className);

@@ -25,7 +25,6 @@ const RightContent = React.forwardRef(
               props.vault.wantedTokenDecimals,
               4
             )} ${props.vault.wantedTokenSymbol}`}</span>
-            {/* <span className="text-center">≈3500 USD</span> */}
           </div>
         </Card>
         <div className="flex flex-col justify-between h-full order-1 sm:order-2">

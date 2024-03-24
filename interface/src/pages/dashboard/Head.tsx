@@ -76,8 +76,16 @@ export default function Head() {
               <div className="flex flex-col">
                 <span>{totalSmartContractLocked}</span>
                 <span>{totalSmartContractAvailable}</span>
-                <span>{roundWei(rewardLocked, 18, 4)}</span>
-                <span>{roundWei(rewardAvailable, 18, 4)}</span>
+                <span>
+                  {new Intl.NumberFormat("fr-FR", { useGrouping: true }).format(
+                    Number(roundWei(rewardLocked, 18, 4))
+                  )}
+                </span>
+                <span>
+                  {new Intl.NumberFormat("fr-FR", { useGrouping: true }).format(
+                    Number(roundWei(rewardAvailable, 18, 4))
+                  )}
+                </span>
               </div>
               <div className="flex flex-col">
                 <span className="sm:hidden">SC</span>

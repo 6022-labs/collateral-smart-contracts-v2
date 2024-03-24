@@ -253,8 +253,8 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
             <div className="flex flex-col gap-y-2">
               <label htmlFor="wantedTokenAddress">
                 {values.type === "erc20"
-                  ? "Token address"
-                  : "NFT collection address"}
+                  ? "Address of the Requested Token for Collateral"
+                  : "Address of the Requested NFT for Collateral"}
                 *
               </label>
               <Field
@@ -279,7 +279,10 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
             </div>
             <div className="flex flex-col gap-y-2">
               <label htmlFor="wantedAmount">
-                {values.type === "erc20" ? "Amount of tokens" : "NFT ID"}*
+                {values.type === "erc20"
+                  ? "Expected Collateral Amount in Tokens"
+                  : "NFT ID"}
+                *
               </label>
               <Field
                 name="wantedAmount"
@@ -312,7 +315,7 @@ export default function AvailableModal(props: Readonly<AvailableModalProps>) {
             </div>
             <div className="flex flex-col gap-y-2">
               <label htmlFor="backedValueProtocolToken">
-                Protocol token equivalent*
+                Declared Collateral Value in T6022*
               </label>
               <Field
                 name="backedValueProtocolToken"

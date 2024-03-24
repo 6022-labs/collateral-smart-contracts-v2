@@ -26,19 +26,19 @@ export default function UnavailableModal(
   const { refreshCreatedRewardPool } = useCreatedRewardPool();
 
   return (
-    <div className="flex flex-col gap-y-3 text-sm">
-      <p>You haven't create your RewardPool yet !</p>
+    <div className="flex flex-col gap-y-3 text-sm max-w-lg">
       <p>
-        A RewardPool is necessary to create a new vault contract. This
-        RewardPool is also used to distribute rewards to your vault users.
+        To initialize your first collateral contract, you must first create a
+        reward pool.
       </p>
       <p>
-        Once your RewardPool is created, you can create as many vaults as you
-        want.
+        This reward pool will collect the fees in token 6022 with each contract
+        creation and redistribute these fees as rewards to all users holding
+        collateral during the lock-up period.
       </p>
       <p>
-        To create a RewardPool, you just have to click to the button below
-        "Create RewardPool" and validate the transaction on your wallet.
+        As soon as your reward pool is initialized, you will be able to create
+        contracts for your users so they can deposit their collateral.
       </p>
       <div className="flex justify-center gap-x-4">
         <Button

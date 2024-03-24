@@ -1,14 +1,15 @@
 import React from "react";
-import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { Vault } from "@/types/Vault";
 import Table from "@/components/Table";
-import { Row } from "@/components/Table/Row";
-import { Cell } from "@/components/Table/Cell";
+import Row from "@/components/Table/Row";
+import Cell from "@/components/Table/Cell";
 import Button from "@/components/Button/Button";
 import Pagination from "@/components/Pagination";
 import VaultDetails from "@/components/VaultDetails";
+import TokenCell from "@/components/Table/Cell/TokenCell";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
+import DateTimeCell from "@/components/Table/Cell/DateTimeCell";
 import NewContractModal from "@/components/Modal/NewContractModal";
 
 export default function Main() {
@@ -28,13 +29,13 @@ export default function Main() {
       return <span className="text-lime-green">Withdrawn</span>;
     } else if (vault.isDeposited) {
       if (vault.lockedUntil > new Date().getTime() / 1000) {
-        return <span className="text-red-600">Locked period</span>;
+        return <span className="text-red-600">Lock-up Period</span>;
       }
 
       return <span className="text-lime-green">Unlocked</span>;
     } else {
       if (vault.lockedUntil > new Date().getTime() / 1000) {
-        return <span>Waiting for deposit</span>;
+        return <span>Awaiting Collateral</span>;
       }
 
       return <span className="text-red-600">Too late</span>;
@@ -68,15 +69,17 @@ export default function Main() {
           <Table
             columns={[
               { name: "Collateral" },
+              { name: "Storage", className: "hidden md:table-cell" },
               {
-                name: "C. Initial value (T6022)",
+                name: "Initial Collateral Value (T6022)",
                 className: "hidden md:table-cell",
               },
               { name: "Status" },
               { name: "Start date" },
               { name: "End date" },
-              { name: "NFT owned by me", className: "hidden md:table-cell" },
-              { name: "Name" },
+              { name: "Creator", className: "hidden sm:table-cell" },
+              { name: "Keys owned by me", className: "hidden sm:table-cell" },
+              { name: "Contract name" },
             ]}
           >
             {vaultsToDisplay.map((vault) => {
@@ -90,32 +93,32 @@ export default function Main() {
                     setCollapsed((prev) => !prev);
                   }}
                 >
-                  <Cell>
-                    <div className="flex justify-center items-center gap-x-1">
-                      <span>
-                        {formatUnits(
-                          vault.wantedAmount,
-                          vault.wantedTokenDecimals
-                        )}
-                      </span>
-                      <span>{vault.wantedTokenSymbol}</span>
-                    </div>
-                  </Cell>
+                  <TokenCell
+                    type="coin"
+                    amount={vault.wantedAmount}
+                    symbol={vault.wantedTokenSymbol}
+                    decimals={vault.wantedTokenDecimals}
+                    smartContractAddress={vault.wantedTokenAddress}
+                  />
                   <Cell className="hidden md:table-cell">
-                    {formatUnits(vault.backedValueProtocolToken, 18)}
+                    {vault.isWithdrawn || !vault.isDeposited ? "Empty" : "Full"}
                   </Cell>
+                  <TokenCell
+                    type="coin"
+                    decimals={18}
+                    symbol="T6022"
+                    imageUrl="/logo-32x32.png"
+                    className="hidden md:table-cell"
+                    amount={vault.backedValueProtocolToken}
+                    smartContractAddress={
+                      import.meta.env.VITE_TOKEN_PROTOCOL_SMART_CONTRACT_ADDRESS
+                    }
+                  />
                   <Cell>{getVaultStatus(vault)}</Cell>
-                  <Cell>
-                    {new Date(
-                      Number(vault.creationTimestamp) * 1000
-                    ).toLocaleDateString()}
-                  </Cell>
-                  <Cell>
-                    {new Date(
-                      Number(vault.lockedUntil) * 1000
-                    ).toLocaleDateString()}
-                  </Cell>
-                  <Cell className="hidden md:table-cell">
+                  <DateTimeCell timestamp={vault.creationTimestamp} />
+                  <DateTimeCell timestamp={vault.lockedUntil} />
+                  <Cell className="hidden sm:table-cell">{vault.creator}</Cell>
+                  <Cell className="hidden sm:table-cell">
                     {vault.ownedNFTs.toString()}
                   </Cell>
                   <Cell>{vault.name}</Cell>

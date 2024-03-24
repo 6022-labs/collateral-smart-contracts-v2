@@ -144,7 +144,7 @@ const LeftContent = React.forwardRef(
         if (props.vault.isWithdrawn) {
           setVaultAction({
             disabled: true,
-            text: "Take Collateral",
+            text: "Claim Collateral",
           });
 
           return;
@@ -156,7 +156,7 @@ const LeftContent = React.forwardRef(
             if (ownedByCurrentUser.length >= 2) {
               setVaultAction({
                 disabled: false,
-                text: "Take Collateral",
+                text: "Claim Collateral",
                 onClick: withdrawAction,
               });
 
@@ -165,7 +165,7 @@ const LeftContent = React.forwardRef(
 
             setVaultAction({
               disabled: true,
-              text: "Take Collateral",
+              text: "Claim Collateral",
             });
 
             return;
@@ -173,7 +173,7 @@ const LeftContent = React.forwardRef(
 
           setVaultAction({
             disabled: false,
-            text: "Take Collateral",
+            text: "Claim Collateral",
             onClick: withdrawAction,
           });
         } else {
@@ -229,7 +229,6 @@ const LeftContent = React.forwardRef(
             <span className="text-center">
               {roundWei(props.vault.collectedRewards, 18, 4)} T6022
             </span>
-            {/* <span className="text-center">≈437,05 USD</span> */}
           </div>
         </Card>
       </div>

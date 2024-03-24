@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
 import {IVault6022} from "./interfaces/IVault6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";

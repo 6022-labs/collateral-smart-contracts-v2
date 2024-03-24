@@ -35,7 +35,7 @@ export default function Content(props: Readonly<ContentProps>) {
   }, []);
 
   return (
-    <div className="flex flex-col gap-y-4 text-xxs px-10 py-5 h-full sm:flex-row sm:justify-between lg:text-xs">
+    <div className="flex flex-col gap-y-4 text-xxs px-5 py-5 h-full sm:px-10 sm:flex-row sm:justify-between lg:text-xs">
       <LeftContent ref={leftContentRef} vault={props.vault} />
       <RightContent ref={rightContentRef} vault={props.vault} />
     </div>

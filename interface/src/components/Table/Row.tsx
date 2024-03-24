@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import React from "react";
-import { Cell } from "./Cell";
+import Cell from "./Cell";
 
 type RowProps = {
   collapsible?: boolean;
@@ -11,7 +11,7 @@ type RowProps = {
   ) => void;
 };
 
-export function Row(props: Readonly<RowProps>) {
+export default function Row(props: Readonly<RowProps>) {
   const rowRef = React.useRef<HTMLTableRowElement>(null);
   const [collapsed, setCollapsed] = React.useState(true);
   const [visibleColumnsCount, setVisibleColumnsCount] = React.useState(0);

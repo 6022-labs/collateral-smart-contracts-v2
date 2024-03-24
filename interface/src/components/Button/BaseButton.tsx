@@ -7,9 +7,9 @@ export type BaseButtonProps = ClassNameProps & {
   color?: string;
   disabled?: boolean;
   isLoading?: boolean;
-  onClick?: () => void;
   type: "button" | "submit" | "reset";
   children: React.ReactNode | React.ReactNode[];
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 export default function BaseButton(props: Readonly<BaseButtonProps>) {

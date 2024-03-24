@@ -7,6 +7,7 @@ import Cell from "@/components/Table/Cell";
 import Button from "@/components/Button/Button";
 import Pagination from "@/components/Pagination";
 import VaultDetails from "@/components/VaultDetails";
+import { truncateEthAddress } from "@/utils/eth-address";
 import TokenCell from "@/components/Table/Cell/TokenCell";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 import DateTimeCell from "@/components/Table/Cell/DateTimeCell";
@@ -117,7 +118,17 @@ export default function Main() {
                   <Cell>{getVaultStatus(vault)}</Cell>
                   <DateTimeCell timestamp={vault.creationTimestamp} />
                   <DateTimeCell timestamp={vault.lockedUntil} />
-                  <Cell className="hidden sm:table-cell">{vault.creator}</Cell>
+                  <Cell className="hidden sm:table-cell">
+                    <a
+                      target="_blank"
+                      className="underline hover:text-bright-blue"
+                      href={`${import.meta.env.VITE_SCANNER_BASE_URL}/address/${
+                        vault.creator
+                      }`}
+                    >
+                      {truncateEthAddress(vault.creator, 8, 8)}
+                    </a>
+                  </Cell>
                   <Cell className="hidden sm:table-cell">
                     {vault.ownedNFTs.toString()}
                   </Cell>

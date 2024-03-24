@@ -402,6 +402,19 @@ export const abi = [
   },
   {
     inputs: [],
+    name: "creator",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "deposit",
     outputs: [],
     stateMutability: "nonpayable",
@@ -741,6 +754,11 @@ export const abi = [
             type: "string",
           },
           {
+            internalType: "address",
+            name: "creator",
+            type: "address",
+          },
+          {
             internalType: "bool",
             name: "isDeposited",
             type: "bool",
@@ -809,6 +827,11 @@ export const abi = [
             internalType: "uint256",
             name: "balanceOfWantedToken",
             type: "uint256",
+          },
+          {
+            internalType: "enum VaultStorageEnum",
+            name: "storageType",
+            type: "uint8",
           },
           {
             internalType: "uint256",

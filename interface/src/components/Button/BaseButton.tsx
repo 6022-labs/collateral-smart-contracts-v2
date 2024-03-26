@@ -20,7 +20,7 @@ export default function BaseButton(props: Readonly<BaseButtonProps>) {
     props.isLoading && "opacity-80",
     props.onClick && "cursor-pointer hover:opacity-80",
     props.disabled
-      ? "bg-gray-200 text-black"
+      ? "bg-slate-200 text-black"
       : props.color ?? "bg-strong-blue text-white"
   );
 

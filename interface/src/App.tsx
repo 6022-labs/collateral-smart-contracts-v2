@@ -15,13 +15,15 @@ function App() {
       <OwnedVaultsContextProvider>
         <ToastContainer />
         <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="stake" element={<Stake />} />
-            <Route path="markets" element={<Markets />} />
-            <Route path="governance" element={<Governance />} />
-          </Routes>
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="stake" element={<Stake />} />
+              <Route path="markets" element={<Markets />} />
+              <Route path="governance" element={<Governance />} />
+            </Routes>
+          </div>
         </BrowserRouter>
       </OwnedVaultsContextProvider>
     </CreatedRewardPoolContextProvider>

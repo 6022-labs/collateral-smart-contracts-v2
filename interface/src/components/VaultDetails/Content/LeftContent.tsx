@@ -225,10 +225,16 @@ const LeftContent = React.forwardRef(
         </div>
         <Card className="flex flex-col justify-center gap-y-4">
           <div className="text-center">Pending rewards</div>
-          <div className="flex flex-col justify-center">
+          <div className="flex gap-x-1 justify-center items-center">
             <span className="text-center">
-              {roundWei(props.vault.collectedRewards, 18, 4)} T6022
+              {roundWei(props.vault.collectedRewards, 18, 4)}
             </span>
+            <span>T6022</span>
+            <img
+              alt="T6022-icon"
+              src="/logo-32x32.png"
+              className="h-2.5 w-2.5 md:h-5 md:w-5"
+            />
           </div>
         </Card>
       </div>

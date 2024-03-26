@@ -70,7 +70,10 @@ export default function Main() {
           <Table
             columns={[
               { name: "Collateral" },
-              { name: "Storage", className: "hidden md:table-cell" },
+              {
+                name: "Collateral Completion",
+                className: "hidden md:table-cell",
+              },
               {
                 name: "Initial Collateral Value (T6022)",
                 className: "hidden md:table-cell",
@@ -95,22 +98,28 @@ export default function Main() {
                   }}
                 >
                   <TokenCell
-                    type="coin"
                     amount={vault.wantedAmount}
                     symbol={vault.wantedTokenSymbol}
                     decimals={vault.wantedTokenDecimals}
                     smartContractAddress={vault.wantedTokenAddress}
+                    type={vault.storageType === BigInt(0) ? "coin" : "nft"}
+                    imageUrl={
+                      vault.wantedTokenAddress ===
+                      import.meta.env.VITE_TOKEN_PROTOCOL_SMART_CONTRACT_ADDRESS
+                        ? "/logo-32x32.png"
+                        : undefined
+                    }
                   />
                   <Cell className="hidden md:table-cell">
                     {vault.isWithdrawn || !vault.isDeposited ? "Empty" : "Full"}
                   </Cell>
                   <TokenCell
-                    type="coin"
                     decimals={18}
                     symbol="T6022"
                     imageUrl="/logo-32x32.png"
                     className="hidden md:table-cell"
                     amount={vault.backedValueProtocolToken}
+                    type={vault.storageType === BigInt(0) ? "coin" : "nft"}
                     smartContractAddress={
                       import.meta.env.VITE_TOKEN_PROTOCOL_SMART_CONTRACT_ADDRESS
                     }

@@ -135,7 +135,7 @@ export default function Main() {
                         vault.creator
                       }`}
                     >
-                      {truncateEthAddress(vault.creator, 8, 8)}
+                      {truncateEthAddress(vault.creator, 7, 7)}
                     </a>
                   </Cell>
                   <Cell className="hidden sm:table-cell">

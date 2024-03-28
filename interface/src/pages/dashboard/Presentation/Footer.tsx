@@ -16,17 +16,17 @@ export default function Footer() {
   const [currentSelection, setCurrentSelection] = React.useState<number>(0);
 
   return (
-    <div className="w-full flex justify-center bg-very-black text-white gap-x-36 py-4">
-      <div className="flex flex-col gap-y-5 py-2">
+    <div className="w-full flex flex-col gap-y-6 items-center justify-center bg-strong-blue text-white py-4 px-10 sm:flex-row sm:items-stretch sm:gap-y-0 sm:gap-x-12 md:gap-x-36">
+      <div className="flex flex-col gap-y-5 py-2 text-center max-w-96">
         <div className="flex flex-col gap-y-1">
-          <div className="flex justify-center items-center bg-strong-blue rounded-md">
+          <div className="flex justify-center items-center bg-very-black rounded-md">
             <span className="text-3xl leading-normal">$ 0</span>
           </div>
           <span>of liquidity locked in 6022 (estimation)</span>
         </div>
         <div>A total of 0 collateral locked</div>
       </div>
-      <div className="flex flex-col bg-strong-blue py-2 justify-between rounded-xl grow max-w-60 px-4">
+      <div className="flex flex-col bg-very-black py-2 rounded-xl grow min-h-32 max-w-80 px-4">
         <div className="flex justify-center text-lg gap-x-4">
           {explanations.map((explanation, index) => (
             <button
@@ -46,7 +46,9 @@ export default function Footer() {
             </button>
           ))}
         </div>
-        <div className="px-2">{explanations[currentSelection].description}</div>
+        <div className="grow flex items-center px-2">
+          {explanations[currentSelection].description}
+        </div>
       </div>
     </div>
   );

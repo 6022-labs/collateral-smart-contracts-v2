@@ -63,7 +63,7 @@ export default function Header() {
           </button>
         </div>
         {menuOpen && (
-          <div className="block h-44 absolute overflow-hidden top-full inset-x-0 w-full sm:hidden">
+          <div className="block h-24 bg-very-black absolute overflow-hidden top-full inset-x-0 w-full sm:hidden">
             <nav
               role="navigation"
               className="flex flex-col block inset-x-0 font-semibold top-0 p-6 bg-secondary"

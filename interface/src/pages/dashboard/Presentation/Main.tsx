@@ -1,18 +1,23 @@
 export default function Main() {
   return (
-    <div className="flex w-full px-10 mt-10">
-      <div className="w-1/2 flex flex-col gap-y-20">
-        <h1 className="text-7xl flex flex-col gap-y-6 font-bold">
-          <span>6022</span>
-          <span>Protocol</span>
-        </h1>
-        <p>
-          The 6022 Protocol is a revolutionary DeFi protocol designed to enhance
-          trust and transparency between policyholders and insurance companies.
-        </p>
+    <div className="flex flex-col gap-y-10 w-full p-10 md:flex-row md:pb-0">
+      <div className="md:w-1/2">
+        <div className="flex flex-col gap-y-12 items-center justify-center">
+          <h1 className="text-5xl w-fit flex justify-center flex-col gap-y-6 font-bold md:text-7xl">
+            <span>6022</span>
+            <span>Protocol</span>
+          </h1>
+          <p className="text-sm text-justify max-w-96 md:text-base">
+            The 6022 Protocol is a revolutionary DeFi protocol designed to
+            enhance trust and transparency between policyholders and insurance
+            companies.
+          </p>
+        </div>
       </div>
-      <div className="w-1/2 flex justify-center items-center">
-        <h2 className="text-4xl w-64">Restoring trust in insurance industry</h2>
+      <div className="md:w-1/2 flex justify-center items-center">
+        <h2 className="text-2xl w-72 font-medium text-center md:text-4xl">
+          Restoring trust in insurance industry
+        </h2>
       </div>
     </div>
   );

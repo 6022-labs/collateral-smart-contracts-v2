@@ -45,7 +45,7 @@ export default {
       },
       maxHeight: {
         120: "30rem",
-        "4/5-screen": "80vh",
+        "9/10-screen": "90vh",
       },
       fontSize: {
         xxs: ["0.625rem", "0.875rem"],

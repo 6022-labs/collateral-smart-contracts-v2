@@ -15,8 +15,9 @@ export default function Main() {
         </div>
       </div>
       <div className="md:w-1/2 flex justify-center items-center">
-        <h2 className="text-2xl w-72 font-medium text-center md:text-4xl">
-          Restoring trust in insurance industry
+        <h2 className="flex flex-col text-2xl font-medium text-center md:text-4xl">
+          <span>Restoring trust</span>
+          <span>in insurance industry</span>
         </h2>
       </div>
     </div>

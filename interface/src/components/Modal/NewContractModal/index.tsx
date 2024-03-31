@@ -23,7 +23,7 @@ export default function NewContractModal(
     >
       {(handleClose) => {
         return (
-          <div className="bg-white px-4 text-black space-y-8 pb-4 pt-5 overflow-y-auto min-w-90-screen max-h-4/5-screen sm:min-w-lg sm:p-6 sm:pb-4">
+          <div className="bg-white px-4 text-black space-y-8 pb-4 pt-5 overflow-y-auto min-w-90-screen max-h-9/10-screen sm:min-w-lg sm:p-6 sm:pb-4">
             <div className="flex flex-col space-y-5">
               <div className="flex flex-col space-y-4">
                 <h1 className="text-xl font-semibold">New contract</h1>

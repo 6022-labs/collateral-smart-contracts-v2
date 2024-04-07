@@ -26,7 +26,10 @@ describe("RewardPool6022", function () {
     const controller6022 = await Controller6022.deploy();
 
     const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(ethers.parseEther("100000"));
+    const token6022 = await Token6022.deploy(
+      await owner.getAddress(),
+      ethers.parseEther("100000")
+    );
 
     const RewardPoolFactory6022 = await ethers.getContractFactory(
       "RewardPoolFactory6022"

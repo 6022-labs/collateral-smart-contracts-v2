@@ -2,8 +2,19 @@ import { task } from "hardhat/config";
 
 export default task("deploy-everything")
   .addParam("totalSupply", "The total supply of the token")
+  .addOptionalParam("minter", "The address to deploy the token to")
   .setAction(async (taskArgs, hre) => {
+    const [owner] = await hre.ethers.getSigners();
+    console.log("Deploying contracts with the account:", owner.address);
+
     const totalSupply = hre.ethers.parseEther(taskArgs.totalSupply);
+    let minter = taskArgs.minter;
+
+    if (!minter) {
+      minter = owner.address;
+    }
+
+    console.log("Minter address:", minter);
 
     const Controller6022 =
       await hre.ethers.getContractFactory("Controller6022");
@@ -15,7 +26,7 @@ export default task("deploy-everything")
     console.log("Controller6022 deployed to:", controller6022Address);
 
     const Token6022 = await hre.ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(totalSupply);
+    const token6022 = await Token6022.deploy(minter, totalSupply);
     await token6022.waitForDeployment();
 
     let token6022Address = await token6022.getAddress();
@@ -47,6 +58,28 @@ export default task("deploy-everything")
     }
 
     console.log("RewardPoolFactory6022 added as factory in Controller6022");
+
+    if (owner.address != minter) {
+      tx = await controller6022.addAdmin(minter);
+      receipt = await tx.wait();
+
+      if (!receipt?.status) {
+        console.log(receipt?.toJSON());
+        throw new Error("Error adding minter as admin in Controller6022");
+      }
+
+      console.log("Minter added as admin in Controller6022");
+
+      tx = await controller6022.removeAdmin(owner.address);
+      receipt = await tx.wait();
+
+      if (!receipt?.status) {
+        console.log(receipt?.toJSON());
+        throw new Error("Error removing owner as admin in Controller6022");
+      }
+
+      console.log("Owner removed as admin in Controller6022");
+    }
 
     if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
       // Wait for 5 blocks

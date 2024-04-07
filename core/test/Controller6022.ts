@@ -27,9 +27,15 @@ describe("Controller6022", function () {
     };
   }
 
-  async function deployRewardPool(controller: Controller6022) {
+  async function deployRewardPool(
+    ownerAddress: string,
+    controller: Controller6022
+  ) {
     const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(ethers.parseEther("100000"));
+    const token6022 = await Token6022.deploy(
+      ownerAddress,
+      ethers.parseEther("100000")
+    );
 
     const RewardPoolFactory6022 = await ethers.getContractFactory(
       "RewardPoolFactory6022"
@@ -260,7 +266,10 @@ describe("Controller6022", function () {
     it("Should work and return one vault", async function () {
       const { controller6022, owner } = await loadFixture(deployController);
 
-      const rewardPool6022 = await deployRewardPool(controller6022);
+      const rewardPool6022 = await deployRewardPool(
+        await owner.getAddress(),
+        controller6022
+      );
       const firstVault = await deployVault(rewardPool6022);
 
       const vaults = await controller6022.getVaultsByOwner(
@@ -271,10 +280,13 @@ describe("Controller6022", function () {
     });
 
     it("Should work and return nothing", async function () {
-      const { controller6022, otherAccount } =
+      const { controller6022, owner, otherAccount } =
         await loadFixture(deployController);
 
-      const rewardPool6022 = await deployRewardPool(controller6022);
+      const rewardPool6022 = await deployRewardPool(
+        await owner.getAddress(),
+        controller6022
+      );
       await deployVault(rewardPool6022);
 
       const vaults = await controller6022.getVaultsByOwner(
@@ -287,7 +299,10 @@ describe("Controller6022", function () {
       const { controller6022, owner, otherAccount } =
         await loadFixture(deployController);
 
-      const rewardPool6022 = await deployRewardPool(controller6022);
+      const rewardPool6022 = await deployRewardPool(
+        await owner.getAddress(),
+        controller6022
+      );
       const firstVault = await deployVault(rewardPool6022);
       const secondVault = await deployVault(rewardPool6022);
 

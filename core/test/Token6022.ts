@@ -18,7 +18,10 @@ describe("Token6022", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(totalSupply);
+    const token6022 = await Token6022.deploy(
+      await owner.getAddress(),
+      totalSupply
+    );
 
     return { token6022, owner, otherAccount };
   }
@@ -34,9 +37,8 @@ describe("Token6022", function () {
 
   describe("Transactions", function () {
     it("Should transfer tokens between accounts", async function () {
-      const { token6022, owner, otherAccount } = await loadFixture(
-        deployTokenFixture
-      );
+      const { token6022, owner, otherAccount } =
+        await loadFixture(deployTokenFixture);
 
       let transferValue = ethers.parseUnits("1", 16);
 
@@ -52,9 +54,8 @@ describe("Token6022", function () {
 
   describe("Allowance", function () {
     it("Should allow to transfer tokens between accounts", async function () {
-      const { token6022, owner, otherAccount } = await loadFixture(
-        deployTokenFixture
-      );
+      const { token6022, owner, otherAccount } =
+        await loadFixture(deployTokenFixture);
 
       // Transfer 50 tokens from owner to otherAccount
       await token6022.approve(otherAccount.address, 50);

@@ -22,7 +22,10 @@ describe("Vault6022", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(ethers.parseEther("100000"));
+    const token6022 = await Token6022.deploy(
+      await owner.getAddress(),
+      ethers.parseEther("100000")
+    );
 
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();

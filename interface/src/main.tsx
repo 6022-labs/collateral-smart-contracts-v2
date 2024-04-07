@@ -4,13 +4,13 @@ import App from "./App.tsx";
 import { WagmiProvider } from "wagmi";
 import ReactDOM from "react-dom/client";
 import "@rainbow-me/rainbowkit/styles.css";
-import { polygonMumbai } from "wagmi/chains";
+import { polygon } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 const config = getDefaultConfig({
   ssr: false,
-  chains: [polygonMumbai],
+  chains: [polygon],
   appName: "Protocol 6022",
   projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID as string,
 });

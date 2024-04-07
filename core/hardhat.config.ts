@@ -21,6 +21,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     polygon: {
+      gas: "auto",
       chainId: 137,
       accounts: [privateKey],
       throwOnCallFailures: true,
@@ -29,6 +30,7 @@ const config: HardhatUserConfig = {
       url: "https://polygon.llamarpc.com",
     },
     mumbai: {
+      gas: "auto",
       chainId: 80001,
       accounts: [privateKey],
       throwOnCallFailures: true,
@@ -37,6 +39,7 @@ const config: HardhatUserConfig = {
       url: "https://polygon-testnet.public.blastapi.io",
     },
     local: {
+      gas: "auto",
       chainId: 31337,
       accounts: [privateKey],
       url: "http://localhost:8545",

@@ -49,6 +49,12 @@ export default task("deploy-everything")
       rewardPoolFactory6022Address
     );
 
+    if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
+      // Wait for 5 blocks
+      let currentBlock = await hre.ethers.provider.getBlockNumber();
+      while (currentBlock + 5 > (await hre.ethers.provider.getBlockNumber())) {}
+    }
+
     let tx = await controller6022.addFactory(rewardPoolFactory6022Address);
     let receipt = await tx.wait();
 

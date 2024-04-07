@@ -93,7 +93,7 @@ export default task("deploy-everything")
 
       await hre.run("verify:verify", {
         address: token6022Address,
-        constructorArguments: [totalSupply],
+        constructorArguments: [minter, totalSupply],
       });
 
       await hre.run("verify:verify", {

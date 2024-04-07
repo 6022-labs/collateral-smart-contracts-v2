@@ -7,8 +7,8 @@ export default task("deploy-everything")
     const [owner] = await hre.ethers.getSigners();
     console.log("Deploying contracts with the account:", owner.address);
 
-    const totalSupply = hre.ethers.parseEther(taskArgs.totalSupply);
     let minter = taskArgs.minter;
+    const totalSupply = taskArgs.totalSupply;
 
     if (!minter) {
       minter = owner.address;

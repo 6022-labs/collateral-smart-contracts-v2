@@ -1,10 +1,12 @@
 import "@nomicfoundation/hardhat-toolbox";
+import createWallet from "./tasks/create-wallet";
 import { HardhatUserConfig } from "hardhat/config";
 import deployEverything from "./tasks/deploy-everything";
 import deployDeployFactory from "./tasks/deploy-factory";
 
 require("dotenv").config();
 
+createWallet.setDescription("Creates a new wallet");
 deployEverything.setDescription("Deploys all contracts to the network");
 deployDeployFactory.setDescription(
   "Deploys the RewardPoolFactory contract to the network"

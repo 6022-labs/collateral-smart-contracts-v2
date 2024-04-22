@@ -31,14 +31,14 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       url: "https://polygon.llamarpc.com",
     },
-    mumbai: {
+    amoy: {
       gas: "auto",
-      chainId: 80001,
+      chainId: 80002,
       accounts: [privateKey],
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: "https://polygon-testnet.public.blastapi.io",
+      url: "https://rpc-amoy.polygon.technology",
     },
     local: {
       gas: "auto",

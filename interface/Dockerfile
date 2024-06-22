@@ -1,5 +1,7 @@
 # Use ARG to declare variables that you can pass at build time
-FROM node:20.11.1-alpine3.19 AS build
+FROM node:20.12.2 AS build
+
+RUN apt-get update && apt-get install -y python3 python3-pip
 
 WORKDIR /app
 

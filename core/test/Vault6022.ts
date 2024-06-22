@@ -107,7 +107,7 @@ describe("Vault6022", function () {
   }
 
   describe("deposit", function () {
-    it("Should fail if is already deposited", async function () {
+    it("Should fail if it's already deposited", async function () {
       const { vault6022, token6022, owner, otherAccount } = await loadFixture(
         deployEmptyVaultFixture
       );
@@ -132,7 +132,7 @@ describe("Vault6022", function () {
       );
     });
 
-    it("Should fail if caller don't have NFT to deposit", async function () {
+    it("Should fail if caller don't have key to deposit", async function () {
       const { vault6022, otherAccount } = await loadFixture(
         deployEmptyVaultFixture
       );
@@ -161,7 +161,7 @@ describe("Vault6022", function () {
       ).to.be.revertedWithCustomError(vault6022, "TooLateToDeposit");
     });
 
-    it("Should work", async function () {
+    it("Should work if not deposited, caller own a key and lockedUntil not reached", async function () {
       const { vault6022, token6022, owner, otherAccount } = await loadFixture(
         deployEmptyVaultFixture
       );
@@ -210,7 +210,7 @@ describe("Vault6022", function () {
       ).to.be.revertedWithCustomError(vault6022, "NotEnoughtNFTToWithdraw");
     });
 
-    it("Should work if hold 2 NFT and lockedUntil is not reached", async function () {
+    it("Should work if caller hold 2 NFT and lockedUntil is not reached", async function () {
       const { rewardPool6022, vault6022 } = await loadFixture(
         deployDepositedVaultFixture
       );
@@ -221,7 +221,7 @@ describe("Vault6022", function () {
         .to.emit(rewardPool6022, "Reinvested");
     });
 
-    it("Should work if hold 1 NFT and lockedUntil is reached", async function () {
+    it("Should work if caller hold 1 NFT and lockedUntil is reached", async function () {
       const { vault6022, rewardPool6022, otherAccount } = await loadFixture(
         deployDepositedVaultFixture
       );

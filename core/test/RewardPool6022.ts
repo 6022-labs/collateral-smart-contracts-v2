@@ -123,7 +123,7 @@ describe("RewardPool6022", function () {
       );
     });
 
-    it("Should fail if there is rewardable vault without approving token usage", async function () {
+    it("Should fail if there is rewardable vault without approving 6022 token usage", async function () {
       const { rewardPool6022, token6022 } =
         await loadFixture(deployRewardPool6022);
 
@@ -161,7 +161,7 @@ describe("RewardPool6022", function () {
       ).to.be.revertedWithCustomError(token6022, "ERC20InsufficientAllowance");
     });
 
-    it("Should work the first time without approve token usage", async function () {
+    it("Should work the first time without approve 6022 token usage", async function () {
       const { rewardPool6022 } = await loadFixture(deployRewardPool6022);
 
       const lockedUntil = Date.now() + 1000 * 60 * 60;
@@ -184,7 +184,7 @@ describe("RewardPool6022", function () {
       ).to.be.greaterThan(0);
     });
 
-    it("Should work if there is rewardable vault with approve token usage", async function () {
+    it("Should work if there is rewardable vault with approve 6022 token usage", async function () {
       const { rewardPool6022, token6022 } =
         await loadFixture(deployRewardPool6022);
 
@@ -242,7 +242,7 @@ describe("RewardPool6022", function () {
       ).to.revertedWithCustomError(rewardPool6022, "CallerNotVault");
     });
 
-    it("Should send rewards", async function () {
+    it("Should work if the caller is register as a vault", async function () {
       const { rewardPool6022, token6022, owner, otherAccount } =
         await loadFixture(deployRewardPool6022);
 
@@ -294,7 +294,7 @@ describe("RewardPool6022", function () {
       );
     });
 
-    it("Should reinvest rewards", async function () {
+    it("Should work if the caller is register as a vault", async function () {
       const { rewardPool6022, token6022, owner, otherAccount } =
         await loadFixture(deployRewardPool6022);
 

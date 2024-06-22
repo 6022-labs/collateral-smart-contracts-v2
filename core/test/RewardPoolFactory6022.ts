@@ -42,7 +42,7 @@ describe("RewardPoolFactory6022", function () {
   }
 
   describe("Deployment", function () {
-    it("Should work", async function () {
+    it("Should deploy", async function () {
       const { rewardPoolFactory6022 } = await loadFixture(
         deployRewardPoolFactory6022
       );
@@ -66,7 +66,7 @@ describe("RewardPoolFactory6022", function () {
       );
     });
 
-    it("Should work", async function () {
+    it("Should work if caller hasn't a reward pool", async function () {
       const { rewardPoolFactory6022 } = await loadFixture(
         deployRewardPoolFactory6022
       );

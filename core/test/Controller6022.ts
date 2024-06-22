@@ -100,7 +100,7 @@ describe("Controller6022", function () {
   }
 
   describe("Deployement", function () {
-    it("Should work", async function () {
+    it("Should deploy", async function () {
       const { controller6022 } = await loadFixture(deployController);
       expect(await controller6022.getAddress()).not.be.undefined;
     });
@@ -263,7 +263,7 @@ describe("Controller6022", function () {
   });
 
   describe("getVaultsByOwner", function () {
-    it("Should work and return one vault", async function () {
+    it("Should work and return one vault when one vault was created", async function () {
       const { controller6022, owner } = await loadFixture(deployController);
 
       const rewardPool6022 = await deployRewardPool(
@@ -279,7 +279,7 @@ describe("Controller6022", function () {
       expect(vaults[0]).to.equal(await firstVault.getAddress());
     });
 
-    it("Should work and return nothing", async function () {
+    it("Should work and return nothing when no vault was created", async function () {
       const { controller6022, owner, otherAccount } =
         await loadFixture(deployController);
 
@@ -295,7 +295,7 @@ describe("Controller6022", function () {
       expect(vaults.length).to.equal(0);
     });
 
-    it("Should work and return multiple vaults", async function () {
+    it("Should work and return multiple vaults when multiple vaults was created", async function () {
       const { controller6022, owner, otherAccount } =
         await loadFixture(deployController);
 

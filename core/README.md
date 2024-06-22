@@ -13,13 +13,13 @@ npm install -g hardhat
 To deploy you can use tasks that are already defined in the tasks folder. To deploy the contract you can use the following command:
 
 ```bash
-npx hardhat deploy-everything --total-supply <supply> --weth-address <weth-address> --network <network>
+npx hardhat deploy-everything --total-supply <supply> --minter <minter-address> --network <network>
 ```
 
-To only deploy a contract generator and assign it to the controller :
+To only deploy a contract generator and assign it to a existing controller :
 
 ```bash
-npx hardhat deploy-collection-generator --controller-6022-address <address> --weth-address <weth-address> --network <network>
+npx hardhat deploy-factory --controller-6022-address <controller-address> --token-6022-address <token-address> --network <network>
 ```
 
 ## 2. Documentation

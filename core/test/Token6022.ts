@@ -27,7 +27,7 @@ describe("Token6022", function () {
   }
 
   describe("Deployment", function () {
-    it("Should set the right supply", async function () {
+    it("Should deploy and set the right supply", async function () {
       const { token6022, owner } = await loadFixture(deployTokenFixture);
 
       expect(await token6022.totalSupply()).to.equal(totalSupply);

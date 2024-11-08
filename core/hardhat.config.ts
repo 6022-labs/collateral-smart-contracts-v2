@@ -25,6 +25,7 @@ const config: HardhatUserConfig = {
     polygon: {
       gas: "auto",
       chainId: 137,
+      gasMultiplier: 2,
       accounts: [privateKey],
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,

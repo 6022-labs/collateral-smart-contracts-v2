@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 interface IVault6022 {
     /**
      * @notice Deposits the ERC20/ERC721 token

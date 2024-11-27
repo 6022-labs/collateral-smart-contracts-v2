@@ -33,10 +33,10 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
     // ----------------- EVENTS ----------------- //
     /// @dev Emitted when a vault rewards are harvested
-    event Harvested(address vault);
+    event Harvested(address vault, uint256 value);
 
     /// @dev Emitted when a vault rewards are reinvested
-    event Reinvested(address vault);
+    event Reinvested(address vault, uint256 value);
 
     /// @dev Emitted when a vault is pushed
     event VaultCreated(address vault);
@@ -106,7 +106,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
         protocolToken.transfer(to, valueToHarvest);
 
-        emit Harvested(msg.sender);
+        emit Harvested(msg.sender, valueToHarvest);
     }
 
     function reinvestRewards() external onlyVault {
@@ -115,7 +115,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
         _updateRewards(valueToReinvest);
 
-        emit Reinvested(msg.sender);
+        emit Reinvested(msg.sender, valueToReinvest);
     }
 
     function _updateRewards(uint256 amount) internal {

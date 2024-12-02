@@ -3,15 +3,20 @@ pragma solidity ^0.8.20;
 
 import {RewardPool6022} from "./RewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
-import {IRewardPoolFactory6022} from "./interfaces/IRewardPoolFactory6022.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract RewardPoolFactory6022 is IRewardPoolFactory6022 {
+/**
+ * @title Reward Pool Factory 6022
+ * @author 6022
+ * @notice This contract is used to create reward pools.
+ */
+contract RewardPoolFactory6022 {
     // ----------------- VARIABLES ----------------- //
     /// @notice Controller 6022 address
     IController6022 public controller;
 
     /// @notice Protocol token address
-    address public protocolTokenAddress;
+    IERC20 public protocolTokenAddress;
 
     // ----------------- EVENTS ----------------- //
     /// @dev Emitted when a new vault is created
@@ -22,23 +27,37 @@ contract RewardPoolFactory6022 is IRewardPoolFactory6022 {
     error AlreadyCreatedRewardPool();
 
     constructor(address _controllerAddress, address _protocolTokenAddress) {
-        protocolTokenAddress = _protocolTokenAddress;
         controller = IController6022(_controllerAddress);
+        protocolTokenAddress = IERC20(_protocolTokenAddress);
     }
 
-    function createRewardPool() external {
+    // ----------------- MODIFIERS ----------------- //
+    modifier onlyWhenSenderDoesNotHaveRewardPool() {
         address[] memory alreadyCreatedRewardPools = controller.getRewardPoolsByCreator(msg.sender);
 
         if (alreadyCreatedRewardPools.length > 0) {
             revert AlreadyCreatedRewardPool();
         }
 
+        _;
+    }
+
+    // ----------------- FUNCS ----------------- //
+    function createRewardPool(uint256 _lifetimeVaultAmount) external onlyWhenSenderDoesNotHaveRewardPool {
         RewardPool6022 rewardPool = new RewardPool6022(
             msg.sender,
-            address(controller), 
-            protocolTokenAddress);
-        
+            address(controller),
+            address(protocolTokenAddress)
+        );
+
+        _depositToLifetimeVault(rewardPool, _lifetimeVaultAmount);
+
         controller.pushRewardPool(address(rewardPool));
         emit RewardPoolCreated(address(rewardPool));
+    }
+
+    function _depositToLifetimeVault(RewardPool6022 _rewardPool, uint256 _lifetimeVaultAmount) internal {
+        protocolTokenAddress.transferFrom(msg.sender, address(_rewardPool), _lifetimeVaultAmount);
+        _rewardPool.createLifetimeVault(_lifetimeVaultAmount);
     }
 }

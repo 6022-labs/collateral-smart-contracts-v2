@@ -158,7 +158,7 @@ export const abi = [
         type: "address",
       },
     ],
-    name: "collectedFees",
+    name: "vaultsRewardWeight",
     outputs: [
       {
         internalType: "uint256",

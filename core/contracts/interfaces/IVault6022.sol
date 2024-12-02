@@ -1,22 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IVault6022 {
-    /**
-     * @notice Deposits the ERC20/ERC721 token
-     */
-    function deposit() external;
+import {IBaseVault6022} from "./IBaseVault6022.sol";
 
-    /**
-     * @notice Withdraws the ERC20/ERC721 token and harvests/reinvests the rewards
-     */
-    function withdraw() external;
-
-    /**
-     * @notice Returns a boolean indicating if the vault is rewardable
-     */
-    function isRewardable() external view returns (bool);
-
+interface IVault6022 is IBaseVault6022 {
     /**
      * @notice Returns the number of required NFTs to being able to withdraw
      */

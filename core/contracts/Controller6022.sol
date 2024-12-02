@@ -7,6 +7,11 @@ import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
+/**
+ * @title Controller 6022
+ * @author 6022
+ * @notice This contract aims to register all vaults and reward pools.
+ */
 contract Controller6022 is AccessControl, IController6022 {
     // ----------------- CONST ----------------- //
     /// @notice The role that allows an account to use admin functions

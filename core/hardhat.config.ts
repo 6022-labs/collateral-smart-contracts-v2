@@ -72,6 +72,7 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: true,
+    offline: true,
     currency: "USD",
     outputFile: "gas-report-matic.txt",
     coinmarketcap: coinmarketcapApiKey,

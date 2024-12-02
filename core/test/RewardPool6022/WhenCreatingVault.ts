@@ -110,7 +110,7 @@ describe("When creating vault from reward pool 6022", function () {
       ).to.emit(_rewardPool6022, "VaultCreated");
     });
 
-    it("Should increase 'collect fees' weight", async function () {
+    it("Should increase reward weight", async function () {
       await _rewardPool6022.createVault(
         "TestVault",
         lockedUntil,
@@ -123,7 +123,7 @@ describe("When creating vault from reward pool 6022", function () {
       const vaultAddress = await _rewardPool6022.allVaults(0);
 
       expect(
-        await _rewardPool6022.collectedFees(vaultAddress)
+        await _rewardPool6022.vaultsRewardWeight(vaultAddress)
       ).to.be.greaterThan(0);
     });
   });
@@ -211,7 +211,7 @@ describe("When creating vault from reward pool 6022", function () {
         ).to.emit(_rewardPool6022, "VaultCreated");
       });
 
-      it("Should increase 'collect fees' weight", async function () {
+      it("Should increase reward weight", async function () {
         await _rewardPool6022.createVault(
           "TestVault",
           Math.floor(lockedUntil),
@@ -224,7 +224,7 @@ describe("When creating vault from reward pool 6022", function () {
         const vaultAddress = await _rewardPool6022.allVaults(1);
 
         expect(
-          await _rewardPool6022.collectedFees(vaultAddress)
+          await _rewardPool6022.vaultsRewardWeight(vaultAddress)
         ).to.be.greaterThan(0);
       });
     });

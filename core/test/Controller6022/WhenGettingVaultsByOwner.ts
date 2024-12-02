@@ -13,6 +13,8 @@ import { EventLog } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("When getting vaults by owner from controller 6022", function () {
+  const lifetimeVaultAmount = ethers.parseEther("1");
+
   let _controller6022: Controller6022;
   let _rewardPool6022: RewardPool6022;
 
@@ -60,7 +62,13 @@ describe("When getting vaults by owner from controller 6022", function () {
 
     await controller.addFactory(await rewardPoolFactory6022.getAddress());
 
-    const tx = await rewardPoolFactory6022.createRewardPool();
+    await token6022.approve(
+      await rewardPoolFactory6022.getAddress(),
+      lifetimeVaultAmount
+    );
+
+    const tx =
+      await rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
 
     const txReceipt = await tx.wait();
 

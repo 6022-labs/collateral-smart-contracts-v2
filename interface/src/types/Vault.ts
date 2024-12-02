@@ -10,7 +10,7 @@ export type Vault = {
   wantedAmount: bigint;
   isWithdrawn: boolean;
   isDeposited: boolean;
-  collectedFees: bigint;
+  rewardWeight: bigint;
   depositTimestamp: bigint;
   collectedRewards: bigint;
   rewardPoolAddress: string;

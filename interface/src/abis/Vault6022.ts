@@ -780,7 +780,7 @@ export const abi = [
           },
           {
             internalType: "uint256",
-            name: "collectedFees",
+            name: "rewardWeight",
             type: "uint256",
           },
           {

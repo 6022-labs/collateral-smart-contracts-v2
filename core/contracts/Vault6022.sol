@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {BaseVault6022} from "./BaseVault6022.sol";
 import {IVault6022} from "./interfaces/IVault6022.sol";
 import {VaultStorageEnum} from "./VaultStorageEnum.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
@@ -11,27 +12,33 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 struct VaultOverview {
-        string name;
-        address creator;
-        bool isDeposited;
-        bool isWithdrawn;
-        uint256 lockedUntil;
-        uint256 wantedAmount;
-        uint256 collectedFees;
-        uint256 collectedRewards;
-        string wantedTokenSymbol;
-        uint256 depositTimestamp;
-        uint8 wantedTokenDecimals;
-        uint256 withdrawTimestamp;
-        uint256 creationTimestamp;
-        address rewardPoolAddress;
-        address wantedTokenAddress;
-        uint256 balanceOfWantedToken;
-        VaultStorageEnum storageType;
-        uint256 backedValueProtocolToken;
-    }
+    string name;
+    address creator;
+    bool isDeposited;
+    bool isWithdrawn;
+    uint256 lockedUntil;
+    uint256 wantedAmount;
+    uint256 rewardWeight;
+    uint256 collectedRewards;
+    string wantedTokenSymbol;
+    uint256 depositTimestamp;
+    uint8 wantedTokenDecimals;
+    uint256 withdrawTimestamp;
+    uint256 creationTimestamp;
+    address rewardPoolAddress;
+    address wantedTokenAddress;
+    uint256 balanceOfWantedToken;
+    VaultStorageEnum storageType;
+    uint256 backedValueProtocolToken;
+}
 
-contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
+/**
+ * @title Vault6022
+ * @author 6022
+ * @notice This contract is created inside a reward pool.
+ * It will be used as a vault for every users to deposit a collateral for a reward pool owner.
+ */
+contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
     // ----------------- CONST ----------------- //
     uint public constant MAX_TOKENS = 3;
     uint public constant WITHDRAW_NFTS_EARLY = 2;
@@ -41,17 +48,8 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     /// @notice Creator of the contract
     address public creator;
 
-    /// @notice Indicates if the contract is deposited
-    bool public isDeposited;
-
-    /// @notice Indicates if the contract is withdrawn
-    bool public isWithdrawn;
-
-    /// @notice Timestamp until the contract is locked
+    /// @notice Timestamp until the contract is locked (before = 2 NFT to withdraw, after = 1 NFT to withdraw)
     uint256 public lockedUntil;
-
-    /// @notice ERC20 token amount or ERC721 token id of the wanted token
-    uint256 public wantedAmount;
 
     /// @notice Indicates the deposit timestamp
     uint256 public depositTimestamp;
@@ -62,40 +60,21 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
     /// @notice Indicates the creation timestamp
     uint256 public creationTimestamp;
 
-    /// @notice Reward pool
-    IRewardPool6022 public rewardPool;
-
     /// @notice ERC20 or ERC721 token address
     address public wantedTokenAddress;
 
-    /// @notice Indicates the storage type of the vault
+    /// @notice Indicate if the 'wantedTokenAddress' is a ERC20 or ERC721 token
     VaultStorageEnum public storageType;
-
-    // ----------------- EVENTS ----------------- //
-    /// @dev Emitted when the contract is deposited
-    event Deposited(address depositor, uint256 amount);
-
-    /// @dev Emitted when the contract is withdrawn
-    event Withdrawn(address withdrawer, uint256 amount);
-
-    /// @dev Emitted when the approval fail
-    event ApprovalFailed(address owner, address spender, uint256 value);
 
     // ----------------- ERRORS ----------------- //
     /// @dev Error when user tries to deposit after the lockedUntil timestamp
     error TooLateToDeposit();
 
-    /// @dev Error when the contract is not deposited
-    error ContractNotDeposited();
-
     /// @dev Error when trying to deposit without enough NFTs
-    error NotEnoughtNFTToDeposit();
+    error NotEnoughNFTToDeposit();
 
     /// @dev Error when trying to withdraw without enough NFTs
-    error NotEnoughtNFTToWithdraw();
-
-    /// @dev Error when the contract is already deposited
-    error ContractAlreadyDeposited();
+    error NotEnoughNFTToWithdraw();
 
     constructor(
         address _creator, 
@@ -104,31 +83,23 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         uint256 _wantedAmount,
         address _rewardPoolAddress,
         address _wantedTokenAddress,
-        VaultStorageEnum _storageType) ERC721(_name, "6022") {
-        
+        VaultStorageEnum _storageType
+    ) ERC721(_name, "6022") BaseVault6022(_rewardPoolAddress, _wantedAmount) {
         creator = _creator;
-        isDeposited = false;
-        isWithdrawn = false;
         lockedUntil = _lockedUntil;
         storageType = _storageType;
-        wantedAmount = _wantedAmount;
         creationTimestamp = block.timestamp;
         wantedTokenAddress = _wantedTokenAddress;
-        rewardPool = IRewardPool6022(_rewardPoolAddress);
 
-        // Mint tokens to this contract's address
+        // Mint tokens to the creator (transaction signer)
         for(uint i = 1; i <= MAX_TOKENS; i++) {
             _mint(address(_creator), i);
         }
     }
 
-    function deposit() public nonReentrant {
-        if (isDeposited) {
-            revert ContractAlreadyDeposited();
-        }
-
+    function deposit() public onlyWhenNotDeposited nonReentrant {
         if (balanceOf(msg.sender) == 0) {
-            revert NotEnoughtNFTToDeposit();
+            revert NotEnoughNFTToDeposit();
         }
 
         if (block.timestamp > lockedUntil) {
@@ -144,14 +115,10 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
         emit Deposited(msg.sender, wantedAmount);
     }
 
-    function withdraw() public nonReentrant {
-        if (!isDeposited) {
-            revert ContractNotDeposited();
-        }
-
+    function withdraw() public onlyWhenDeposited onlyWhenNotWithdrawn nonReentrant {
         uint256 requiredNFTs = getRequiredNftsToWithdraw();
         if (requiredNFTs > balanceOf(msg.sender)) {
-            revert NotEnoughtNFTToWithdraw();
+            revert NotEnoughNFTToWithdraw();
         }
 
         if (storageType == VaultStorageEnum.ERC721) {
@@ -220,10 +187,10 @@ contract Vault6022 is ERC721, ReentrancyGuard, IVault6022 {
             rewardPoolAddress: address(rewardPool),
             wantedTokenAddress: wantedTokenAddress,
             wantedTokenDecimals: wantedTokenDecimals,
-            collectedFees: rewardPool.collectedFees(address(this)),
+            rewardWeight: rewardPool.vaultsRewardWeight(address(this)),
             balanceOfWantedToken: wantedToken.balanceOf(address(this)),
             collectedRewards: rewardPool.collectedRewards(address(this)),
-            backedValueProtocolToken: rewardPool.collectedFees(address(this)) / rewardPool.FEES_PERCENT() * 100
+            backedValueProtocolToken: rewardPool.vaultsRewardWeight(address(this)) / rewardPool.FEES_PERCENT() * 100
         });
     }
 }

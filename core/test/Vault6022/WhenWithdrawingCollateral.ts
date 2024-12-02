@@ -5,7 +5,7 @@ import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { time, reset } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("When depositing collateral", function () {
+describe("When withdrawing collateral", function () {
   const lockIn = 60 * 60 * 24 * 30 * 6; // 6 months
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
 
@@ -46,6 +46,12 @@ describe("When depositing collateral", function () {
       await rewardPool6022.getAddress(),
       ethers.parseEther("100000")
     );
+
+    await token6022.transfer(
+      await rewardPool6022.getAddress(),
+      ethers.parseEther("1")
+    );
+    await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
 
     const tx = await rewardPool6022.createVault(
       "Vault6022",
@@ -90,10 +96,10 @@ describe("When depositing collateral", function () {
   });
 
   describe("Given vault does not have a deposit", async function () {
-    it("Should revert with 'ContractNotDeposited' error", async function () {
+    it("Should revert with 'NotDeposited' error", async function () {
       await expect(_vault6022.withdraw()).to.be.revertedWithCustomError(
         _vault6022,
-        "ContractNotDeposited"
+        "NotDeposited"
       );
     });
   });
@@ -152,10 +158,7 @@ describe("When depositing collateral", function () {
         it("Should revert with 'NotEnoughtNFTToWithdraw' error", async function () {
           await expect(
             _vault6022.connect(_otherAccount).withdraw()
-          ).to.be.revertedWithCustomError(
-            _vault6022,
-            "NotEnoughtNFTToWithdraw"
-          );
+          ).to.be.revertedWithCustomError(_vault6022, "NotEnoughNFTToWithdraw");
         });
       });
 
@@ -163,10 +166,7 @@ describe("When depositing collateral", function () {
         it("Should revert with 'NotEnoughtNFTToWithdraw' error", async function () {
           await expect(
             _vault6022.connect(_otherAccount).withdraw()
-          ).to.be.revertedWithCustomError(
-            _vault6022,
-            "NotEnoughtNFTToWithdraw"
-          );
+          ).to.be.revertedWithCustomError(_vault6022, "NotEnoughNFTToWithdraw");
         });
       });
     });
@@ -236,10 +236,7 @@ describe("When depositing collateral", function () {
         it("Should revert with 'NotEnoughtNFTToWithdraw' error", async function () {
           await expect(
             _vault6022.connect(_otherAccount).withdraw()
-          ).to.be.revertedWithCustomError(
-            _vault6022,
-            "NotEnoughtNFTToWithdraw"
-          );
+          ).to.be.revertedWithCustomError(_vault6022, "NotEnoughNFTToWithdraw");
         });
       });
     });

@@ -50,6 +50,12 @@ describe("When depositing collateral", function () {
       ethers.parseEther("100000")
     );
 
+    await token6022.transfer(
+      await rewardPool6022.getAddress(),
+      ethers.parseEther("1")
+    );
+    await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
+
     const tx = await rewardPool6022.createVault(
       "Vault6022",
       lockUntil,
@@ -95,7 +101,7 @@ describe("When depositing collateral", function () {
     it("Should revert with 'NotEnoughtNFTToDeposit' error", async function () {
       await expect(
         _vault6022.connect(_otherAccount).deposit()
-      ).to.be.revertedWithCustomError(_vault6022, "NotEnoughtNFTToDeposit");
+      ).to.be.revertedWithCustomError(_vault6022, "NotEnoughNFTToDeposit");
     });
   });
 
@@ -130,10 +136,10 @@ describe("When depositing collateral", function () {
         await _vault6022Runner.deposit();
       });
 
-      it("Should revert with 'ContractAlreadyDeposited' event", async function () {
+      it("Should revert with 'AlreadyDeposited' event", async function () {
         await expect(_vault6022Runner.deposit()).to.be.revertedWithCustomError(
           _vault6022,
-          "ContractAlreadyDeposited"
+          "AlreadyDeposited"
         );
       });
     });

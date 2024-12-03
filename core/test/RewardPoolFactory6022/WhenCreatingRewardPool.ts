@@ -1,8 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { findEventFromLogs, logsToLogDescriptions } from "../utils";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
-  RewardPool6022,
+  findEventFromLogs,
+  logsToLogDescriptions,
+  parseRewardPoolFromRewardPoolCreatedLogs,
+  parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
+} from "../utils";
+import {
   RewardPoolFactory6022,
   RewardPoolLifetimeVault6022,
   Token6022,
@@ -11,7 +16,6 @@ import {
   reset,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("When creating reward pool from factory 6022", function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
@@ -153,19 +157,8 @@ describe("When creating reward pool from factory 6022", function () {
         await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
 
-      const vaultCreatedEvents = await logsToLogDescriptions(
-        txReceipt!.logs,
-        "VaultCreated(address)",
-        "RewardPool6022"
-      );
-
-      const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
-      const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
-        "RewardPoolLifetimeVault6022"
-      );
-      const lifetimeVault = RewardPoolLifetimeVault6022.attach(
-        lifetimeVaultAddress
-      ) as RewardPoolLifetimeVault6022;
+      const lifetimeVault =
+        await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(txReceipt!.logs);
 
       expect(await lifetimeVault.isDeposited()).to.be.true;
     });
@@ -175,19 +168,8 @@ describe("When creating reward pool from factory 6022", function () {
         await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
 
-      const vaultCreatedEvents = await logsToLogDescriptions(
-        txReceipt!.logs,
-        "VaultCreated(address)",
-        "RewardPool6022"
-      );
-
-      const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
-      const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
-        "RewardPoolLifetimeVault6022"
-      );
-      const lifetimeVault = RewardPoolLifetimeVault6022.attach(
-        lifetimeVaultAddress
-      ) as RewardPoolLifetimeVault6022;
+      const lifetimeVault =
+        await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(txReceipt!.logs);
 
       expect(await lifetimeVault.isRewardable()).to.be.true;
     });
@@ -220,12 +202,9 @@ describe("When creating reward pool from factory 6022", function () {
         await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
 
-      const rewardPoolCreatedEvents = await logsToLogDescriptions(
-        txReceipt!.logs,
-        "RewardPoolCreated(address)",
-        "RewardPoolFactory6022"
+      const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
+        txReceipt!.logs
       );
-      const rewardPoolAddress = rewardPoolCreatedEvents[0].args[0];
 
       const vaultCreatedEvents = await logsToLogDescriptions(
         txReceipt!.logs,
@@ -234,14 +213,34 @@ describe("When creating reward pool from factory 6022", function () {
       );
       const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
 
-      const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
-      const rewardPool = RewardPool6022.attach(
-        rewardPoolAddress
-      ) as RewardPool6022;
-
       expect(
         await rewardPool.vaultsRewardWeight(lifetimeVaultAddress)
       ).to.be.equal(lifetimeVaultAmount);
+    });
+
+    it("Should create a reward pool able to create a vault", async function () {
+      const lockedDuring = 60 * 60 * 24;
+      const lockedUntil = Math.floor(Date.now() / 1000) + lockedDuring;
+      const wantedAmountInTheVault = ethers.parseEther("1");
+
+      const tx =
+        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
+        txReceipt!.logs
+      );
+
+      expect(
+        rewardPool.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          await _token6022.getAddress(),
+          BigInt(0),
+          wantedAmountInTheVault
+        )
+      ).to.emit(rewardPool, "VaultCreated");
     });
   });
 });

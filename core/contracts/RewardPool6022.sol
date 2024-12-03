@@ -72,10 +72,10 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     error RemainingRewardableVaults();
 
     constructor(
-        address _creator,
+        address _owner,
         address _controllerAddress,
         address _protocolTokenAddress
-    ) Ownable(_creator) {
+    ) Ownable(_owner) {
         protocolToken = IERC20(_protocolTokenAddress);
         controller = IController6022(_controllerAddress);
     }
@@ -91,7 +91,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         _;
     }
 
-    modifier onlyWhenLifetimeVaultDoesExist() {
+    modifier onlyWhenLifetimeVaultExist() {
         if (address(lifetimeVault) == address(0)) revert LifeTimeVaultDoesNotExist();
         _;
     }
@@ -150,7 +150,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         address _wantedTokenAddress,
         VaultStorageEnum _storageType,
         uint256 _backedValueProtocolToken
-    ) public onlyOwner onlyWhenLifetimeVaultDoesExist onlyWhenLifetimeVaultIsRewardable {
+    ) public onlyOwner onlyWhenLifetimeVaultExist onlyWhenLifetimeVaultIsRewardable {
         uint256 _protocolTokenFees = (_backedValueProtocolToken * FEES_PERCENT) / 100;
 
         // Here there is at least the lifetime vault that will be able to take the rewards (onlyWhenLifetimeVaultIsRewardable)

@@ -4,6 +4,7 @@ import { findEventFromLogs, logsToLogDescriptions } from "../utils";
 import {
   RewardPool6022,
   RewardPoolFactory6022,
+  RewardPoolLifetimeVault6022,
   Token6022,
 } from "../../typechain-types";
 import {
@@ -145,6 +146,50 @@ describe("When creating reward pool from factory 6022", function () {
       expect(await _token6022.balanceOf(lifetimeVaultAddress)).to.be.equal(
         lifetimeVaultAmount
       );
+    });
+
+    it("Should mark the lifetime vault as deposited", async function () {
+      const tx =
+        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const vaultCreatedEvents = await logsToLogDescriptions(
+        txReceipt!.logs,
+        "VaultCreated(address)",
+        "RewardPool6022"
+      );
+
+      const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
+      const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
+        "RewardPoolLifetimeVault6022"
+      );
+      const lifetimeVault = RewardPoolLifetimeVault6022.attach(
+        lifetimeVaultAddress
+      ) as RewardPoolLifetimeVault6022;
+
+      expect(await lifetimeVault.isDeposited()).to.be.true;
+    });
+
+    it("Should set the lifetime vault as rewardable", async function () {
+      const tx =
+        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const vaultCreatedEvents = await logsToLogDescriptions(
+        txReceipt!.logs,
+        "VaultCreated(address)",
+        "RewardPool6022"
+      );
+
+      const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
+      const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
+        "RewardPoolLifetimeVault6022"
+      );
+      const lifetimeVault = RewardPoolLifetimeVault6022.attach(
+        lifetimeVaultAddress
+      ) as RewardPoolLifetimeVault6022;
+
+      expect(await lifetimeVault.isRewardable()).to.be.true;
     });
 
     it("Should take the collateral for the lifetime vault from the caller", async function () {

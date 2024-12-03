@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { EventLog } from "ethers";
-import { RewardPool6022, Token6022 } from "../../typechain-types";
+import { parseVaultFromVaultCreatedLogs } from "../utils";
+import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   reset,
@@ -11,6 +11,9 @@ import {
 describe("When creating vault from reward pool 6022", function () {
   const lockedDuring = 60 * 60 * 24;
   const lockedUntil = Math.floor(Date.now() / 1000) + lockedDuring;
+
+  const lifetimeVaultAmount = ethers.parseEther("1");
+  const wantedAmountInTheVault = ethers.parseEther("1");
 
   let _token6022: Token6022;
   let _rewardPool6022: RewardPool6022;
@@ -33,32 +36,18 @@ describe("When creating vault from reward pool 6022", function () {
       ethers.parseEther("100000")
     );
 
-    const RewardPoolFactory6022 = await ethers.getContractFactory(
-      "RewardPoolFactory6022"
-    );
-    const rewardPoolFactory6022 = await RewardPoolFactory6022.deploy(
+    // Deploy directly a RewardPool6022 instead of using a RewardPoolFactory6022
+    // To be able to test more case (RewardPoolFactory6022 automatically create the lifetime vault...)
+    const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
+    const rewardPool6022 = await RewardPool6022.deploy(
+      await owner.getAddress(),
       await controller6022.getAddress(),
       await token6022.getAddress()
     );
 
-    await controller6022.addFactory(await rewardPoolFactory6022.getAddress());
-
-    const tx = await rewardPoolFactory6022.createRewardPool();
-    const txReceipt = await tx.wait();
-
-    const events = <EventLog[]>(
-      txReceipt?.logs.filter((x) => x instanceof EventLog)
-    );
-    const rewardPoolCreatedEvent = events.filter(
-      (x) =>
-        x.fragment.name ===
-        rewardPoolFactory6022.filters["RewardPoolCreated(address)"].name
-    )[0];
-
-    const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
-    const rewardPool6022 = RewardPool6022.attach(
-      rewardPoolCreatedEvent.args[0]
-    ) as RewardPool6022;
+    await controller6022.addFactory(await owner.getAddress());
+    await controller6022.pushRewardPool(await rewardPool6022.getAddress());
+    await controller6022.removeFactory(await owner.getAddress());
 
     return { token6022, rewardPool6022, owner, otherAccount };
   }
@@ -82,10 +71,10 @@ describe("When creating vault from reward pool 6022", function () {
           .createVault(
             "TestVault",
             lockedUntil,
-            ethers.parseEther("1"),
+            wantedAmountInTheVault,
             await _rewardPool6022.protocolToken(),
             BigInt(0),
-            ethers.parseEther("1")
+            wantedAmountInTheVault
           )
       ).to.revertedWithCustomError(
         _rewardPool6022,
@@ -94,18 +83,97 @@ describe("When creating vault from reward pool 6022", function () {
     });
   });
 
-  describe("Given no rewardable vaults in the pool", async function () {
-    const lockedUntil = Date.now() + 1000 * 60 * 60;
+  describe("Given reward pool lifetime vault is not initialized", async function () {
+    it("Should revert with 'LifeTimeVaultDoesNotExist' error", async function () {
+      await expect(
+        _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          wantedAmountInTheVault
+        )
+      ).to.revertedWithCustomError(
+        _rewardPool6022,
+        "LifeTimeVaultDoesNotExist"
+      );
+    });
+  });
+
+  describe("Given reward pool lifetime is not rewardable", async function () {
+    beforeEach(async function () {
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
+        lifetimeVaultAmount
+      );
+      await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+      await _rewardPool6022.closeAndCollectLifetimeVault();
+    });
+
+    it("Should revert with 'LifeTimeVaultIsNotRewardable' error", async function () {
+      await expect(
+        _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          wantedAmountInTheVault
+        )
+      ).to.revertedWithCustomError(
+        _rewardPool6022,
+        "LifeTimeVaultIsNotRewardable"
+      );
+    });
+  });
+
+  describe("Given caller didn't approve the token to be spend", async function () {
+    beforeEach(async function () {
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
+        lifetimeVaultAmount
+      );
+      await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+    });
+
+    it("Should revert with 'ERC20InsufficientAllowance' error", async function () {
+      await expect(
+        _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          wantedAmountInTheVault
+        )
+      ).to.be.revertedWithCustomError(_token6022, "ERC20InsufficientAllowance");
+    });
+  });
+
+  describe("Given caller is owner, approve the token to be spend and lifetime vault is rewardable", async function () {
+    beforeEach(async function () {
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
+        lifetimeVaultAmount
+      );
+      await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+
+      await _token6022.approve(
+        await _rewardPool6022.getAddress(),
+        wantedAmountInTheVault
+      );
+    });
 
     it("Should emit 'VaultCreated' event", async function () {
       await expect(
         _rewardPool6022.createVault(
           "TestVault",
           lockedUntil,
-          ethers.parseEther("1"),
+          wantedAmountInTheVault,
           await _rewardPool6022.protocolToken(),
           BigInt(0),
-          ethers.parseEther("1")
+          wantedAmountInTheVault
         )
       ).to.emit(_rewardPool6022, "VaultCreated");
     });
@@ -114,119 +182,65 @@ describe("When creating vault from reward pool 6022", function () {
       await _rewardPool6022.createVault(
         "TestVault",
         lockedUntil,
-        ethers.parseEther("1"),
+        wantedAmountInTheVault,
         await _rewardPool6022.protocolToken(),
         BigInt(0),
-        ethers.parseEther("1")
+        wantedAmountInTheVault
       );
 
-      const vaultAddress = await _rewardPool6022.allVaults(0);
+      const vaultAddress = await _rewardPool6022.allVaults(1);
 
       expect(
         await _rewardPool6022.vaultsRewardWeight(vaultAddress)
       ).to.be.greaterThan(0);
     });
-  });
 
-  describe("Given rewardable vaults in the pool", async function () {
-    describe("And the caller has not approved the token 6022 usage", async function () {
-      it("Should revert with 'ERC20InsufficientAllowance' error", async function () {
-        const lockedUntil = Date.now() + 1000 * 60 * 60;
+    it("Should send the keys of the vault to the caller (owner)", async function () {
+      const tx = await _rewardPool6022.createVault(
+        "TestVault",
+        lockedUntil,
+        wantedAmountInTheVault,
+        await _rewardPool6022.protocolToken(),
+        BigInt(0),
+        wantedAmountInTheVault
+      );
+      const txReceipt = await tx.wait();
 
-        // This one should work because the first time the reward pool didn't take fees
-        await _rewardPool6022.createVault(
-          "TestVault",
-          lockedUntil,
-          ethers.parseEther("1"),
-          await _rewardPool6022.protocolToken(),
-          BigInt(0),
-          ethers.parseEther("1")
-        );
+      const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
-        // Make deposit in the first vault to set it to "rewardable"
-        const firstVaultAddress = await _rewardPool6022.allVaults(0);
-        const firstVault = await ethers.getContractAt(
-          "Vault6022",
-          firstVaultAddress
-        );
-
-        await _token6022.approve(firstVaultAddress, ethers.parseEther("1"));
-        await firstVault.deposit();
-
-        await expect(
-          _rewardPool6022.createVault(
-            "TestVault",
-            lockedUntil,
-            ethers.parseEther("1"),
-            await _rewardPool6022.protocolToken(),
-            BigInt(0),
-            ethers.parseEther("1")
-          )
-        ).to.be.revertedWithCustomError(
-          _token6022,
-          "ERC20InsufficientAllowance"
-        );
-      });
+      expect(await vault.balanceOf(_owner.address)).to.be.equal(3);
     });
 
-    describe("And the caller has approved the token 6022 usage", async function () {
-      const lockedUntil = Date.now() + 1000 * 60 * 60;
+    it("Should create the vault as non rewardable", async function () {
+      const tx = await _rewardPool6022.createVault(
+        "TestVault",
+        lockedUntil,
+        wantedAmountInTheVault,
+        await _rewardPool6022.protocolToken(),
+        BigInt(0),
+        wantedAmountInTheVault
+      );
+      const txReceipt = await tx.wait();
 
-      beforeEach(async function () {
-        await _token6022.approve(
-          await _rewardPool6022.getAddress(),
-          ethers.parseEther("100000")
-        );
+      const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
-        await _rewardPool6022.createVault(
-          "TestVault",
-          lockedUntil,
-          ethers.parseEther("1"),
-          await _rewardPool6022.protocolToken(),
-          BigInt(0),
-          ethers.parseEther("1")
-        );
+      expect(await vault.isRewardable()).to.be.false;
+    });
 
-        // Make deposit in the first vault to set it to "rewardable"
-        const firstVaultAddress = await _rewardPool6022.allVaults(0);
-        const firstVault = await ethers.getContractAt(
-          "Vault6022",
-          firstVaultAddress
-        );
+    it("Should mark the vault as non deposited", async function () {
+      const tx = await _rewardPool6022.createVault(
+        "TestVault",
+        lockedUntil,
+        wantedAmountInTheVault,
+        await _rewardPool6022.protocolToken(),
+        BigInt(0),
+        wantedAmountInTheVault
+      );
+      const txReceipt = await tx.wait();
 
-        await _token6022.approve(firstVaultAddress, ethers.parseEther("1"));
-        await firstVault.deposit();
-      });
+      const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
-      it("Should emit 'VaultCreated' event", async function () {
-        await expect(
-          _rewardPool6022.createVault(
-            "TestVault",
-            Math.floor(lockedUntil),
-            ethers.parseEther("1"),
-            await _rewardPool6022.protocolToken(),
-            BigInt(0),
-            ethers.parseEther("1")
-          )
-        ).to.emit(_rewardPool6022, "VaultCreated");
-      });
-
-      it("Should increase reward weight", async function () {
-        await _rewardPool6022.createVault(
-          "TestVault",
-          Math.floor(lockedUntil),
-          ethers.parseEther("1"),
-          await _rewardPool6022.protocolToken(),
-          BigInt(0),
-          ethers.parseEther("1")
-        );
-
-        const vaultAddress = await _rewardPool6022.allVaults(1);
-
-        expect(
-          await _rewardPool6022.vaultsRewardWeight(vaultAddress)
-        ).to.be.greaterThan(0);
-      });
+      expect(await vault.isDeposited()).to.be.false;
     });
   });
 });

@@ -101,6 +101,13 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         _;
     }
 
+    modifier onlyWhenNoMoreRewardableVaults() {
+        if (_countRewardableVaults() != 0) {
+            revert RemainingRewardableVaults();
+        }
+        _;
+    }
+
     // ----------------- FUNCS ----------------- //
     function creator() external view override returns (address) {
         return owner();
@@ -128,14 +135,16 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     /// @notice This method will withdraw the lifetime vault and thus "close" the reward pool. No more vaults can be created.
-    function closeAndCollectLifetimeVault() external onlyOwner {
-        if (_countRewardableVaults() != 0) {
-            revert RemainingRewardableVaults();
-        }
+    function closeAndCollectLifetimeVault() 
+        external 
+        onlyOwner 
+        onlyWhenLifetimeVaultExist 
+        onlyWhenLifetimeVaultIsRewardable 
+        onlyWhenNoMoreRewardableVaults {
 
         lifetimeVault.withdraw();
 
-        // Didn't need to call the "harvestRewards" method
+        // Didn't need to call the "harvestRewards" method as there is no more rewardable vault in the pool
         // The method "transfer" will transfer all remaining funds to the caller (avoiding dust)
         protocolToken.transfer(msg.sender, protocolToken.balanceOf(address(this)));
         collectedRewards[address(lifetimeVault)] = 0;
@@ -179,6 +188,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         emit VaultCreated(address(vault));
     }
 
+    /// @notice Harvest rewards of a closed pool (in case of late withdraw)
+    /// @param to Address of the withdrawer
     function harvestRewards(address to) external onlyVault {
         uint256 valueToHarvest = collectedRewards[msg.sender];
         collectedRewards[msg.sender] = 0;
@@ -188,6 +199,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         emit Harvested(msg.sender, valueToHarvest);
     }
 
+    /// @notice Reinvest rewards of a closed pool into rewardable pools (in case of early withdraw)
     function reinvestRewards() external onlyVault {
         uint256 valueToReinvest = collectedRewards[msg.sender];
         collectedRewards[msg.sender] = 0;
@@ -197,6 +209,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         emit Reinvested(msg.sender, valueToReinvest);
     }
 
+    /// @notice Method to inject new rewards to rewardable pools
+    /// @param amount Amount of rewards that need to be injected into rewardable pools
     function _updateRewards(uint256 amount) internal {
         uint256 totalRewardableRewardWeight = _totalRewardableRewardWeight();
 
@@ -210,6 +224,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         }
     }
 
+    /// @notice Total reward weight in the pool (only rewardable pools)
     function _totalRewardableRewardWeight() internal view returns (uint256) {
         uint256 totalRewardableRewardWeight = 0;
 
@@ -223,12 +238,13 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         return totalRewardableRewardWeight;
     }
 
+    /// @notice Count every rewardable vaults without the lifetime vault
     function _countRewardableVaults() internal view returns (uint256) {
         uint256 count = 0;
 
         for (uint i = 0; i < allVaults.length; i++) {
             Vault6022 vault = Vault6022(allVaults[i]);
-            if (vault.isRewardable()) {
+            if (allVaults[i] != address(lifetimeVault) && vault.isRewardable()) {
                 count++;
             }
         }

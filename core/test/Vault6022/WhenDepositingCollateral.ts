@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { EventLog } from "ethers";
+import { parseVaultFromVaultCreatedLogs } from "../utils";
 import { Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
@@ -64,19 +64,8 @@ describe("When depositing collateral", function () {
       BigInt(0),
       ethers.parseEther("10")
     );
-
     const txReceipt = await tx.wait();
-
-    const events = <EventLog[]>(
-      txReceipt?.logs.filter((x) => x instanceof EventLog)
-    );
-    const vaultCreatedEvent = events.filter(
-      (x) =>
-        x.fragment.name === rewardPool6022.filters["VaultCreated(address)"].name
-    )[0];
-
-    const Vault6022 = await ethers.getContractFactory("Vault6022");
-    const vault6022 = Vault6022.attach(vaultCreatedEvent.args[0]) as Vault6022;
+    const vault6022 = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
     return {
       owner,

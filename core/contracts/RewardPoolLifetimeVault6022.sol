@@ -49,7 +49,7 @@ contract RewardPoolLifetimeVault6022 is BaseVault6022 {
         protocolToken.transfer(msg.sender, wantedAmount);
 
         // Didn't need to call the "harvestRewards" method from the RewardPool6022
-        // The method closeAndCollectLifetimeVault will transfer all remaining funds to the caller
+        // The method closeAndCollectLifetimeVault will transfer all remaining funds in the RewardPool to the caller
          
         isWithdrawn = true;
         emit Withdrawn(msg.sender, wantedAmount);

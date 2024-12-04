@@ -42,7 +42,7 @@ describe("When deploying token 6022", function () {
     expect(await _token6022.totalSupply()).to.equal(totalSupply);
   });
 
-  it("Should send the total supply to the owner", async function () {
+  it("Should send the total supply to the caller", async function () {
     expect(await _token6022.balanceOf(_owner.address)).to.equal(totalSupply);
   });
 });

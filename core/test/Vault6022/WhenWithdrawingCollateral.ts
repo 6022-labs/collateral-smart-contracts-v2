@@ -52,6 +52,7 @@ describe("When withdrawing collateral", function () {
       ethers.parseEther("1")
     );
     await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
+    await rewardPool6022.depositToLifetimeVault();
 
     const tx = await rewardPool6022.createVault(
       "Vault6022",
@@ -101,6 +102,19 @@ describe("When withdrawing collateral", function () {
         await _vault6022.wantedAmount()
       );
       await _vault6022.deposit();
+    });
+
+    describe("But collateral is already withdrawn", async function () {
+      beforeEach(async function () {
+        await _vault6022.withdraw();
+      });
+
+      it("Should revert with 'AlreadyWithdrawn' error", async function () {
+        await expect(_vault6022.withdraw()).to.be.revertedWithCustomError(
+          _vault6022,
+          "AlreadyWithdrawn"
+        );
+      });
     });
 
     describe("And lockedUntil is not reached", async function () {

@@ -50,14 +50,12 @@ contract RewardPoolFactory6022 {
             address(protocolTokenAddress)
         );
 
-        _depositToLifetimeVault(rewardPool, _lifetimeVaultAmount);
+        rewardPool.createLifetimeVault(_lifetimeVaultAmount);
+
+        protocolTokenAddress.transferFrom(msg.sender, address(rewardPool), _lifetimeVaultAmount);
+        rewardPool.depositToLifetimeVault();
 
         controller.pushRewardPool(address(rewardPool));
         emit RewardPoolCreated(address(rewardPool));
-    }
-
-    function _depositToLifetimeVault(RewardPool6022 _rewardPool, uint256 _lifetimeVaultAmount) internal {
-        protocolTokenAddress.transferFrom(msg.sender, address(_rewardPool), _lifetimeVaultAmount);
-        _rewardPool.createLifetimeVault(_lifetimeVaultAmount);
     }
 }

@@ -12,6 +12,8 @@ describe("When checking is rewardable for vault", async function () {
   const lockIn = 60 * 60 * 24 * 30 * 6; // 6 months
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
 
+  const lifetimeVaultAmount = ethers.parseEther("1");
+
   let _vault6022: Vault6022;
   let _token6022: Token6022;
 
@@ -48,9 +50,15 @@ describe("When checking is rewardable for vault", async function () {
 
     await token6022.transfer(
       await rewardPool6022.getAddress(),
-      ethers.parseEther("1")
+      lifetimeVaultAmount
     );
-    await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
+    await rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+
+    await token6022.transfer(
+      await rewardPool6022.getAddress(),
+      lifetimeVaultAmount
+    );
+    await rewardPool6022.depositToLifetimeVault();
 
     const tx = await rewardPool6022.createVault(
       "Vault6022",

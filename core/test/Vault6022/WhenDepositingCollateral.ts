@@ -55,6 +55,7 @@ describe("When depositing collateral", function () {
       ethers.parseEther("1")
     );
     await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
+    await rewardPool6022.depositToLifetimeVault();
 
     const tx = await rewardPool6022.createVault(
       "Vault6022",

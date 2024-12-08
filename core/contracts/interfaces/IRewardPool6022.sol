@@ -22,6 +22,8 @@ interface IRewardPool6022 {
 
     function allVaultsLength() external view returns (uint);
 
+    function countRewardableVaults() external view returns (uint256);
+
     function collectedRewards(address) external view returns (uint256);
 
     function vaultsRewardWeight(address) external view returns (uint256);

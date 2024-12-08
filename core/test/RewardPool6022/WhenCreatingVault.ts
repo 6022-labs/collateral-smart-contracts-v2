@@ -107,8 +107,9 @@ describe("When creating vault from reward pool 6022", function () {
         await _rewardPool6022.getAddress(),
         lifetimeVaultAmount
       );
+
+      // Create the lifetime vault but don't deposit the collateral (not rewardable)
       await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
-      await _rewardPool6022.closeAndCollectLifetimeVault();
     });
 
     it("Should revert with 'LifeTimeVaultIsNotRewardable' error", async function () {
@@ -135,6 +136,7 @@ describe("When creating vault from reward pool 6022", function () {
         lifetimeVaultAmount
       );
       await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+      await _rewardPool6022.depositToLifetimeVault();
     });
 
     it("Should revert with 'ERC20InsufficientAllowance' error", async function () {
@@ -158,6 +160,7 @@ describe("When creating vault from reward pool 6022", function () {
         lifetimeVaultAmount
       );
       await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+      await _rewardPool6022.depositToLifetimeVault();
 
       await _token6022.approve(
         await _rewardPool6022.getAddress(),

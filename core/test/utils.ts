@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import {
   RewardPool6022,
   RewardPoolLifetimeVault6022,
+  Token6022,
   Vault6022,
 } from "../typechain-types";
 
@@ -70,4 +71,39 @@ export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
   return RewardPoolLifetimeVault6022.attach(
     lifetimeVaultAddress
   ) as RewardPoolLifetimeVault6022;
+}
+
+export async function createDepositedVault(
+  token6022: Token6022,
+  rewardPool6022: RewardPool6022,
+  lockedUntil: number,
+  wantedAmountInTheVault: bigint
+) {
+  const tx = await rewardPool6022.createVault(
+    "TestVault",
+    lockedUntil,
+    wantedAmountInTheVault,
+    await token6022.getAddress(),
+    BigInt(0),
+    wantedAmountInTheVault
+  );
+  const txReceipt = await tx.wait();
+
+  const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
+  await token6022.approve(await vault.getAddress(), await vault.wantedAmount());
+  await vault.deposit();
+
+  return vault;
+}
+
+export async function rewardPoolRemainingRewards(rewardPool: RewardPool6022) {
+  let remainingRewards = BigInt(0);
+  const allVaultsLength = await rewardPool.allVaultsLength();
+
+  for (let index = 0; index < allVaultsLength; index++) {
+    const vaultAddress = await rewardPool.allVaults(index);
+    remainingRewards += await rewardPool.collectedRewards(vaultAddress);
+  }
+
+  return remainingRewards;
 }

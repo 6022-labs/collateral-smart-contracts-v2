@@ -14,7 +14,7 @@ interface IBaseVault6022 {
     error AlreadyDeposited();
 
     /// @dev Error when the contract is already withdrawn
-    error AlreadyWithdraw();
+    error AlreadyWithdrawn();
 
     /// @dev Error when the contract is not deposited
     error NotDeposited();

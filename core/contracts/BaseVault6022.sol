@@ -53,7 +53,7 @@ abstract contract BaseVault6022 is IBaseVault6022 {
 
     modifier onlyWhenNotWithdrawn() {
         if (isWithdrawn) {
-            revert AlreadyWithdraw();
+            revert AlreadyWithdrawn();
         }
         _;
     }

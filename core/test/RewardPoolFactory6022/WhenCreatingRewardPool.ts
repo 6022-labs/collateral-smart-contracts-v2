@@ -213,9 +213,11 @@ describe("When creating reward pool from factory 6022", function () {
       );
       const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
 
+      const rewardFeesPercent = await rewardPool.FEES_PERCENT();
+
       expect(
         await rewardPool.vaultsRewardWeight(lifetimeVaultAddress)
-      ).to.be.equal(lifetimeVaultAmount);
+      ).to.be.equal((lifetimeVaultAmount * rewardFeesPercent) / BigInt(100));
     });
 
     it("Should create a reward pool able to create a vault", async function () {

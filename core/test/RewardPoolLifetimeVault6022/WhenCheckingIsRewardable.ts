@@ -1,12 +1,18 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { parseRewardPoolLifetimeVaultFromVaultCreatedLogs } from "../utils";
 import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
-import { RewardPoolLifetimeVault6022, Token6022 } from "../../typechain-types";
+import {
+  RewardPool6022,
+  RewardPoolLifetimeVault6022,
+  Token6022,
+} from "../../typechain-types";
 
 describe("When checking is rewardable for reward pool lifetime vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
 
   let _token6022: Token6022;
+  let _rewardPool6022: RewardPool6022;
   let _rewardPoolLifetimeVault: RewardPoolLifetimeVault6022;
 
   async function deployRewardPoolLifetimeVault() {
@@ -20,33 +26,48 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
       ethers.parseEther("100000")
     );
 
-    // Didn't deploy the RewardPoolFactory6022 and a RewardPool6022 contract
-    // to directly deploy the RewardPoolLifetimeVault6022 contract
-    // Easier to test the RewardPoolLifetimeVault6022 like this
-    const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
-      "RewardPoolLifetimeVault6022"
-    );
+    const Controller6022 = await ethers.getContractFactory("Controller6022");
+    const controller6022 = await Controller6022.deploy();
 
-    // Owner is thus considered as a RewardPool (first argument the constructor)
-    // Normally the method (createLifetimeVault in RewardPool6022 set himself as RewardPool)
-    const rewardPoolLifetimeVault = await RewardPoolLifetimeVault6022.deploy(
-      owner.address,
-      lifetimeVaultAmount,
+    // Didn't deploy the RewardPoolFactory6022
+    // In order to test the deposit (RewardPoolFactory6022 directly calls the deposit method)
+    const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
+    const rewardPool6022 = await RewardPool6022.deploy(
+      await owner.getAddress(),
+      await controller6022.getAddress(),
       await token6022.getAddress()
     );
 
+    await controller6022.addFactory(await owner.getAddress());
+    await controller6022.pushRewardPool(await rewardPool6022.getAddress());
+    await controller6022.removeFactory(await owner.getAddress());
+
+    // Create the lifetime vault using the RewardPool6022
+    await token6022.transfer(
+      await rewardPool6022.getAddress(),
+      lifetimeVaultAmount
+    );
+
+    const tx = await rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+    const txReceipt = await tx.wait();
+    // But don't use the depositToLifetimeVault method yet (to test not deposited case)
+
+    const rewardPoolLifetimeVault =
+      await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(txReceipt!.logs);
+
     return {
       token6022,
+      rewardPool6022,
       rewardPoolLifetimeVault,
     };
   }
 
   beforeEach(async function () {
-    const { token6022, rewardPoolLifetimeVault } = await loadFixture(
-      deployRewardPoolLifetimeVault
-    );
+    const { token6022, rewardPool6022, rewardPoolLifetimeVault } =
+      await loadFixture(deployRewardPoolLifetimeVault);
 
     _token6022 = token6022;
+    _rewardPool6022 = rewardPool6022;
     _rewardPoolLifetimeVault = rewardPoolLifetimeVault;
   });
 
@@ -58,12 +79,11 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
 
   describe("Given the collateral is withdrawn", async function () {
     beforeEach(async function () {
-      await _token6022.approve(
-        await _rewardPoolLifetimeVault.getAddress(),
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
         lifetimeVaultAmount
       );
-      await _rewardPoolLifetimeVault.deposit();
-
+      await _rewardPool6022.depositToLifetimeVault();
       await _rewardPoolLifetimeVault.withdraw();
     });
 
@@ -74,11 +94,11 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
 
   describe("Given the collateral is deposited and not withdrawn", async function () {
     beforeEach(async function () {
-      await _token6022.approve(
-        await _rewardPoolLifetimeVault.getAddress(),
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
         lifetimeVaultAmount
       );
-      await _rewardPoolLifetimeVault.deposit();
+      await _rewardPool6022.depositToLifetimeVault();
     });
 
     it("Should return true", async function () {

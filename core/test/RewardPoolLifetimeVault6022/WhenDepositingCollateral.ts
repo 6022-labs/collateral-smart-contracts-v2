@@ -1,8 +1,16 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import {
+  findEventFromLogs,
+  parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
+} from "../utils";
 import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { Token6022, RewardPoolLifetimeVault6022 } from "../../typechain-types";
+import {
+  Token6022,
+  RewardPoolLifetimeVault6022,
+  RewardPool6022,
+} from "../../typechain-types";
 
 describe("When depositing collateral into reward pool lifetime vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
@@ -11,6 +19,7 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
   let _otherAccount: HardhatEthersSigner;
 
   let _token6022: Token6022;
+  let _rewardPool6022: RewardPool6022;
   let _rewardPoolLifetimeVault: RewardPoolLifetimeVault6022;
 
   async function deployRewardPoolLifetimeVault() {
@@ -25,119 +34,139 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
       ethers.parseEther("100000")
     );
 
-    // Didn't deploy the RewardPoolFactory6022 and a RewardPool6022 contract
-    // to directly deploy the RewardPoolLifetimeVault6022 contract
-    // Easier to test the RewardPoolLifetimeVault6022 like this
-    const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
-      "RewardPoolLifetimeVault6022"
-    );
+    const Controller6022 = await ethers.getContractFactory("Controller6022");
+    const controller6022 = await Controller6022.deploy();
 
-    // Owner is thus considered as a RewardPool (first argument the constructor)
-    // Normally the method (createLifetimeVault in RewardPool6022 set himself as RewardPool)
-    const rewardPoolLifetimeVault = await RewardPoolLifetimeVault6022.deploy(
-      owner.address,
-      lifetimeVaultAmount,
+    // Didn't deploy the RewardPoolFactory6022
+    // In order to test the deposit (RewardPoolFactory6022 directly calls the deposit method)
+    const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
+    const rewardPool6022 = await RewardPool6022.deploy(
+      await owner.getAddress(),
+      await controller6022.getAddress(),
       await token6022.getAddress()
     );
+
+    await controller6022.addFactory(await owner.getAddress());
+    await controller6022.pushRewardPool(await rewardPool6022.getAddress());
+    await controller6022.removeFactory(await owner.getAddress());
+
+    // Create the lifetime vault using the RewardPool6022
+    await token6022.transfer(
+      await rewardPool6022.getAddress(),
+      lifetimeVaultAmount
+    );
+
+    const tx = await rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+    const txReceipt = await tx.wait();
+    // But don't use the depositToLifetimeVault method yet (to test not deposited case)
+
+    const rewardPoolLifetimeVault =
+      await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(txReceipt!.logs);
 
     return {
       owner,
       token6022,
       otherAccount,
+      rewardPool6022,
       rewardPoolLifetimeVault,
     };
   }
 
   beforeEach(async function () {
-    const { owner, token6022, otherAccount, rewardPoolLifetimeVault } =
-      await loadFixture(deployRewardPoolLifetimeVault);
+    const {
+      owner,
+      token6022,
+      otherAccount,
+      rewardPool6022,
+      rewardPoolLifetimeVault,
+    } = await loadFixture(deployRewardPoolLifetimeVault);
 
     _owner = owner;
     _token6022 = token6022;
     _otherAccount = otherAccount;
+    _rewardPool6022 = rewardPool6022;
     _rewardPoolLifetimeVault = rewardPoolLifetimeVault;
   });
 
-  describe("Given caller is not considered as reward pool", async function () {
-    it("Should revert with 'CallerNotRewardPool' error", async function () {
-      await expect(
-        _rewardPoolLifetimeVault.connect(_otherAccount).deposit()
-      ).to.be.revertedWithCustomError(
-        _rewardPoolLifetimeVault,
-        "CallerNotRewardPool"
-      );
-    });
-  });
-
-  describe("Given caller didn't approve protocol token", async function () {
-    it("Should revert with 'ERC20InsufficientAllowance' error", async function () {
+  describe("Given caller is not the reward pool", async function () {
+    it("Should revert with 'OwnableUnauthorizedAccount' error", async function () {
       await expect(
         _rewardPoolLifetimeVault.deposit()
-      ).to.be.revertedWithCustomError(_token6022, "ERC20InsufficientAllowance");
+      ).to.be.revertedWithCustomError(
+        _rewardPoolLifetimeVault,
+        "OwnableUnauthorizedAccount"
+      );
     });
   });
 
-  describe("Given caller approve protocol token", async function () {
+  describe("Given already deposited collateral", async function () {
     beforeEach(async function () {
-      await _token6022.approve(
-        await _rewardPoolLifetimeVault.getAddress(),
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
         lifetimeVaultAmount
       );
+      await _rewardPool6022.depositToLifetimeVault();
     });
 
-    describe("Given already deposited collateral", async function () {
-      beforeEach(async function () {
-        await _rewardPoolLifetimeVault.deposit();
-      });
+    it("Should revert with 'AlreadyDeposited' error", async function () {
+      await expect(
+        _rewardPool6022.depositToLifetimeVault()
+      ).to.be.revertedWithCustomError(
+        _rewardPoolLifetimeVault,
+        "AlreadyDeposited"
+      );
+    });
+  });
 
-      it("Should revert with 'AlreadyDeposited' error", async function () {
-        await expect(
-          _rewardPoolLifetimeVault.deposit()
-        ).to.be.revertedWithCustomError(
-          _rewardPoolLifetimeVault,
-          "AlreadyDeposited"
-        );
-      });
+  describe("Given no collateral deposited yet", async function () {
+    it("Should emit 'Deposited' event", async function () {
+      const tx = await _rewardPool6022.depositToLifetimeVault();
+      const txReceipt = await tx.wait();
+
+      const depositedEvents = findEventFromLogs(
+        txReceipt!.logs,
+        "Deposited(address,uint256)"
+      );
+
+      expect(depositedEvents.length).to.equal(1);
     });
 
-    describe("Given no collateral deposited yet", async function () {
-      it("Should mark the vault as deposited", async function () {
-        await _rewardPoolLifetimeVault.deposit();
+    it("Should mark the vault as deposited", async function () {
+      await _rewardPool6022.depositToLifetimeVault();
 
-        expect(await _rewardPoolLifetimeVault.isDeposited()).to.be.true;
-      });
+      expect(await _rewardPoolLifetimeVault.isDeposited()).to.be.true;
+    });
 
-      it("Should store the expected amount", async function () {
-        await _rewardPoolLifetimeVault.deposit();
+    it("Should mark the vault as rewardable", async function () {
+      await _rewardPool6022.depositToLifetimeVault();
 
-        expect(
-          await _token6022.balanceOf(
-            await _rewardPoolLifetimeVault.getAddress()
-          )
-        ).to.equal(lifetimeVaultAmount);
-      });
+      expect(await _rewardPoolLifetimeVault.isRewardable()).to.be.true;
+    });
 
-      it("Should take the collateral from the caller", async function () {
-        const callerBalanceOfBefore = await _token6022.balanceOf(
-          _owner.address
-        );
-        await _rewardPoolLifetimeVault.deposit();
-        const callerBalanceOfAfter = await _token6022.balanceOf(_owner.address);
+    it("Should store the wanted amount", async function () {
+      await _rewardPool6022.depositToLifetimeVault();
 
-        const vaultBalanceOfAfter = await _token6022.balanceOf(
-          await _rewardPoolLifetimeVault.getAddress()
-        );
+      expect(
+        await _token6022.balanceOf(await _rewardPoolLifetimeVault.getAddress())
+      ).to.equal(lifetimeVaultAmount);
+    });
 
-        expect(vaultBalanceOfAfter).to.be.equal(
-          callerBalanceOfBefore - callerBalanceOfAfter
-        );
-      });
+    it("Should take the collateral from the caller", async function () {
+      const callerBalanceOfBefore = await _token6022.balanceOf(
+        await _rewardPool6022.getAddress()
+      );
+      await _rewardPool6022.depositToLifetimeVault();
+      const callerBalanceOfAfter = await _token6022.balanceOf(
+        await _rewardPool6022.getAddress()
+      );
 
-      it("Should emit 'Deposited' event", async function () {
-        await expect(_rewardPoolLifetimeVault.deposit())
-          .to.emit(_rewardPoolLifetimeVault, "Deposited")
-          .withArgs(_owner, lifetimeVaultAmount);
-      });
+      const vaultBalanceOfAfter = await _token6022.balanceOf(
+        await _rewardPoolLifetimeVault.getAddress()
+      );
+
+      expect(vaultBalanceOfAfter).to.be.equal(
+        callerBalanceOfBefore - callerBalanceOfAfter
+      );
     });
   });
 });

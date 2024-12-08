@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Vault6022} from "./Vault6022.sol";
 import {VaultStorageEnum} from "./VaultStorageEnum.sol";
+import {IBaseVault6022} from "./interfaces/IBaseVault6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -52,8 +53,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @dev Emitted when a vault is pushed
     event VaultCreated(address vault);
 
-    /// @dev Emitted when the reward pool is closed
-    event RewardPoolClosed();
+    /// @dev Emitted when dust is collected
+    event DustCollected(uint256 amount);
 
     // ----------------- ERRORS ----------------- //
     /// @dev Thrown when caller is not a vault from this reward pool
@@ -68,8 +69,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @dev Thrown when the lifetime vault is not rewardable
     error LifeTimeVaultIsNotRewardable();
 
-    /// @dev Thrown when there is still remaining rewardable vaults while trying to close the pool
-    error RemainingRewardableVaults();
+    /// @dev Thrown when the lifetime vault is rewardable
+    error LifeTimeVaultIsRewardable();
 
     constructor(
         address _owner,
@@ -101,10 +102,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         _;
     }
 
-    modifier onlyWhenNoMoreRewardableVaults() {
-        if (_countRewardableVaults() != 0) {
-            revert RemainingRewardableVaults();
-        }
+    modifier onlyWhenLifetimeVaultIsNotRewardable() {
+        if (lifetimeVault.isRewardable()) revert LifeTimeVaultIsRewardable();
         _;
     }
 
@@ -120,38 +119,50 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @notice This method will create the lifetime vault and deposit the protocol token in it. It will allow to create standard vaults.
     function createLifetimeVault(uint256 _lifetimeVaultAmount) external onlyWhenLifetimeVaultDoesNotExist {
         lifetimeVault = new RewardPoolLifetimeVault6022(
+            owner(),
             address(this),
             _lifetimeVaultAmount,
             address(protocolToken)
         );
 
-        protocolToken.approve(address(lifetimeVault), _lifetimeVaultAmount);
-        lifetimeVault.deposit();
-
         allVaults.push(address(lifetimeVault));
-        vaultsRewardWeight[address(lifetimeVault)] += _lifetimeVaultAmount;
+        isVault[address(lifetimeVault)] = true;
 
         emit VaultCreated(address(lifetimeVault));
     }
 
-    /// @notice This method will withdraw the lifetime vault and thus "close" the reward pool. No more vaults can be created.
-    function closeAndCollectLifetimeVault() 
-        external 
-        onlyOwner 
-        onlyWhenLifetimeVaultExist 
-        onlyWhenLifetimeVaultIsRewardable 
-        onlyWhenNoMoreRewardableVaults {
+    /// @notice This method will deposit the protocol token in the lifetime vault and thus start the reward mechanism.
+    function depositToLifetimeVault() external onlyWhenLifetimeVaultExist {
+        uint256 lifetimeVaultAmount = lifetimeVault.wantedAmount();
 
-        lifetimeVault.withdraw();
+        protocolToken.approve(address(lifetimeVault), lifetimeVaultAmount);
+        lifetimeVault.deposit();
 
-        // Didn't need to call the "harvestRewards" method as there is no more rewardable vault in the pool
-        // The method "transfer" will transfer all remaining funds to the caller (avoiding dust)
-        protocolToken.transfer(msg.sender, protocolToken.balanceOf(address(this)));
-        collectedRewards[address(lifetimeVault)] = 0;
-
-        emit RewardPoolClosed();
+        // Here we put a equivalent weight of the fees in the lifetime vault
+        // Even if their is no real fees for the lifetime vault (no vault to collect the fees)
+        vaultsRewardWeight[address(lifetimeVault)] += _computeFees(lifetimeVaultAmount);
     }
 
+    /// @notice This method will withdraw the protocol token dust from the pool
+    function collectDust() 
+        external
+        onlyOwner
+        onlyWhenLifetimeVaultExist
+        onlyWhenLifetimeVaultIsNotRewardable {
+
+        // Here there is no more rewardable vaults but some vaults can still have rewards (because not yet withdrawn).
+        // Those rewards needs to stay in the pool to be harvested when final users will withdraw their collateral.
+        uint256 remainingRewards = _remainingRewards();
+        uint256 balance = protocolToken.balanceOf(address(this));
+
+        uint256 dust = balance - remainingRewards;
+
+        protocolToken.transfer(owner(), dust);
+
+        emit DustCollected(dust);
+    }
+
+    /// @notice This method will create a new vault.
     function createVault(
         string memory _name,
         uint256 _lockedUntil,
@@ -160,7 +171,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         VaultStorageEnum _storageType,
         uint256 _backedValueProtocolToken
     ) public onlyOwner onlyWhenLifetimeVaultExist onlyWhenLifetimeVaultIsRewardable {
-        uint256 _protocolTokenFees = (_backedValueProtocolToken * FEES_PERCENT) / 100;
+        uint256 _protocolTokenFees = _computeFees(_backedValueProtocolToken);
 
         // Here there is at least the lifetime vault that will be able to take the rewards (onlyWhenLifetimeVaultIsRewardable)
         // The lifetime vault is own by the owner of this smart contract indirectly
@@ -200,13 +211,27 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     /// @notice Reinvest rewards of a closed pool into rewardable pools (in case of early withdraw)
-    function reinvestRewards() external onlyVault {
+    function reinvestRewards() external onlyVault onlyWhenLifetimeVaultIsRewardable {
         uint256 valueToReinvest = collectedRewards[msg.sender];
         collectedRewards[msg.sender] = 0;
 
         _updateRewards(valueToReinvest);
 
         emit Reinvested(msg.sender, valueToReinvest);
+    }
+
+    /// @notice Count every rewardable vaults without the lifetime vault
+    function countRewardableVaults() external view returns (uint256) {
+        uint256 count = 0;
+
+        for (uint i = 0; i < allVaults.length; i++) {
+            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
+            if (vault.isRewardable()) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     /// @notice Method to inject new rewards to rewardable pools
@@ -217,7 +242,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         if (totalRewardableRewardWeight == 0) return; // No vaults to reward and avoid division by zero
 
         for (uint i = 0; i < allVaults.length; i++) {
-            Vault6022 vault = Vault6022(allVaults[i]);
+            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
             if (vault.isRewardable()) {
                 collectedRewards[address(vault)] += amount * vaultsRewardWeight[address(vault)] / totalRewardableRewardWeight;
             }
@@ -229,7 +254,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         uint256 totalRewardableRewardWeight = 0;
 
         for (uint i = 0; i < allVaults.length; i++) {
-            Vault6022 vault = Vault6022(allVaults[i]);
+            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
             if (vault.isRewardable()) {
                 totalRewardableRewardWeight += vaultsRewardWeight[address(vault)];
             }
@@ -238,17 +263,17 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         return totalRewardableRewardWeight;
     }
 
-    /// @notice Count every rewardable vaults without the lifetime vault
-    function _countRewardableVaults() internal view returns (uint256) {
-        uint256 count = 0;
+    function _remainingRewards() internal view returns (uint256) {
+        uint256 remainingRewards = 0;
 
         for (uint i = 0; i < allVaults.length; i++) {
-            Vault6022 vault = Vault6022(allVaults[i]);
-            if (allVaults[i] != address(lifetimeVault) && vault.isRewardable()) {
-                count++;
-            }
+            remainingRewards += collectedRewards[allVaults[i]];
         }
 
-        return count;
+        return remainingRewards;
+    }
+
+    function _computeFees(uint256 _amountProtocolToken) internal pure returns (uint256) {
+        return (_amountProtocolToken * FEES_PERCENT) / 100;
     }
 }

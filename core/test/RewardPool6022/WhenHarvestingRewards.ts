@@ -1,8 +1,11 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { EventLog } from "ethers";
 import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import {
+  parseVaultFromVaultCreatedLogs,
+  parseRewardPoolFromRewardPoolCreatedLogs,
+} from "../utils";
 import {
   time,
   reset,
@@ -46,22 +49,11 @@ describe("When harvesting rewards", function () {
     const tx = await rewardPoolFactory6022.createRewardPool();
     const txReceipt = await tx.wait();
 
-    const events = <EventLog[]>(
-      txReceipt?.logs.filter((x) => x instanceof EventLog)
+    const rewardPool6022 = parseRewardPoolFromRewardPoolCreatedLogs(
+      txReceipt!.logs
     );
-    const rewardPoolCreatedEvent = events.filter(
-      (x) =>
-        x.fragment.name ===
-        rewardPoolFactory6022.filters["RewardPoolCreated(address)"].name
-    )[0];
-
-    const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
-    const rewardPool6022 = RewardPool6022.attach(
-      rewardPoolCreatedEvent.args[0]
-    ) as RewardPool6022;
 
     return {
-      controller6022,
       token6022,
       rewardPool6022,
       owner,
@@ -85,16 +77,7 @@ describe("When harvesting rewards", function () {
 
     const txReceipt = await tx.wait();
 
-    const events = <EventLog[]>(
-      txReceipt?.logs.filter((x) => x instanceof EventLog)
-    );
-    const vaultCreatedEvent = events.filter(
-      (x) =>
-        x.fragment.name === rewardPool6022.filters["VaultCreated(address)"].name
-    )[0];
-
-    const Vault6022 = await ethers.getContractFactory("Vault6022");
-    return Vault6022.attach(vaultCreatedEvent.args[0]) as Vault6022;
+    return parseVaultFromVaultCreatedLogs(txReceipt!.logs);
   }
 
   beforeEach(async function () {

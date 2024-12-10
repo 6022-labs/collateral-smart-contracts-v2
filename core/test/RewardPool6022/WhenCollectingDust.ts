@@ -110,7 +110,35 @@ describe("When collecting dust from reward pool", async function () {
     });
   });
 
-  describe("Given called by owner and lifetime vault is not rewardable", async function () {
+  describe("Given no dust to collect", async function () {
+    let _lifetimeVault: RewardPoolLifetimeVault6022;
+
+    beforeEach(async function () {
+      const tx = await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+      _lifetimeVault = await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
+        txReceipt!.logs
+      );
+
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
+        lifetimeVaultAmount
+      );
+      await _rewardPool6022.depositToLifetimeVault();
+
+      // Withdraw the lifetime vault to be able to collect dust
+      await _lifetimeVault.withdraw();
+    });
+
+    it("Should revert with 'NoDustToCollect' error", async function () {
+      await expect(_rewardPool6022.collectDust()).to.be.revertedWithCustomError(
+        _rewardPool6022,
+        "NoDustToCollect"
+      );
+    });
+  });
+
+  describe("Given called by owner, lifetime vault is not rewardable and their is dust in the pool", async function () {
     let _createdVaults: Vault6022[] = [];
     let _lifetimeVault: RewardPoolLifetimeVault6022;
 
@@ -127,11 +155,11 @@ describe("When collecting dust from reward pool", async function () {
       );
       await _rewardPool6022.depositToLifetimeVault();
 
-      // Create some reward pools to create dust
-      const numberOfVaults = Math.floor(Math.random() * 10) + 1;
+      // Create a lot of vaults to create dust
+      const numberOfVaults = Math.floor(Math.random() * 30) + 1;
 
       for (let index = 0; index < numberOfVaults; index++) {
-        const vaultWantedAmount = Math.floor(Math.random() * 1000) + 1;
+        const vaultWantedAmount = Math.floor(Math.random() * 100) + 1;
         const vaultWantedAmountEther = ethers.parseEther(
           vaultWantedAmount.toString()
         );
@@ -153,6 +181,7 @@ describe("When collecting dust from reward pool", async function () {
 
       await time.increase(lockedDuring);
 
+      // Withdraw the lifetime vault to be able to collect dust
       await _lifetimeVault.withdraw();
     });
 
@@ -163,6 +192,8 @@ describe("When collecting dust from reward pool", async function () {
       );
     });
 
+    // Even if the lifetime vault has been withdrawn, some vaults that are not anymore rewardable can still be withdrawn.
+    // We must keep those rewards into the pool (in order to harvest them when the vaults will be withdrawn).
     it("Should let the remaining rewards in the pool", async function () {
       const totalRemainingRewards =
         await rewardPoolRemainingRewards(_rewardPool6022);
@@ -180,7 +211,12 @@ describe("When collecting dust from reward pool", async function () {
       const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
         await _rewardPool6022.getAddress()
       );
+
       const dust = rewardPoolBalanceOfBefore - totalRemainingRewards;
+
+      // Expect that there is dust inside the reward pool
+      expect(dust).to.not.be.equal(0);
+
       const callerBalanceOfBefore = await _token6022.balanceOf(
         await _owner.getAddress()
       );

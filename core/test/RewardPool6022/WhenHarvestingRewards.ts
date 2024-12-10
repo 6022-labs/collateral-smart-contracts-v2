@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
-  parseVaultFromVaultCreatedLogs,
+  createDepositedVault,
   parseRewardPoolFromRewardPoolCreatedLogs,
 } from "../utils";
 import {
@@ -15,6 +15,8 @@ import {
 describe("When harvesting rewards", function () {
   const lockedDuring = 60 * 60 * 24;
   const lockedUntil = Math.floor(Date.now() / 1000) + lockedDuring;
+
+  const lifetimeVaultAmount = ethers.parseEther("1");
 
   let _token6022: Token6022;
   let _rewardPool6022: RewardPool6022;
@@ -46,10 +48,16 @@ describe("When harvesting rewards", function () {
 
     await controller6022.addFactory(await rewardPoolFactory6022.getAddress());
 
-    const tx = await rewardPoolFactory6022.createRewardPool();
+    await token6022.approve(
+      await rewardPoolFactory6022.getAddress(),
+      lifetimeVaultAmount
+    );
+
+    const tx =
+      await rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
     const txReceipt = await tx.wait();
 
-    const rewardPool6022 = parseRewardPoolFromRewardPoolCreatedLogs(
+    const rewardPool6022 = await parseRewardPoolFromRewardPoolCreatedLogs(
       txReceipt!.logs
     );
 
@@ -58,26 +66,6 @@ describe("When harvesting rewards", function () {
       rewardPool6022,
       owner,
     };
-  }
-
-  async function deployVaultWithRewardPool6022(
-    rewardPool6022: RewardPool6022,
-    token6022: Token6022,
-    amount: bigint = ethers.parseEther("1")
-  ) {
-    await token6022.approve(await rewardPool6022.getAddress(), amount);
-    const tx = await rewardPool6022.createVault(
-      "TestVault",
-      Math.floor(lockedUntil),
-      amount,
-      await token6022.getAddress(),
-      BigInt(0),
-      amount
-    );
-
-    const txReceipt = await tx.wait();
-
-    return parseVaultFromVaultCreatedLogs(txReceipt!.logs);
   }
 
   beforeEach(async function () {
@@ -101,12 +89,19 @@ describe("When harvesting rewards", function () {
     let _vault: Vault6022;
 
     beforeEach(async function () {
-      _vault = await deployVaultWithRewardPool6022(_rewardPool6022, _token6022);
+      const vaultWantedAmountEther = ethers.parseEther("1");
+
       await _token6022.approve(
-        await _vault.getAddress(),
-        ethers.parseEther("1")
+        await _rewardPool6022.getAddress(),
+        vaultWantedAmountEther
       );
-      await _vault.deposit();
+
+      _vault = await createDepositedVault(
+        _token6022,
+        _rewardPool6022,
+        lockedUntil,
+        vaultWantedAmountEther
+      );
     });
 
     describe("And there is no rewards to harvest", function () {
@@ -137,7 +132,19 @@ describe("When harvesting rewards", function () {
       beforeEach(async function () {
         for (let i = 0; i < 2; i++) {
           // Create new vaults to generate rewards
-          await deployVaultWithRewardPool6022(_rewardPool6022, _token6022);
+          const vaultWantedAmountEther = ethers.parseEther("1");
+
+          await _token6022.approve(
+            await _rewardPool6022.getAddress(),
+            vaultWantedAmountEther
+          );
+
+          await createDepositedVault(
+            _token6022,
+            _rewardPool6022,
+            lockedUntil,
+            vaultWantedAmountEther
+          );
         }
 
         await time.increase(lockedDuring);

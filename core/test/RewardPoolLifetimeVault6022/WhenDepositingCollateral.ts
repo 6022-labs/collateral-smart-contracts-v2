@@ -1,22 +1,21 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   findEventFromLogs,
   parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
 } from "../utils";
-import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   Token6022,
-  RewardPoolLifetimeVault6022,
   RewardPool6022,
+  RewardPoolLifetimeVault6022,
 } from "../../typechain-types";
 
 describe("When depositing collateral into reward pool lifetime vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
 
   let _owner: HardhatEthersSigner;
-  let _otherAccount: HardhatEthersSigner;
 
   let _token6022: Token6022;
   let _rewardPool6022: RewardPool6022;
@@ -26,7 +25,7 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     await reset();
 
     // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await ethers.getSigners();
+    const [owner] = await ethers.getSigners();
 
     const Token6022 = await ethers.getContractFactory("Token6022");
     const token6022 = await Token6022.deploy(
@@ -51,11 +50,6 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     await controller6022.removeFactory(await owner.getAddress());
 
     // Create the lifetime vault using the RewardPool6022
-    await token6022.transfer(
-      await rewardPool6022.getAddress(),
-      lifetimeVaultAmount
-    );
-
     const tx = await rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
     const txReceipt = await tx.wait();
     // But don't use the depositToLifetimeVault method yet (to test not deposited case)
@@ -66,24 +60,17 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     return {
       owner,
       token6022,
-      otherAccount,
       rewardPool6022,
       rewardPoolLifetimeVault,
     };
   }
 
   beforeEach(async function () {
-    const {
-      owner,
-      token6022,
-      otherAccount,
-      rewardPool6022,
-      rewardPoolLifetimeVault,
-    } = await loadFixture(deployRewardPoolLifetimeVault);
+    const { owner, token6022, rewardPool6022, rewardPoolLifetimeVault } =
+      await loadFixture(deployRewardPoolLifetimeVault);
 
     _owner = owner;
     _token6022 = token6022;
-    _otherAccount = otherAccount;
     _rewardPool6022 = rewardPool6022;
     _rewardPoolLifetimeVault = rewardPoolLifetimeVault;
   });
@@ -99,12 +86,21 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     });
   });
 
+  describe("Given reward pool didn't has the funds to deposit", async function () {
+    it("Should revert with 'ERC20InsufficientBalance' error", async function () {
+      await expect(
+        _rewardPool6022.depositToLifetimeVault()
+      ).to.be.revertedWithCustomError(_token6022, "ERC20InsufficientBalance");
+    });
+  });
+
   describe("Given already deposited collateral", async function () {
     beforeEach(async function () {
       await _token6022.transfer(
         await _rewardPool6022.getAddress(),
         lifetimeVaultAmount
       );
+
       await _rewardPool6022.depositToLifetimeVault();
     });
 
@@ -118,7 +114,14 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     });
   });
 
-  describe("Given no collateral deposited yet", async function () {
+  describe("Given no collateral deposited yet and reward pool has funds to deposit", async function () {
+    beforeEach(async function () {
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
+        lifetimeVaultAmount
+      );
+    });
+
     it("Should emit 'Deposited' event", async function () {
       const tx = await _rewardPool6022.depositToLifetimeVault();
       const txReceipt = await tx.wait();
@@ -151,21 +154,21 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
       ).to.equal(lifetimeVaultAmount);
     });
 
-    it("Should take the collateral from the caller", async function () {
-      const callerBalanceOfBefore = await _token6022.balanceOf(
+    it("Should take the collateral from the reward pool", async function () {
+      const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
         await _rewardPool6022.getAddress()
       );
       await _rewardPool6022.depositToLifetimeVault();
-      const callerBalanceOfAfter = await _token6022.balanceOf(
+      const rewardPoolBalanceOfAfter = await _token6022.balanceOf(
         await _rewardPool6022.getAddress()
       );
 
-      const vaultBalanceOfAfter = await _token6022.balanceOf(
+      const lifetimeVaultBalanceOfAfter = await _token6022.balanceOf(
         await _rewardPoolLifetimeVault.getAddress()
       );
 
-      expect(vaultBalanceOfAfter).to.be.equal(
-        callerBalanceOfBefore - callerBalanceOfAfter
+      expect(lifetimeVaultBalanceOfAfter).to.be.equal(
+        rewardPoolBalanceOfBefore - rewardPoolBalanceOfAfter
       );
     });
   });

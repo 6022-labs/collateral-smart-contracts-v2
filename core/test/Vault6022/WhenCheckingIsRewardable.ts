@@ -21,7 +21,7 @@ describe("When checking is rewardable for vault", async function () {
     await reset();
 
     // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await ethers.getSigners();
+    const [owner] = await ethers.getSigners();
 
     const Token6022 = await ethers.getContractFactory("Token6022");
     const token6022 = await Token6022.deploy(

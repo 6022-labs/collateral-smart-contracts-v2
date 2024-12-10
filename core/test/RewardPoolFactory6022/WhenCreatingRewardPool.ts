@@ -2,20 +2,20 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
-  findEventFromLogs,
-  logsToLogDescriptions,
-  parseRewardPoolFromRewardPoolCreatedLogs,
-  parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
-} from "../utils";
-import {
-  RewardPoolFactory6022,
-  RewardPoolLifetimeVault6022,
   Token6022,
+  RewardPoolFactory6022,
+  Controller6022,
 } from "../../typechain-types";
 import {
   reset,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import {
+  findEventFromLogs,
+  logsToLogDescriptions,
+  parseRewardPoolFromRewardPoolCreatedLogs,
+  parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
+} from "../utils";
 
 describe("When creating reward pool from factory 6022", function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
@@ -23,6 +23,7 @@ describe("When creating reward pool from factory 6022", function () {
   let _owner: HardhatEthersSigner;
 
   let _token6022: Token6022;
+  let _controller6022: Controller6022;
   let _rewardPoolFactory6022: RewardPoolFactory6022;
 
   async function deployRewardPoolFactory() {
@@ -52,17 +53,18 @@ describe("When creating reward pool from factory 6022", function () {
     return {
       owner,
       token6022,
+      controller6022,
       rewardPoolFactory6022,
     };
   }
 
   beforeEach(async function () {
-    const { owner, token6022, rewardPoolFactory6022 } = await loadFixture(
-      deployRewardPoolFactory
-    );
+    const { owner, token6022, controller6022, rewardPoolFactory6022 } =
+      await loadFixture(deployRewardPoolFactory);
 
     _owner = owner;
     _token6022 = token6022;
+    _controller6022 = controller6022;
     _rewardPoolFactory6022 = rewardPoolFactory6022;
   });
 
@@ -94,7 +96,7 @@ describe("When creating reward pool from factory 6022", function () {
     });
   });
 
-  describe("Given caller approve protocol token", async function () {
+  describe("Given caller approve protocol token and don't have a reward pool", async function () {
     beforeEach(async function () {
       await _token6022.approve(
         await _rewardPoolFactory6022.getAddress(),
@@ -134,7 +136,34 @@ describe("When creating reward pool from factory 6022", function () {
       expect(vaultCreatedEvents).to.be.lengthOf(1);
     });
 
-    it("Should store the lifetime vault amount into the reward pool lifetime vault", async function () {
+    it("Should emit 'RewardPoolPushed' event", async function () {
+      await expect(
+        _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount)
+      ).to.emit(_controller6022, "RewardPoolPushed");
+    });
+
+    it("Should add the created reward pool to the controller", async function () {
+      const tx =
+        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const createdRewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
+        txReceipt!.logs
+      );
+
+      expect(
+        await _controller6022.isRewardPool(await createdRewardPool.getAddress())
+      ).to.be.true;
+    });
+
+    // Don't store the lifetime vault into the controller, we can easily found them by fetching reward pools.
+    it("Should not push the lifetime vault into the controller", async function () {
+      await expect(
+        _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount)
+      ).to.not.emit(_controller6022, "VaultPushed");
+    });
+
+    it("Should store the lifetime vault amount into the lifetime vault", async function () {
       const tx =
         await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
@@ -174,7 +203,7 @@ describe("When creating reward pool from factory 6022", function () {
       expect(await lifetimeVault.isRewardable()).to.be.true;
     });
 
-    it("Should take the collateral for the lifetime vault from the caller", async function () {
+    it("Should take the collateral of the lifetime vault from the caller", async function () {
       const callerBalanceOfBefore = await _token6022.balanceOf(_owner.address);
       const tx =
         await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);

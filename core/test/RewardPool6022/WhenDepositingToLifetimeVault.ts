@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { parseRewardPoolLifetimeVaultFromVaultCreatedLogs } from "../utils";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import {
   RewardPool6022,
   RewardPoolLifetimeVault6022,
   Token6022,
 } from "../../typechain-types";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
-import { parseRewardPoolLifetimeVaultFromVaultCreatedLogs } from "../utils";
 
 describe("When depositing to lifetime vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");

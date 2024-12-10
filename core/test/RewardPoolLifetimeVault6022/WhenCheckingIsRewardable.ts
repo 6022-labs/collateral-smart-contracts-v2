@@ -88,7 +88,7 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
     });
 
     it("Should return false", async function () {
-      expect(await _rewardPoolLifetimeVault.isRewardable()).to.be;
+      expect(await _rewardPoolLifetimeVault.isRewardable()).to.be.false;
     });
   });
 

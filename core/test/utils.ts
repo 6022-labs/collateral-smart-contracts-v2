@@ -1,5 +1,5 @@
-import { EventLog, Log, LogDescription } from "ethers";
 import { ethers } from "hardhat";
+import { EventLog, Log, LogDescription } from "ethers";
 import {
   RewardPool6022,
   RewardPoolLifetimeVault6022,
@@ -106,4 +106,28 @@ export async function rewardPoolRemainingRewards(rewardPool: RewardPool6022) {
   }
 
   return remainingRewards;
+}
+
+export async function getRewardableVaults(rewardPool: RewardPool6022) {
+  let rewardableVaults = [];
+  let index = 0;
+
+  let currentVault: string;
+
+  const Vault6022 = await ethers.getContractFactory("Vault6022");
+
+  try {
+    while ((currentVault = await rewardPool.allVaults(index))) {
+      let vault = Vault6022.attach(currentVault) as Vault6022;
+
+      if (await vault.isRewardable()) {
+        rewardableVaults.push(currentVault);
+      }
+      index++;
+    }
+  } catch (e) {
+    // Do nothing
+  }
+
+  return rewardableVaults;
 }

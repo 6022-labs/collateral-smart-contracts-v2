@@ -120,7 +120,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
       await _rewardPool6022.depositToLifetimeVault();
     });
 
-    describe("Given collateral is already withdrawn", async function () {
+    describe("But collateral is already withdrawn", async function () {
       beforeEach(async function () {
         _rewardPoolLifetimeVault.withdraw();
       });
@@ -135,7 +135,8 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
       });
     });
 
-    describe("Given still rewardable vaults in the reward pool", async function () {
+    // Because if their is a rewardable vault, it can call the "reinvestRewards" without vault to collect fees
+    describe("But still rewardable vaults in the reward pool", async function () {
       const wantedAmountInTheVault = ethers.parseEther("1");
 
       beforeEach(async function () {
@@ -163,7 +164,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
       });
     });
 
-    describe("Given vault can be withdrawn", async function () {
+    describe("And can be withdrawn", async function () {
       beforeEach(async function () {
         // Create some vaults to increase the rewards of the lifetime vault
         const wantedVaults = Math.floor(Math.random() * 4) + 2;
@@ -173,6 +174,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
           ethers.parseEther("100")
         );
 
+        // Just create some withdrawn vaults
         for (let index = 0; index < wantedVaults; index++) {
           const vault = await createDepositedVault(
             _token6022,

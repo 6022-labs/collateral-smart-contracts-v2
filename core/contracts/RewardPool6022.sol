@@ -31,7 +31,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @notice Controller 6022
     IController6022 public controller;
 
-    /// @notice Lifetime vault
+    /// @notice Lifetime vault that will act as default fee collector and serve as reward pool state.
     RewardPoolLifetimeVault6022 public lifetimeVault;
 
     /// @notice Mapping of all vaults
@@ -71,6 +71,9 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
     /// @dev Thrown when the lifetime vault is rewardable
     error LifeTimeVaultIsRewardable();
+
+    /// @dev Thrown when their is no dust to collect
+    error NoDustToCollect();
 
     constructor(
         address _owner,
@@ -156,6 +159,10 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         uint256 balance = protocolToken.balanceOf(address(this));
 
         uint256 dust = balance - remainingRewards;
+
+        if (dust == 0) {
+            revert NoDustToCollect();
+        }
 
         protocolToken.transfer(owner(), dust);
 

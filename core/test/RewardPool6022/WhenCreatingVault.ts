@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { parseVaultFromVaultCreatedLogs } from "../utils";
-import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
+import { RewardPool6022, Token6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   reset,
@@ -101,7 +101,8 @@ describe("When creating vault from reward pool 6022", function () {
     });
   });
 
-  describe("Given reward pool lifetime is not rewardable", async function () {
+  // Lifetime vault must be rewardable to have at least one vault that can collect fees
+  describe("Given reward pool lifetime vault is not rewardable", async function () {
     beforeEach(async function () {
       await _token6022.transfer(
         await _rewardPool6022.getAddress(),

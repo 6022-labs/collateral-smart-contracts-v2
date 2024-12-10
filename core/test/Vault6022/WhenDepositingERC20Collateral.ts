@@ -9,7 +9,7 @@ import {
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("When depositing collateral", function () {
+describe("When depositing ERC20 collateral", function () {
   const lockIn = 60 * 60 * 24 * 30 * 6; // 6 months
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
 
@@ -45,6 +45,7 @@ describe("When depositing collateral", function () {
     await controller6022.pushRewardPool(await rewardPool6022.getAddress());
     await controller6022.removeFactory(await owner.getAddress());
 
+    // Approve a lot of tokens to pay fees
     await token6022.approve(
       await rewardPool6022.getAddress(),
       ethers.parseEther("100000")
@@ -57,12 +58,13 @@ describe("When depositing collateral", function () {
     await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
     await rewardPool6022.depositToLifetimeVault();
 
+    // Use the token6022 as collateral to simplify tests as it is a ERC20
     const tx = await rewardPool6022.createVault(
       "Vault6022",
       lockUntil,
       ethers.parseEther("10"),
       await token6022.getAddress(),
-      BigInt(0),
+      BigInt(0), // ERC20
       ethers.parseEther("10")
     );
     const txReceipt = await tx.wait();
@@ -96,8 +98,6 @@ describe("When depositing collateral", function () {
   });
 
   describe("Given caller own a key", async function () {
-    let _vault6022Runner: Vault6022;
-
     beforeEach(async function () {
       _vault6022.approve(await _owner.getAddress(), 1);
       _vault6022.transferFrom(
@@ -117,20 +117,17 @@ describe("When depositing collateral", function () {
           await _vault6022.getAddress(),
           await _vault6022.wantedAmount()
         );
-
-      _vault6022Runner = _vault6022.connect(_otherAccount);
     });
 
     describe("But collateral is already deposited", async function () {
       beforeEach(async function () {
-        await _vault6022Runner.deposit();
+        await _vault6022.connect(_otherAccount).deposit();
       });
 
-      it("Should revert with 'AlreadyDeposited' event", async function () {
-        await expect(_vault6022Runner.deposit()).to.be.revertedWithCustomError(
-          _vault6022,
-          "AlreadyDeposited"
-        );
+      it("Should revert with 'AlreadyDeposited' error", async function () {
+        await expect(
+          _vault6022.connect(_otherAccount).deposit()
+        ).to.be.revertedWithCustomError(_vault6022, "AlreadyDeposited");
       });
     });
 
@@ -151,6 +148,40 @@ describe("When depositing collateral", function () {
         await expect(_vault6022.connect(_otherAccount).deposit()).to.emit(
           _vault6022,
           "Deposited"
+        );
+      });
+
+      it("Should mark the vault as deposited", async function () {
+        await _vault6022.connect(_otherAccount).deposit();
+
+        expect(await _vault6022.isDeposited()).to.be.true;
+      });
+
+      it("Should fill the deposit timestamp", async function () {
+        await _vault6022.connect(_otherAccount).deposit();
+
+        expect(await _vault6022.depositTimestamp()).to.not.be.equal(BigInt(0));
+      });
+
+      it("Should mark the vault as rewardable", async function () {
+        await _vault6022.connect(_otherAccount).deposit();
+
+        expect(await _vault6022.isRewardable()).to.be.true;
+      });
+
+      it("Should take the collateral from the caller", async function () {
+        const wantedAmount = await _vault6022.wantedAmount();
+
+        const callerBalanceOfBefore = await _token6022.balanceOf(
+          _otherAccount.address
+        );
+        await _vault6022.connect(_otherAccount).deposit();
+        const callerBalanceOfAfter = await _token6022.balanceOf(
+          _otherAccount.address
+        );
+
+        expect(callerBalanceOfAfter).to.be.equal(
+          callerBalanceOfBefore - wantedAmount
         );
       });
     });

@@ -5,7 +5,7 @@ import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { time, reset } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("When withdrawing collateral", function () {
+describe("When withdrawing ERC20 collateral", function () {
   const lockIn = 60 * 60 * 24 * 30 * 6; // 6 months
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
 
@@ -42,6 +42,7 @@ describe("When withdrawing collateral", function () {
     await controller6022.pushRewardPool(await rewardPool6022.getAddress());
     await controller6022.removeFactory(await owner.getAddress());
 
+    // Approve a lot of tokens to pay fees
     await token6022.approve(
       await rewardPool6022.getAddress(),
       ethers.parseEther("100000")
@@ -54,12 +55,13 @@ describe("When withdrawing collateral", function () {
     await rewardPool6022.createLifetimeVault(ethers.parseEther("1"));
     await rewardPool6022.depositToLifetimeVault();
 
+    // Use the token6022 as collateral to simplify tests as it is a ERC20
     const tx = await rewardPool6022.createVault(
       "Vault6022",
       lockUntil,
       ethers.parseEther("10"),
       await token6022.getAddress(),
-      BigInt(0),
+      BigInt(0), // ERC20
       ethers.parseEther("10")
     );
     const txReceipt = await tx.wait();
@@ -86,7 +88,7 @@ describe("When withdrawing collateral", function () {
     _rewardPool6022 = rewardPool6022;
   });
 
-  describe("Given vault does not have a deposit", async function () {
+  describe("Given collateral is not deposited", async function () {
     it("Should revert with 'NotDeposited' error", async function () {
       await expect(_vault6022.withdraw()).to.be.revertedWithCustomError(
         _vault6022,
@@ -95,7 +97,7 @@ describe("When withdrawing collateral", function () {
     });
   });
 
-  describe("Given vault have a deposit", async function () {
+  describe("Given collateral is deposited", async function () {
     beforeEach(async function () {
       await _token6022.approve(
         await _vault6022.getAddress(),
@@ -145,6 +147,43 @@ describe("When withdrawing collateral", function () {
           await expect(_vault6022.connect(_otherAccount).withdraw()).to.emit(
             _rewardPool6022,
             "Reinvested"
+          );
+        });
+
+        it("Should mark the vault as withdrawn", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(await _vault6022.isWithdrawn()).to.be.true;
+        });
+
+        it("Should mark the vault as not rewardable", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(await _vault6022.isRewardable()).to.be.false;
+        });
+
+        it("Should be no more collateral in the vault", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(
+            await _token6022.balanceOf(await _vault6022.getAddress())
+          ).to.be.equal(0);
+        });
+
+        it("Should withdraw the collateral to the caller", async function () {
+          const vaultBalanceOfBefore = await _token6022.balanceOf(
+            await _vault6022.getAddress()
+          );
+          const callerBalanceBefore = await _token6022.balanceOf(
+            _otherAccount.address
+          );
+          await _vault6022.connect(_otherAccount).withdraw();
+          const callerBalanceAfter = await _token6022.balanceOf(
+            _otherAccount.address
+          );
+
+          expect(callerBalanceAfter).to.be.equal(
+            callerBalanceBefore + vaultBalanceOfBefore
           );
         });
       });
@@ -209,6 +248,43 @@ describe("When withdrawing collateral", function () {
             "Harvested"
           );
         });
+
+        it("Should mark the vault as withdrawn", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(await _vault6022.isWithdrawn()).to.be.true;
+        });
+
+        it("Should mark the vault as not rewardable", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(await _vault6022.isRewardable()).to.be.false;
+        });
+
+        it("Should be no more collateral in the vault", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(
+            await _token6022.balanceOf(await _vault6022.getAddress())
+          ).to.be.equal(0);
+        });
+
+        it("Should withdraw the collateral to the caller", async function () {
+          const vaultBalanceOfBefore = await _token6022.balanceOf(
+            await _vault6022.getAddress()
+          );
+          const callerBalanceBefore = await _token6022.balanceOf(
+            _otherAccount.address
+          );
+          await _vault6022.connect(_otherAccount).withdraw();
+          const callerBalanceAfter = await _token6022.balanceOf(
+            _otherAccount.address
+          );
+
+          expect(callerBalanceAfter).to.be.equal(
+            callerBalanceBefore + vaultBalanceOfBefore
+          );
+        });
       });
 
       describe("And caller hold 1 NFT", async function () {
@@ -232,6 +308,43 @@ describe("When withdrawing collateral", function () {
           await expect(_vault6022.connect(_otherAccount).withdraw()).to.emit(
             _rewardPool6022,
             "Harvested"
+          );
+        });
+
+        it("Should mark the vault as withdrawn", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(await _vault6022.isWithdrawn()).to.be.true;
+        });
+
+        it("Should mark the vault as not rewardable", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(await _vault6022.isRewardable()).to.be.false;
+        });
+
+        it("Should be no more collateral in the vault", async function () {
+          await _vault6022.connect(_otherAccount).withdraw();
+
+          expect(
+            await _token6022.balanceOf(await _vault6022.getAddress())
+          ).to.be.equal(0);
+        });
+
+        it("Should withdraw the collateral to the caller", async function () {
+          const vaultBalanceOfBefore = await _token6022.balanceOf(
+            await _vault6022.getAddress()
+          );
+          const callerBalanceBefore = await _token6022.balanceOf(
+            _otherAccount.address
+          );
+          await _vault6022.connect(_otherAccount).withdraw();
+          const callerBalanceAfter = await _token6022.balanceOf(
+            _otherAccount.address
+          );
+
+          expect(callerBalanceAfter).to.be.equal(
+            callerBalanceBefore + vaultBalanceOfBefore
           );
         });
       });

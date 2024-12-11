@@ -75,6 +75,9 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @dev Thrown when their is no dust to collect
     error NoDustToCollect();
 
+    /// @dev Thrown when the given locked until is too short compared to block.timestamp
+    error LockedUntilTooShort();
+
     constructor(
         address _owner,
         address _controllerAddress,
@@ -178,6 +181,16 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         VaultStorageEnum _storageType,
         uint256 _backedValueProtocolToken
     ) public onlyOwner onlyWhenLifetimeVaultExist onlyWhenLifetimeVaultIsRewardable {
+        if (block.timestamp + 1 minutes > _lockedUntil) {
+            revert LockedUntilTooShort();
+        }
+
+        // For people who try to cheat by putting a different backed value in case of protocol token collateral
+        // We override the passed parameter using the _wantedAmount
+        if (_wantedTokenAddress == address(protocolToken)) {
+            _backedValueProtocolToken = _wantedAmount;
+        }
+
         uint256 _protocolTokenFees = _computeFees(_backedValueProtocolToken);
 
         // Here there is at least the lifetime vault that will be able to take the rewards (onlyWhenLifetimeVaultIsRewardable)

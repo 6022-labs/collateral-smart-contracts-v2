@@ -7,6 +7,12 @@ import {
   Vault6022,
 } from "../typechain-types";
 
+export function computeFees(amount: bigint) {
+  const protocol_fees = BigInt(2);
+
+  return (amount * protocol_fees) / BigInt(100);
+}
+
 export function findEventFromLogs(logs: (EventLog | Log)[], eventKey: string) {
   const vaultCreatedHash = ethers.keccak256(ethers.toUtf8Bytes(eventKey));
 

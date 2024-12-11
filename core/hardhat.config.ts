@@ -53,7 +53,7 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 100000000, // https://docs.soliditylang.org/en/latest/internals/optimizer.html#optimizer-parameter-runs
+        runs: 1000, // https://docs.soliditylang.org/en/latest/internals/optimizer.html#optimizer-parameter-runs
       },
     },
   },

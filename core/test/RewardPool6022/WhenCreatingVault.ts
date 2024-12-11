@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { parseVaultFromVaultCreatedLogs } from "../utils";
+import { computeFees, parseVaultFromVaultCreatedLogs } from "../utils";
 import { RewardPool6022, Token6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
@@ -154,6 +154,37 @@ describe("When creating vault from reward pool 6022", function () {
     });
   });
 
+  describe("Given a too short locked until", async function () {
+    beforeEach(async function () {
+      await _token6022.transfer(
+        await _rewardPool6022.getAddress(),
+        lifetimeVaultAmount
+      );
+      await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+      await _rewardPool6022.depositToLifetimeVault();
+
+      await _token6022.approve(
+        await _rewardPool6022.getAddress(),
+        wantedAmountInTheVault
+      );
+    });
+
+    it("Should revert with a 'LockedUntilTooShort' error", async function () {
+      const lockedUntil = Math.floor(Date.now() / 1000);
+
+      await expect(
+        _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          wantedAmountInTheVault
+        )
+      ).to.be.revertedWithCustomError(_rewardPool6022, "LockedUntilTooShort()");
+    });
+  });
+
   describe("Given caller is owner, approve the token to be spend and lifetime vault is rewardable", async function () {
     beforeEach(async function () {
       await _token6022.transfer(
@@ -197,6 +228,36 @@ describe("When creating vault from reward pool 6022", function () {
       expect(
         await _rewardPool6022.vaultsRewardWeight(vaultAddress)
       ).to.be.greaterThan(0);
+    });
+
+    it("Should pay fees to the pool", async function () {
+      const callerBalanceOfBefore = await _token6022.balanceOf(_owner.address);
+      const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
+        await _rewardPool6022.getAddress()
+      );
+
+      await _rewardPool6022.createVault(
+        "TestVault",
+        lockedUntil,
+        wantedAmountInTheVault,
+        await _rewardPool6022.protocolToken(),
+        BigInt(0),
+        wantedAmountInTheVault
+      );
+
+      const callerBalanceOfAfter = await _token6022.balanceOf(_owner.address);
+      const rewardPoolBalanceOfAfter = await _token6022.balanceOf(
+        await _rewardPool6022.getAddress()
+      );
+
+      const expectedFees = computeFees(wantedAmountInTheVault);
+
+      expect(callerBalanceOfAfter).to.be.equal(
+        callerBalanceOfBefore - expectedFees
+      );
+      expect(rewardPoolBalanceOfAfter).to.be.equal(
+        rewardPoolBalanceOfBefore + expectedFees
+      );
     });
 
     it("Should send the keys of the vault to the caller (owner)", async function () {
@@ -245,6 +306,116 @@ describe("When creating vault from reward pool 6022", function () {
       const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
       expect(await vault.isDeposited()).to.be.false;
+    });
+
+    describe("And wanted token is not protocol token", async function () {
+      it("Should pay fees according to backed value to the pool", async function () {
+        const backedValueProtocolToken = BigInt(10);
+
+        const callerBalanceOfBefore = await _token6022.balanceOf(
+          _owner.address
+        );
+        const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
+          await _rewardPool6022.getAddress()
+        );
+
+        await _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          ethers.ZeroAddress, // Put any address you want, just must not be the _token6022 address
+          BigInt(0),
+          backedValueProtocolToken
+        );
+
+        const callerBalanceOfAfter = await _token6022.balanceOf(_owner.address);
+        const rewardPoolBalanceOfAfter = await _token6022.balanceOf(
+          await _rewardPool6022.getAddress()
+        );
+
+        const expectedFees = computeFees(backedValueProtocolToken);
+
+        expect(callerBalanceOfAfter).to.be.equal(
+          callerBalanceOfBefore - expectedFees
+        );
+        expect(rewardPoolBalanceOfAfter).to.be.equal(
+          rewardPoolBalanceOfBefore + expectedFees
+        );
+      });
+    });
+
+    describe("And wanted token is protocol token", async function () {
+      describe("But caller put a different amount between backed value and wanted token", async function () {
+        it("Should pay fees according to wanted amount to the pool", async function () {
+          const callerBalanceOfBefore = await _token6022.balanceOf(
+            _owner.address
+          );
+          const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
+            await _rewardPool6022.getAddress()
+          );
+
+          await _rewardPool6022.createVault(
+            "TestVault",
+            lockedUntil,
+            wantedAmountInTheVault,
+            await _rewardPool6022.protocolToken(),
+            BigInt(0),
+            BigInt(0) // Here we put another value than "wantedAmountInTheVault"
+          );
+
+          const callerBalanceOfAfter = await _token6022.balanceOf(
+            _owner.address
+          );
+          const rewardPoolBalanceOfAfter = await _token6022.balanceOf(
+            await _rewardPool6022.getAddress()
+          );
+
+          const expectedFees = computeFees(wantedAmountInTheVault);
+
+          expect(callerBalanceOfAfter).to.be.equal(
+            callerBalanceOfBefore - expectedFees
+          );
+          expect(rewardPoolBalanceOfAfter).to.be.equal(
+            rewardPoolBalanceOfBefore + expectedFees
+          );
+        });
+      });
+
+      describe("But caller put same amount between backed value and wanted token", async function () {
+        it("Should pay fees according to backed value to the pool", async function () {
+          const callerBalanceOfBefore = await _token6022.balanceOf(
+            _owner.address
+          );
+          const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
+            await _rewardPool6022.getAddress()
+          );
+
+          await _rewardPool6022.createVault(
+            "TestVault",
+            lockedUntil,
+            wantedAmountInTheVault,
+            await _rewardPool6022.protocolToken(),
+            BigInt(0),
+            wantedAmountInTheVault // Here we put the same value as wanted token
+          );
+
+          const callerBalanceOfAfter = await _token6022.balanceOf(
+            _owner.address
+          );
+          const rewardPoolBalanceOfAfter = await _token6022.balanceOf(
+            await _rewardPool6022.getAddress()
+          );
+
+          const expectedFees = computeFees(wantedAmountInTheVault);
+
+          expect(callerBalanceOfAfter).to.be.equal(
+            callerBalanceOfBefore - expectedFees
+          );
+          expect(rewardPoolBalanceOfAfter).to.be.equal(
+            rewardPoolBalanceOfBefore + expectedFees
+          );
+        });
+      });
     });
   });
 });

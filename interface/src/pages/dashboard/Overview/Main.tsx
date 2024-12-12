@@ -11,18 +11,28 @@ import { truncateEthAddress } from "@/utils/eth-address";
 import TokenCell from "@/components/Table/Cell/TokenCell";
 import { useOwnedVaults } from "@/contexts/OwnedVaultsContext";
 import DateTimeCell from "@/components/Table/Cell/DateTimeCell";
-import NewContractModal from "@/components/Modal/NewContractModal";
+import CreateVaultModal from "@/components/Modal/CreateVaultModal";
+import { useCreatedRewardPool } from "@/contexts/CreatedRewardPoolContext";
+import CreateRewardPoolModal from "@/components/Modal/CreateRewardPoolModal";
+import RewardPoolManagementModal from "@/components/Modal/ManageRewardPoolModal";
 
 export default function Main() {
   const elementsPerPage = 10;
 
   const { address } = useAccount();
   const { ownedVaults } = useOwnedVaults();
+  const { hasCreatedRewardPool } = useCreatedRewardPool();
 
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const [vaultsToDisplay, setVaultsToDisplay] = React.useState<Vault[]>([]);
-  const [newContractModalIsOpen, setNewContractModalIsOpen] =
+  const [createVaultModalIsOpen, setCreateVaultModalIsOpen] =
+    React.useState<boolean>(false);
+
+  const [manageVaultModalIsOpen, setManageVaultModalIsOpen] =
+    React.useState<boolean>(false);
+
+  const [createRewardPoolModalIsOpen, setCreateRewardPoolModalIsOpen] =
     React.useState<boolean>(false);
 
   const getVaultStatus = (vault: Vault) => {
@@ -57,14 +67,35 @@ export default function Main() {
     <>
       <div className="py-8 px-4 lg:px-32">
         <div className="flex flex-row-reverse gap-x-4 w-full">
-          <Button
-            onClick={() => {
-              setNewContractModalIsOpen(true);
-            }}
-            type="button"
-          >
-            New Contract
-          </Button>
+          {hasCreatedRewardPool ? (
+            <>
+              <Button
+                onClick={() => {
+                  setCreateVaultModalIsOpen(true);
+                }}
+                type="button"
+              >
+                New Contract
+              </Button>
+              <Button
+                onClick={() => {
+                  setManageVaultModalIsOpen(true);
+                }}
+                type="button"
+              >
+                Manage reward pool
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => {
+                setCreateRewardPoolModalIsOpen(true);
+              }}
+              type="button"
+            >
+              Create Reward Pool
+            </Button>
+          )}
         </div>
         <div className="py-10">
           <Table
@@ -159,9 +190,17 @@ export default function Main() {
           )}
         </div>
       </div>
-      <NewContractModal
-        isOpen={newContractModalIsOpen}
-        setOpen={setNewContractModalIsOpen}
+      <CreateRewardPoolModal
+        isOpen={createRewardPoolModalIsOpen}
+        setOpen={setCreateRewardPoolModalIsOpen}
+      />
+      <CreateVaultModal
+        isOpen={createVaultModalIsOpen}
+        setOpen={setCreateVaultModalIsOpen}
+      />
+      <RewardPoolManagementModal
+        isOpen={manageVaultModalIsOpen}
+        setOpen={setManageVaultModalIsOpen}
       />
     </>
   );

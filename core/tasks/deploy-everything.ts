@@ -1,8 +1,14 @@
-import { task } from "hardhat/config";
+import { task, types } from "hardhat/config";
 
 export default task("deploy-everything")
   .addParam("totalSupply", "The total supply of the token")
   .addOptionalParam("minter", "The address to deploy the token to")
+  .addOptionalParam(
+    "verify",
+    "Flag to verify the contracts after deployment",
+    false,
+    types.boolean
+  )
   .setAction(async (taskArgs, hre) => {
     const [owner] = await hre.ethers.getSigners();
     console.log("Deploying contracts with the account:", owner.address);
@@ -87,7 +93,8 @@ export default task("deploy-everything")
       console.log("Owner removed as admin in Controller6022");
     }
 
-    if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
+    const verify = taskArgs.verify;
+    if (verify) {
       // Wait for 5 blocks
       let currentBlock = await hre.ethers.provider.getBlockNumber();
       while (currentBlock + 5 > (await hre.ethers.provider.getBlockNumber())) {}

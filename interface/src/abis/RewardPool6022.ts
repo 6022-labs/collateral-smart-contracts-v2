@@ -3,7 +3,7 @@ export const abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_creator",
+        name: "_owner",
         type: "address",
       },
       {
@@ -23,6 +23,36 @@ export const abi = [
   {
     inputs: [],
     name: "CallerNotVault",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "LifeTimeVaultAlreadyExist",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "LifeTimeVaultDoesNotExist",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "LifeTimeVaultIsNotRewardable",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "LifeTimeVaultIsRewardable",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "LockedUntilTooShort",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoDustToCollect",
     type: "error",
   },
   {
@@ -52,9 +82,28 @@ export const abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "DustCollected",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "address",
         name: "vault",
         type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
       },
     ],
     name: "Harvested",
@@ -87,6 +136,12 @@ export const abi = [
         internalType: "address",
         name: "vault",
         type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
       },
     ],
     name: "Reinvested",
@@ -151,22 +206,10 @@ export const abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "vaultsRewardWeight",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    inputs: [],
+    name: "collectDust",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -199,6 +242,32 @@ export const abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "countRewardableVaults",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_lifetimeVaultAmount",
+        type: "uint256",
+      },
+    ],
+    name: "createLifetimeVault",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -253,6 +322,13 @@ export const abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "depositToLifetimeVault",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -279,6 +355,19 @@ export const abi = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "lifetimeVault",
+    outputs: [
+      {
+        internalType: "contract RewardPoolLifetimeVault6022",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -335,6 +424,25 @@ export const abi = [
     name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "vaultsRewardWeight",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
 ];

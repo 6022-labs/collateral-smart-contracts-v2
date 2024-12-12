@@ -1,6 +1,6 @@
 import { Address } from "viem";
 import { abi } from "@/abis/RewardPool6022";
-import { UseWriteContractReturnType } from "wagmi";
+import { UsePublicClientReturnType, UseWriteContractReturnType } from "wagmi";
 
 export async function createVault(
   client: UseWriteContractReturnType,
@@ -25,4 +25,15 @@ export async function createVault(
       backedValueProtocolToken,
     ],
   });
+}
+
+export async function getLifetimeVault(
+  client: UsePublicClientReturnType,
+  rewardPoolAddress: Address
+): Promise<Address> {
+  return (await client?.readContract({
+    abi: abi,
+    address: rewardPoolAddress,
+    functionName: "lifetimeVault",
+  })) as Address;
 }

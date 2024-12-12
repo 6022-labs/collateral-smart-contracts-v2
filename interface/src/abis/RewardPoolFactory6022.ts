@@ -47,7 +47,13 @@ export const abi = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_lifetimeVaultAmount",
+        type: "uint256",
+      },
+    ],
     name: "createRewardPool",
     outputs: [],
     stateMutability: "nonpayable",
@@ -58,7 +64,7 @@ export const abi = [
     name: "protocolTokenAddress",
     outputs: [
       {
-        internalType: "address",
+        internalType: "contract IERC20",
         name: "",
         type: "address",
       },

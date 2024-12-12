@@ -42,12 +42,12 @@ export const abi = [
   },
   {
     inputs: [],
-    name: "ContractAlreadyDeposited",
+    name: "AlreadyDeposited",
     type: "error",
   },
   {
     inputs: [],
-    name: "ContractNotDeposited",
+    name: "AlreadyWithdrawn",
     type: "error",
   },
   {
@@ -155,12 +155,17 @@ export const abi = [
   },
   {
     inputs: [],
-    name: "NotEnoughtNFTToDeposit",
+    name: "NotDeposited",
     type: "error",
   },
   {
     inputs: [],
-    name: "NotEnoughtNFTToWithdraw",
+    name: "NotEnoughNFTToDeposit",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotEnoughNFTToWithdraw",
     type: "error",
   },
   {
@@ -196,31 +201,6 @@ export const abi = [
       },
     ],
     name: "Approval",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "spender",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
-    ],
-    name: "ApprovalFailed",
     type: "event",
   },
   {

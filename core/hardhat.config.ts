@@ -35,6 +35,7 @@ const config: HardhatUserConfig = {
     amoy: {
       gas: "auto",
       chainId: 80002,
+      gasMultiplier: 2,
       accounts: [privateKey],
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
@@ -77,7 +78,7 @@ const config: HardhatUserConfig = {
     outputFile: "gas-report-matic.txt",
     coinmarketcap: coinmarketcapApiKey,
     noColors: true,
-    token: "MATIC",
+    token: "POL",
   },
 };
 

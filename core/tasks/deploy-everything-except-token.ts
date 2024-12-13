@@ -1,15 +1,24 @@
-import { task } from "hardhat/config";
-import { Controller6022 } from "../typechain-types";
+import { task, types } from "hardhat/config";
 
-export default task("deploy-factory")
-  .addParam(
-    "controller6022Address",
-    "The address of the Controller6022 contract"
-  )
+export default task("deploy-everything-except-token")
   .addParam("token6022Address", "The address of the token 6022")
+  .addOptionalParam(
+    "verify",
+    "Flag to verify the contracts after deployment",
+    false,
+    types.boolean
+  )
   .setAction(async (taskArgs, hre) => {
     const token6022Address = taskArgs.token6022Address;
-    const controller6022Address = taskArgs.controller6022Address;
+
+    const Controller6022 =
+      await hre.ethers.getContractFactory("Controller6022");
+    const controller6022 = await Controller6022.deploy();
+    await controller6022.waitForDeployment();
+
+    let controller6022Address = await controller6022.getAddress();
+
+    console.log("Controller6022 deployed to:", controller6022Address);
 
     const RewardPoolFactory6022 = await hre.ethers.getContractFactory(
       "RewardPoolFactory6022"
@@ -27,12 +36,6 @@ export default task("deploy-factory")
       rewardPoolFactory6022Address
     );
 
-    const Controller6022 =
-      await hre.ethers.getContractFactory("Controller6022");
-    const controller6022 = Controller6022.attach(
-      controller6022Address
-    ) as Controller6022;
-
     let tx = await controller6022.addFactory(rewardPoolFactory6022Address);
     let receipt = await tx.wait();
 
@@ -41,10 +44,16 @@ export default task("deploy-factory")
       throw new Error("addFactory failed");
     }
 
-    if (hre.network.name !== "hardhat") {
+    const verify = taskArgs.verify;
+    if (verify) {
       // Wait for 5 blocks
       let currentBlock = await hre.ethers.provider.getBlockNumber();
       while (currentBlock + 5 > (await hre.ethers.provider.getBlockNumber())) {}
+
+      await hre.run("verify:verify", {
+        address: controller6022Address,
+        constructorArguments: [],
+      });
 
       await hre.run("verify:verify", {
         address: rewardPoolFactory6022Address,

@@ -3,15 +3,15 @@ import checkSupply from "./tasks/check-supply";
 import createWallet from "./tasks/create-wallet";
 import { HardhatUserConfig } from "hardhat/config";
 import deployEverything from "./tasks/deploy-everything";
-import deployDeployFactory from "./tasks/deploy-factory";
+import deployEverythingExceptToken from "./tasks/deploy-everything-except-token";
 
 require("dotenv").config();
 
 createWallet.setDescription("Creates a new wallet");
 checkSupply.setDescription("Checks the total supply of the token");
 deployEverything.setDescription("Deploys all contracts to the network");
-deployDeployFactory.setDescription(
-  "Deploys the RewardPoolFactory contract to the network"
+deployEverythingExceptToken.setDescription(
+  "Deploys the RewardPoolFactory contract and RewardPoolController to the network"
 );
 
 const privateKey = process?.env?.PRIVATE_KEY?.trim() ?? "";
@@ -61,7 +61,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       polygon: polygonScanApiKey,
-      polygonMumbai: polygonScanApiKey,
+      polygonAmoy: polygonScanApiKey,
     },
   },
   paths: {
@@ -73,7 +73,6 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: true,
-    offline: true,
     currency: "USD",
     outputFile: "gas-report-matic.txt",
     coinmarketcap: coinmarketcapApiKey,

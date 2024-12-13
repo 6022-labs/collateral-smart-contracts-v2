@@ -93,6 +93,12 @@ export async function createDepositedVault(
   lockedUntil: number,
   wantedAmountInTheVault: bigint
 ) {
+  // Just approve a lot of tokens to pay vault creation fees
+  await token6022.approve(
+    await rewardPool6022.getAddress(),
+    wantedAmountInTheVault
+  );
+
   const tx = await rewardPool6022.createVault(
     "TestVault",
     lockedUntil,
@@ -110,16 +116,18 @@ export async function createDepositedVault(
   return vault;
 }
 
-export async function rewardPoolRemainingRewards(rewardPool: RewardPool6022) {
-  let remainingRewards = BigInt(0);
+export async function rewardPoolTotalCollectedRewards(
+  rewardPool: RewardPool6022
+) {
+  let totalCollectedRewards = BigInt(0);
   const allVaultsLength = await rewardPool.allVaultsLength();
 
   for (let index = 0; index < allVaultsLength; index++) {
     const vaultAddress = await rewardPool.allVaults(index);
-    remainingRewards += await rewardPool.collectedRewards(vaultAddress);
+    totalCollectedRewards += await rewardPool.collectedRewards(vaultAddress);
   }
 
-  return remainingRewards;
+  return totalCollectedRewards;
 }
 
 export async function getRewardableVaults(rewardPool: RewardPool6022) {

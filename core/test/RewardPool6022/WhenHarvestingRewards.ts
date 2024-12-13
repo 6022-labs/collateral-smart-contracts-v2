@@ -91,11 +91,6 @@ describe("When harvesting rewards", function () {
     beforeEach(async function () {
       const vaultWantedAmountEther = ethers.parseEther("1");
 
-      await _token6022.approve(
-        await _rewardPool6022.getAddress(),
-        vaultWantedAmountEther
-      );
-
       _vault = await createDepositedVault(
         _token6022,
         _rewardPool6022,
@@ -133,11 +128,6 @@ describe("When harvesting rewards", function () {
         for (let i = 0; i < 2; i++) {
           // Create new vaults to generate rewards
           const vaultWantedAmountEther = ethers.parseEther("1");
-
-          await _token6022.approve(
-            await _rewardPool6022.getAddress(),
-            vaultWantedAmountEther
-          );
 
           await createDepositedVault(
             _token6022,

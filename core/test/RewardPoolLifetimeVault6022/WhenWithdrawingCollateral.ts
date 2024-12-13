@@ -140,12 +140,6 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
       const wantedAmountInTheVault = ethers.parseEther("1");
 
       beforeEach(async function () {
-        // Just approve a lot of tokens to pay vault creation fees
-        await _token6022.approve(
-          await _rewardPool6022.getAddress(),
-          ethers.parseEther("100")
-        );
-
         await createDepositedVault(
           _token6022,
           _rewardPool6022,

@@ -14,7 +14,7 @@ import {
 } from "@nomicfoundation/hardhat-network-helpers";
 import {
   createDepositedVault,
-  rewardPoolRemainingRewards,
+  rewardPoolTotalCollectedRewards,
   parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
 } from "../utils";
 
@@ -167,11 +167,6 @@ describe("When collecting dust from reward pool", async function () {
           vaultWantedAmount.toString()
         );
 
-        await _token6022.approve(
-          await _rewardPool6022.getAddress(),
-          vaultWantedAmountEther
-        );
-
         const vault = await createDepositedVault(
           _token6022,
           _rewardPool6022,
@@ -200,7 +195,7 @@ describe("When collecting dust from reward pool", async function () {
     // We must keep those rewards into the pool (in order to harvest them when the vaults will be withdrawn).
     it("Should let the remaining rewards in the pool", async function () {
       const totalRemainingRewards =
-        await rewardPoolRemainingRewards(_rewardPool6022);
+        await rewardPoolTotalCollectedRewards(_rewardPool6022);
 
       await _rewardPool6022.collectDust();
 
@@ -211,7 +206,7 @@ describe("When collecting dust from reward pool", async function () {
 
     it("Should transfer the dust to the caller", async function () {
       const totalRemainingRewards =
-        await rewardPoolRemainingRewards(_rewardPool6022);
+        await rewardPoolTotalCollectedRewards(_rewardPool6022);
       const rewardPoolBalanceOfBefore = await _token6022.balanceOf(
         await _rewardPool6022.getAddress()
       );

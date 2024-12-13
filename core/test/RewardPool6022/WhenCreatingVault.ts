@@ -1,10 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { RewardPool6022, Token6022 } from "../../typechain-types";
+import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   computeFeesFromCollateral,
+  createDepositedVault,
+  getRewardableVaults,
   parseVaultFromVaultCreatedLogs,
+  rewardPoolTotalCollectedRewards,
 } from "../utils";
 import {
   reset,
@@ -309,6 +312,191 @@ describe("When creating vault from reward pool 6022", function () {
       const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
       expect(await vault.isDeposited()).to.be.false;
+    });
+
+    describe("And there is only the lifetime vault as rewardable vault", async function () {
+      it("Should set all the fees to the lifetime vault", async function () {
+        const lifetimeVaultAddress = await _rewardPool6022.lifetimeVault();
+
+        const lifetimeVaultCollectedRewardsBefore =
+          await _rewardPool6022.collectedRewards(lifetimeVaultAddress);
+        await _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          wantedAmountInTheVault,
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          wantedAmountInTheVault
+        );
+
+        const lifetimeVaultCollectedRewardsAfter =
+          await _rewardPool6022.collectedRewards(lifetimeVaultAddress);
+
+        const expectedFees = computeFeesFromCollateral(wantedAmountInTheVault);
+
+        expect(lifetimeVaultCollectedRewardsAfter).to.be.equal(
+          lifetimeVaultCollectedRewardsBefore + expectedFees
+        );
+      });
+    });
+
+    describe("And there is not enough fees for every rewardable pools", async function () {
+      beforeEach(async function () {
+        let vaultToCreate = Math.floor(Math.random() * 10) + 1;
+
+        for (let index = 0; index < vaultToCreate; index++) {
+          const vaultAmount = Math.floor(Math.random() * 100) + 1;
+          const vaultAmountBigInt = ethers.parseEther(vaultAmount.toString());
+
+          await createDepositedVault(
+            _token6022,
+            _rewardPool6022,
+            lockedUntil,
+            vaultAmountBigInt
+          );
+        }
+      });
+
+      it("Should not be more rewards than the balance", async function () {
+        await _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          BigInt(50), // To have 1$ fees (2%)
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          BigInt(50) // To have 1$ fees (2%)
+        );
+
+        const totalCollectedRewards =
+          await rewardPoolTotalCollectedRewards(_rewardPool6022);
+        const rewardPoolBalanceOf = await _token6022.balanceOf(
+          await _rewardPool6022.getAddress()
+        );
+
+        expect(totalCollectedRewards).to.be.lessThanOrEqual(
+          rewardPoolBalanceOf
+        );
+      });
+
+      it("Should pay the oldest vaults firsts", async function () {
+        const lifetimeVaultCollectedRewardsBefore =
+          await _rewardPool6022.collectedRewards(
+            await _rewardPool6022.allVaults(0)
+          );
+
+        const firstVaultCollectedRewardsBefore =
+          await _rewardPool6022.collectedRewards(
+            await _rewardPool6022.allVaults(1)
+          );
+
+        await _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          BigInt(100), // To have 2$ fees (2%)
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          BigInt(100) // To have 2$ fees (2%)
+        );
+
+        const lifetimeVaultCollectedRewardsAfter =
+          await _rewardPool6022.collectedRewards(
+            await _rewardPool6022.allVaults(0)
+          );
+
+        const firstVaultCollectedRewardsAfter =
+          await _rewardPool6022.collectedRewards(
+            await _rewardPool6022.allVaults(1)
+          );
+
+        expect(lifetimeVaultCollectedRewardsAfter).to.be.equal(
+          lifetimeVaultCollectedRewardsBefore + BigInt(1)
+        );
+        expect(firstVaultCollectedRewardsAfter).to.be.equal(
+          firstVaultCollectedRewardsBefore + BigInt(1)
+        );
+      });
+    });
+
+    describe("And there is enough fees for every rewardable pools", async function () {
+      let _rewardableVaults: Vault6022[] = [];
+
+      beforeEach(async function () {
+        let vaultToCreate = Math.floor(Math.random() * 10) + 1;
+
+        for (let index = 0; index < vaultToCreate; index++) {
+          const vaultAmount = Math.floor(Math.random() * 100) + 1;
+          const vaultAmountBigInt = ethers.parseEther(vaultAmount.toString());
+
+          const vault = await createDepositedVault(
+            _token6022,
+            _rewardPool6022,
+            lockedUntil,
+            vaultAmountBigInt
+          );
+          _rewardableVaults.push(vault);
+        }
+      });
+
+      it("Should pay fees according to reward weight", async function () {
+        const vaultAmount = ethers.parseEther("1000");
+        const expectedFees = computeFeesFromCollateral(vaultAmount);
+
+        let totalRewardWeight: bigint = BigInt(0);
+
+        let rewardableVaults = await getRewardableVaults(_rewardPool6022);
+        let rewardableVaultsInfos: {
+          weight: bigint;
+          address: string;
+          collectedRewardsBefore: bigint;
+          expectedCollectRewardsAfter: bigint | null;
+        }[] = [];
+
+        for (let rewardableVault of rewardableVaults) {
+          const collectedRewardsBefore =
+            await _rewardPool6022.collectedRewards(rewardableVault);
+          const weight =
+            await _rewardPool6022.vaultsRewardWeight(rewardableVault);
+
+          rewardableVaultsInfos.push({
+            weight,
+            collectedRewardsBefore,
+            address: rewardableVault,
+            expectedCollectRewardsAfter: null,
+          });
+
+          totalRewardWeight += weight;
+        }
+
+        for (let rewardableVaultInfo of rewardableVaultsInfos) {
+          rewardableVaultInfo.expectedCollectRewardsAfter =
+            rewardableVaultInfo.collectedRewardsBefore +
+            (expectedFees * rewardableVaultInfo.weight) / totalRewardWeight;
+        }
+
+        await _token6022.approve(
+          await _rewardPool6022.getAddress(),
+          vaultAmount
+        );
+
+        await _rewardPool6022.createVault(
+          "TestVault",
+          lockedUntil,
+          vaultAmount,
+          await _rewardPool6022.protocolToken(),
+          BigInt(0),
+          vaultAmount
+        );
+
+        for (let rewardableVault of rewardableVaultsInfos) {
+          const collectedRewardsAfter = await _rewardPool6022.collectedRewards(
+            rewardableVault.address
+          );
+
+          expect(collectedRewardsAfter).to.be.equal(
+            rewardableVault.expectedCollectRewardsAfter!
+          );
+        }
+      });
     });
 
     describe("And wanted token is not protocol token", async function () {

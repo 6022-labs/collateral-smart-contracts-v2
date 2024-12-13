@@ -149,7 +149,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
         uint256 lifetimeVaultFees = _computeFeesFromCollateral(lifetimeVaultAmount);
 
-        // Here the pool already own the fees
+        // Reward pool already own the fees
         vaultsRewardWeight[address(lifetimeVault)] += lifetimeVaultFees;
         _updateRewards(lifetimeVaultFees);
     }
@@ -163,7 +163,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
         // Here there is no more rewardable vaults but some vaults can still have rewards (because not yet withdrawn).
         // Those rewards needs to stay in the pool to be harvested when final users will withdraw their collateral.
-        uint256 remainingRewards = _remainingRewards();
+        uint256 remainingRewards = _totalCollectedRewards();
         uint256 balance = protocolToken.balanceOf(address(this));
 
         uint256 dust = balance - remainingRewards;
@@ -246,7 +246,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     }
 
     /// @notice Count every rewardable vaults without the lifetime vault
-    function countRewardableVaults() external view returns (uint256) {
+    function countRewardableVaults() public view returns (uint256) {
         uint256 count = 0;
 
         for (uint i = 0; i < allVaults.length; i++) {
@@ -263,14 +263,27 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @param amount Amount of rewards that need to be injected into rewardable pools
     function _updateRewards(uint256 amount) internal {
         uint256 totalRewardableRewardWeight = _totalRewardableRewardWeight();
-
         if (totalRewardableRewardWeight == 0) return; // No vaults to reward and avoid division by zero
 
-        for (uint i = 0; i < allVaults.length; i++) {
-            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
-            if (vault.isRewardable()) {
-                collectedRewards[address(vault)] += amount * vaultsRewardWeight[address(vault)] / totalRewardableRewardWeight;
+        address[] memory rewardableVaults = _rewardableVaults();
+
+        uint256 remainingRewardsToDistribute = amount;
+
+        // The "rewardableVaults" array is not sorted by reward weight to not increase gas cost
+        // In case of amountToDistribute == 0, the oldest vaults will be rewarded first
+        // Not unfair because of the tiny amount to distribute
+
+        // Distribute rewards
+        for (uint i = 0; i < rewardableVaults.length; i++) {
+            address vaultAddress = rewardableVaults[i];
+            uint256 amountToDistribute = (amount * vaultsRewardWeight[vaultAddress]) / totalRewardableRewardWeight;
+
+            if (amountToDistribute == 0 && remainingRewardsToDistribute > 0) {
+                amountToDistribute = 1;
             }
+
+            remainingRewardsToDistribute -= amountToDistribute;
+            collectedRewards[vaultAddress] += amountToDistribute;
         }
     }
 
@@ -288,14 +301,32 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         return totalRewardableRewardWeight;
     }
 
-    function _remainingRewards() internal view returns (uint256) {
-        uint256 remainingRewards = 0;
+    /// @notice List of rewardable vaults
+    function _rewardableVaults() internal view returns (address[] memory) {
+        uint256 count = countRewardableVaults();
+        address[] memory rewardableVaults = new address[](count);
 
+        uint256 index = 0;
         for (uint i = 0; i < allVaults.length; i++) {
-            remainingRewards += collectedRewards[allVaults[i]];
+            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
+            if (vault.isRewardable()) {
+                rewardableVaults[index] = address(vault);
+                index++;
+            }
         }
 
-        return remainingRewards;
+        return rewardableVaults;
+    }
+
+    /// @notice Total collected rewards in the pool
+    function _totalCollectedRewards() internal view returns (uint256) {
+        uint256 totalCollectedRewards = 0;
+
+        for (uint i = 0; i < allVaults.length; i++) {
+            totalCollectedRewards += collectedRewards[allVaults[i]];
+        }
+
+        return totalCollectedRewards;
     }
 
     function _computeFeesFromCollateral(uint256 _collateral) internal pure returns (uint256) {

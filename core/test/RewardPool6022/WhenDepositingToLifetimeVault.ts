@@ -180,5 +180,18 @@ describe("When depositing to lifetime vault", async function () {
         )
       ).to.be.equal(expectedRewardWeight);
     });
+
+    it("Should assign fees to the lifetime vault", async function () {
+      const expectedFees =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
+      await _rewardPool6022.depositToLifetimeVault();
+
+      expect(
+        await _rewardPool6022.collectedRewards(
+          await _lifetimeVault.getAddress()
+        )
+      ).to.be.equal(expectedFees);
+    });
   });
 });

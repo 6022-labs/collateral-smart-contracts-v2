@@ -19,8 +19,8 @@ import RewardPoolManagementModal from "@/components/Modal/ManageRewardPoolModal"
 export default function Main() {
   const elementsPerPage = 10;
 
-  const { address } = useAccount();
   const { ownedVaults } = useOwnedVaults();
+  const { address, isConnected } = useAccount();
   const { hasCreatedRewardPool } = useCreatedRewardPool();
 
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -190,18 +190,22 @@ export default function Main() {
           )}
         </div>
       </div>
-      <CreateRewardPoolModal
-        isOpen={createRewardPoolModalIsOpen}
-        setOpen={setCreateRewardPoolModalIsOpen}
-      />
-      <CreateVaultModal
-        isOpen={createVaultModalIsOpen}
-        setOpen={setCreateVaultModalIsOpen}
-      />
-      <RewardPoolManagementModal
-        isOpen={manageVaultModalIsOpen}
-        setOpen={setManageVaultModalIsOpen}
-      />
+      {isConnected && (
+        <>
+          <CreateRewardPoolModal
+            isOpen={createRewardPoolModalIsOpen}
+            setOpen={setCreateRewardPoolModalIsOpen}
+          />
+          <CreateVaultModal
+            isOpen={createVaultModalIsOpen}
+            setOpen={setCreateVaultModalIsOpen}
+          />
+          <RewardPoolManagementModal
+            isOpen={manageVaultModalIsOpen}
+            setOpen={setManageVaultModalIsOpen}
+          />
+        </>
+      )}
     </>
   );
 }

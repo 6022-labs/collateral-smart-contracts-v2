@@ -79,7 +79,7 @@ export default function CreateRewardPoolModal(
     }
   };
 
-  const submitCreateRewardPool = async (values: any) => {
+  const submitCreateRewardPool = async (values: any, onSuccess: () => void) => {
     try {
       let lifetimeVaultAmount = parseEther(
         values.lifetimeVaultAmount.toString()
@@ -119,6 +119,8 @@ export default function CreateRewardPoolModal(
       });
 
       await refreshCreatedRewardPool();
+
+      onSuccess();
     } catch (error: any) {
       console.error("Error while creating reward pool", error);
       setError("An error occurred, please try again.");
@@ -126,8 +128,10 @@ export default function CreateRewardPoolModal(
   };
 
   React.useEffect(() => {
-    checkAllowance();
-  }, [address]);
+    if (props.isOpen) {
+      checkAllowance();
+    }
+  }, [props.isOpen, address]);
 
   return (
     <Modal
@@ -166,12 +170,14 @@ export default function CreateRewardPoolModal(
                         lifetimeVaultAmount: 0,
                       }}
                       onSubmit={async (values) => {
+                        console.log("needMoreAllowance", needMoreAllowance);
                         if (needMoreAllowance) {
                           await submitIncreaseAllowance(values);
-                          return;
                         }
 
-                        submitCreateRewardPool(values);
+                        await submitCreateRewardPool(values, () => {
+                          handleClose();
+                        });
                       }}
                     >
                       {({

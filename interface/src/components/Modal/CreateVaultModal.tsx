@@ -160,8 +160,10 @@ export default function CreateVaultModal(
   };
 
   React.useEffect(() => {
-    checkAllowance();
-  }, [address]);
+    if (props.isOpen) {
+      checkAllowance();
+    }
+  }, [props.isOpen, address]);
 
   return (
     <Modal

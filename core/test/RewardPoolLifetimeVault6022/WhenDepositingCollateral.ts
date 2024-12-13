@@ -4,6 +4,7 @@ import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   findEventFromLogs,
+  computeFeesFromCollateralWithFees,
   parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
 } from "../utils";
 import {
@@ -146,12 +147,15 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
       expect(await _rewardPoolLifetimeVault.isRewardable()).to.be.true;
     });
 
-    it("Should store the wanted amount", async function () {
+    it("Should store the wanted amount less fees", async function () {
       await _rewardPool6022.depositToLifetimeVault();
+
+      const expectedFees =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
 
       expect(
         await _token6022.balanceOf(await _rewardPoolLifetimeVault.getAddress())
-      ).to.equal(lifetimeVaultAmount);
+      ).to.equal(lifetimeVaultAmount - expectedFees);
     });
 
     it("Should take the collateral from the reward pool", async function () {

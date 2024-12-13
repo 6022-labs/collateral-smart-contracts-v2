@@ -115,6 +115,7 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
         emit Deposited(msg.sender, wantedAmount);
     }
 
+    /// @notice Once the vault is withdrawn, the vault is considered as a "dead" smart contract.
     function withdraw() public onlyWhenDeposited onlyWhenNotWithdrawn nonReentrant {
         uint256 requiredNFTs = getRequiredNftsToWithdraw();
         if (requiredNFTs > balanceOf(msg.sender)) {
@@ -134,6 +135,9 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
             emit Withdrawn(msg.sender, balance);
         }
 
+        // We put "isWithdrawn" to true to put the vault as non rewardable
+        // As the vault will be considered as a "dead" smart contract
+        // We don't want to reward it anymore via other contracts creation or via the reinvest method
         isWithdrawn = true;
         withdrawTimestamp = block.timestamp;
 

@@ -1,12 +1,15 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { parseRewardPoolLifetimeVaultFromVaultCreatedLogs } from "../utils";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import {
+  computeFeesFromCollateralWithFees,
+  parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
+} from "../utils";
+import {
+  Token6022,
   RewardPool6022,
   RewardPoolLifetimeVault6022,
-  Token6022,
 } from "../../typechain-types";
 
 describe("When depositing to lifetime vault", async function () {
@@ -126,15 +129,27 @@ describe("When depositing to lifetime vault", async function () {
     });
 
     it("Should emit 'Deposited' event", async function () {
-      await expect(_rewardPool6022.depositToLifetimeVault())
-        .to.emit(_lifetimeVault, "Deposited")
-        .withArgs(await _rewardPool6022.getAddress(), lifetimeVaultAmount);
+      await expect(_rewardPool6022.depositToLifetimeVault()).to.emit(
+        _lifetimeVault,
+        "Deposited"
+      );
     });
 
     it("Should mark the lifetime vault as deposited", async function () {
       await _rewardPool6022.depositToLifetimeVault();
 
       expect(await _lifetimeVault.isDeposited()).to.be.true;
+    });
+
+    it("Should keep the fees", async function () {
+      const expectedFees =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
+      await _rewardPool6022.depositToLifetimeVault();
+
+      expect(
+        await _token6022.balanceOf(await _rewardPool6022.getAddress())
+      ).to.be.equal(expectedFees);
     });
 
     it("Should take the collateral from the reward pool", async function () {
@@ -146,15 +161,16 @@ describe("When depositing to lifetime vault", async function () {
         await _rewardPool6022.getAddress()
       );
 
+      const lifetimeVaultWantedAmount = await _lifetimeVault.wantedAmount();
+
       expect(rewardPoolBalanceOfAfter).to.be.equal(
-        rewardPoolBalanceOfBefore - lifetimeVaultAmount
+        rewardPoolBalanceOfBefore - lifetimeVaultWantedAmount
       );
     });
 
     it("Should increase the reward weight of the lifetime vault", async function () {
-      const rewardPoolFees = await _rewardPool6022.FEES_PERCENT();
       const expectedRewardWeight =
-        (lifetimeVaultAmount * rewardPoolFees) / BigInt(100);
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
 
       await _rewardPool6022.depositToLifetimeVault();
 

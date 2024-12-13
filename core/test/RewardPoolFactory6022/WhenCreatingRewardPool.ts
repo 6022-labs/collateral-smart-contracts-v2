@@ -11,6 +11,7 @@ import {
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import {
+  computeFeesFromCollateralWithFees,
   findEventFromLogs,
   logsToLogDescriptions,
   parseRewardPoolFromRewardPoolCreatedLogs,
@@ -163,7 +164,7 @@ describe("When creating reward pool from factory 6022", function () {
       ).to.not.emit(_controller6022, "VaultPushed");
     });
 
-    it("Should store the lifetime vault amount into the lifetime vault", async function () {
+    it("Should store the lifetime vault wanted amount into the lifetime vault", async function () {
       const tx =
         await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
@@ -176,9 +177,30 @@ describe("When creating reward pool from factory 6022", function () {
 
       const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
 
+      const expectedAmount =
+        lifetimeVaultAmount -
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
       expect(await _token6022.balanceOf(lifetimeVaultAddress)).to.be.equal(
-        lifetimeVaultAmount
+        expectedAmount
       );
+    });
+
+    it("Should store the lifetime vault fees into the reward pool", async function () {
+      const tx =
+        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
+        txReceipt!.logs
+      );
+
+      const expectedAmount =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
+      expect(
+        await _token6022.balanceOf(await rewardPool.getAddress())
+      ).to.be.equal(expectedAmount);
     });
 
     it("Should mark the lifetime vault as deposited", async function () {
@@ -221,9 +243,31 @@ describe("When creating reward pool from factory 6022", function () {
       const vaultBalanceOfAfter =
         await _token6022.balanceOf(lifetimeVaultAddress);
 
+      const expectedFees =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
       expect(vaultBalanceOfAfter).to.be.equal(
-        callerBalanceOfBefore - callerBalanceOfAfter
+        callerBalanceOfBefore - callerBalanceOfAfter - expectedFees
       );
+    });
+
+    it("Should take the fees of the lifetime vault from the caller", async function () {
+      const tx =
+        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
+        txReceipt!.logs
+      );
+
+      const rewardPoolBalanceOfAfter = await _token6022.balanceOf(
+        await rewardPool.getAddress()
+      );
+
+      const expectedFees =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
+      expect(rewardPoolBalanceOfAfter).to.be.equal(expectedFees);
     });
 
     it("Should increase the reward weight for lifetime vault", async function () {
@@ -242,11 +286,12 @@ describe("When creating reward pool from factory 6022", function () {
       );
       const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
 
-      const rewardFeesPercent = await rewardPool.FEES_PERCENT();
+      const expectedRewardWeight =
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
 
       expect(
         await rewardPool.vaultsRewardWeight(lifetimeVaultAddress)
-      ).to.be.equal((lifetimeVaultAmount * rewardFeesPercent) / BigInt(100));
+      ).to.be.equal(expectedRewardWeight);
     });
 
     it("Should create a reward pool able to create a vault", async function () {

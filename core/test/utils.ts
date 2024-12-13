@@ -7,10 +7,18 @@ import {
   Vault6022,
 } from "../typechain-types";
 
-export function computeFees(amount: bigint) {
-  const protocol_fees = BigInt(2);
+const PROTOCOL_FEES = BigInt(2);
 
-  return (amount * protocol_fees) / BigInt(100);
+export function computeFeesFromCollateral(amount: bigint) {
+  return (amount * PROTOCOL_FEES) / BigInt(100);
+}
+
+export function computeFeesFromCollateralWithFees(amount: bigint) {
+  const amountBy100 = amount * BigInt(100);
+  const feesBy100 =
+    (amountBy100 * PROTOCOL_FEES) / (BigInt(100) + PROTOCOL_FEES);
+
+  return feesBy100 / BigInt(100);
 }
 
 export function findEventFromLogs(logs: (EventLog | Log)[], eventKey: string) {

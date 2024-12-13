@@ -114,6 +114,9 @@ describe("When collecting dust from reward pool", async function () {
     let _lifetimeVault: RewardPoolLifetimeVault6022;
 
     beforeEach(async function () {
+      // Take a amount that will not create dust with the computed fees for the lifetime vault
+      const lifetimeVaultAmount = ethers.parseEther("1.02");
+
       const tx = await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
       _lifetimeVault = await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
@@ -185,6 +188,7 @@ describe("When collecting dust from reward pool", async function () {
       await _lifetimeVault.withdraw();
     });
 
+    // This test is flaky due to the randomness of the number of vaults created + the randomness of the wanted amount of each vault
     it("Should emit 'DustCollected' event", async function () {
       await expect(_rewardPool6022.collectDust()).to.emit(
         _rewardPool6022,

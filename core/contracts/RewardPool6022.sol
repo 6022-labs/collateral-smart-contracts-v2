@@ -124,10 +124,13 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
     /// @notice This method will create the lifetime vault and deposit the protocol token in it. It will allow to create standard vaults.
     function createLifetimeVault(uint256 _lifetimeVaultAmount) external onlyWhenLifetimeVaultDoesNotExist {
+        uint256 lifetimeVaultFees = _computeFeesFromCollateralWithFees(_lifetimeVaultAmount);
+        uint256 finalLifetimeVaultCollateralAmount = _lifetimeVaultAmount - lifetimeVaultFees;
+
         lifetimeVault = new RewardPoolLifetimeVault6022(
             owner(),
             address(this),
-            _lifetimeVaultAmount,
+            finalLifetimeVaultCollateralAmount,
             address(protocolToken)
         );
 
@@ -144,9 +147,11 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         protocolToken.approve(address(lifetimeVault), lifetimeVaultAmount);
         lifetimeVault.deposit();
 
-        // Here we put a equivalent weight of the fees in the lifetime vault
-        // Even if their is no real fees for the lifetime vault (no vault to collect the fees)
-        vaultsRewardWeight[address(lifetimeVault)] += _computeFees(lifetimeVaultAmount);
+        uint256 lifetimeVaultFees = _computeFeesFromCollateral(lifetimeVaultAmount);
+
+        // Here the pool already own the fees
+        vaultsRewardWeight[address(lifetimeVault)] += lifetimeVaultFees;
+        _updateRewards(lifetimeVaultFees);
     }
 
     /// @notice This method will withdraw the protocol token dust from the pool
@@ -191,7 +196,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
             _backedValueProtocolToken = _wantedAmount;
         }
 
-        uint256 _protocolTokenFees = _computeFees(_backedValueProtocolToken);
+        uint256 _protocolTokenFees = _computeFeesFromCollateral(_backedValueProtocolToken);
 
         // Here there is at least the lifetime vault that will be able to take the rewards (onlyWhenLifetimeVaultIsRewardable)
         // The lifetime vault is own by the owner of this smart contract indirectly
@@ -293,7 +298,14 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         return remainingRewards;
     }
 
-    function _computeFees(uint256 _amountProtocolToken) internal pure returns (uint256) {
-        return (_amountProtocolToken * FEES_PERCENT) / 100;
+    function _computeFeesFromCollateral(uint256 _collateral) internal pure returns (uint256) {
+        return (_collateral * FEES_PERCENT) / 100;
+    }
+
+    function _computeFeesFromCollateralWithFees(uint256 _collateralWithFees) internal pure returns (uint256) {
+        uint256 collateralWithFeesBy100 = _collateralWithFees * 100;
+        uint256 feesBy100 = (collateralWithFeesBy100 * FEES_PERCENT) / (100 + FEES_PERCENT);
+
+        return feesBy100 / 100;
     }
 }

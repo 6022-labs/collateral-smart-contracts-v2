@@ -1,8 +1,11 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { computeFees, parseVaultFromVaultCreatedLogs } from "../utils";
 import { RewardPool6022, Token6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import {
+  computeFeesFromCollateral,
+  parseVaultFromVaultCreatedLogs,
+} from "../utils";
 import {
   reset,
   loadFixture,
@@ -250,7 +253,7 @@ describe("When creating vault from reward pool 6022", function () {
         await _rewardPool6022.getAddress()
       );
 
-      const expectedFees = computeFees(wantedAmountInTheVault);
+      const expectedFees = computeFeesFromCollateral(wantedAmountInTheVault);
 
       expect(callerBalanceOfAfter).to.be.equal(
         callerBalanceOfBefore - expectedFees
@@ -333,7 +336,9 @@ describe("When creating vault from reward pool 6022", function () {
           await _rewardPool6022.getAddress()
         );
 
-        const expectedFees = computeFees(backedValueProtocolToken);
+        const expectedFees = computeFeesFromCollateral(
+          backedValueProtocolToken
+        );
 
         expect(callerBalanceOfAfter).to.be.equal(
           callerBalanceOfBefore - expectedFees
@@ -370,7 +375,9 @@ describe("When creating vault from reward pool 6022", function () {
             await _rewardPool6022.getAddress()
           );
 
-          const expectedFees = computeFees(wantedAmountInTheVault);
+          const expectedFees = computeFeesFromCollateral(
+            wantedAmountInTheVault
+          );
 
           expect(callerBalanceOfAfter).to.be.equal(
             callerBalanceOfBefore - expectedFees
@@ -406,7 +413,9 @@ describe("When creating vault from reward pool 6022", function () {
             await _rewardPool6022.getAddress()
           );
 
-          const expectedFees = computeFees(wantedAmountInTheVault);
+          const expectedFees = computeFeesFromCollateral(
+            wantedAmountInTheVault
+          );
 
           expect(callerBalanceOfAfter).to.be.equal(
             callerBalanceOfBefore - expectedFees

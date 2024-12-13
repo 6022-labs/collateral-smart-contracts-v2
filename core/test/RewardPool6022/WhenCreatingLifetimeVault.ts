@@ -3,6 +3,10 @@ import { ethers } from "hardhat";
 import { RewardPool6022, Token6022 } from "../../typechain-types";
 import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import {
+  computeFeesFromCollateralWithFees,
+  parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
+} from "../utils";
 
 describe("When creating lifetime vault from reward pool 6022", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
@@ -82,6 +86,22 @@ describe("When creating lifetime vault from reward pool 6022", async function ()
 
       expect(await _rewardPool6022.allVaults(0)).to.eq(
         await _rewardPool6022.lifetimeVault()
+      );
+    });
+
+    it("Should set the wanted amount as the desired amount minus the fees", async function () {
+      const expectedWantedAmount =
+        lifetimeVaultAmount -
+        computeFeesFromCollateralWithFees(lifetimeVaultAmount);
+
+      const tx = await _rewardPool6022.createLifetimeVault(lifetimeVaultAmount);
+      const txReceipt = await tx.wait();
+
+      const lifetimeVault =
+        await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(txReceipt!.logs);
+
+      expect(await lifetimeVault.wantedAmount()).to.be.equal(
+        expectedWantedAmount
       );
     });
 

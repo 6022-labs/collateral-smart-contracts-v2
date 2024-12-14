@@ -282,6 +282,13 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
                 amountToDistribute = 1;
             }
 
+						// As we don't sort the array of "rewardableVaults" and due to the previous "if" statement
+						// We must verify that "amountToDistribute" is not greater than "remainingRewardsToDistribute"
+						// In order to be sure that the reward pool doesn't allow more token than it balance
+						if (amountToDistribute > remainingRewardsToDistribute) {
+							amountToDistribute = remainingRewardsToDistribute;
+						}
+
             remainingRewardsToDistribute -= amountToDistribute;
             collectedRewards[vaultAddress] += amountToDistribute;
         }

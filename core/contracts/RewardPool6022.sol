@@ -162,7 +162,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         onlyWhenLifetimeVaultIsNotRewardable {
 
         // Here there is no more rewardable vaults but some vaults can still have rewards (because not yet withdrawn).
-        // Those rewards needs to stay in the pool to be harvested when final users will withdraw their collateral.
+        // Those rewards needs to stay in the pool to be harvested when final users will withdraw their collateral in vaults.
         uint256 remainingRewards = _totalCollectedRewards();
         uint256 balance = protocolToken.balanceOf(address(this));
 
@@ -224,7 +224,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         emit VaultCreated(address(vault));
     }
 
-    /// @notice Harvest rewards of a closed pool (in case of late withdraw)
+    /// @notice Harvest rewards of a closed vault (in case of late withdraw)
     /// @param to Address of the withdrawer
     function harvestRewards(address to) external onlyVault {
         uint256 valueToHarvest = collectedRewards[msg.sender];
@@ -235,7 +235,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         emit Harvested(msg.sender, valueToHarvest);
     }
 
-    /// @notice Reinvest rewards of a closed pool into rewardable pools (in case of early withdraw)
+    /// @notice Reinvest rewards of a closed vault into rewardable vaults (in case of early withdraw)
     function reinvestRewards() external onlyVault onlyWhenLifetimeVaultIsRewardable {
         uint256 valueToReinvest = collectedRewards[msg.sender];
         collectedRewards[msg.sender] = 0;
@@ -259,8 +259,8 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         return count;
     }
 
-    /// @notice Method to inject new rewards to rewardable pools
-    /// @param amount Amount of rewards that need to be injected into rewardable pools
+    /// @notice Method to inject new rewards to rewardable vaults
+    /// @param amount Amount of rewards that need to be injected into rewardable vaults
     function _updateRewards(uint256 amount) internal {
         uint256 totalRewardableRewardWeight = _totalRewardableRewardWeight();
         if (totalRewardableRewardWeight == 0) return; // No vaults to reward and avoid division by zero
@@ -274,7 +274,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         // Not unfair because of the tiny amount to distribute
 
         // Distribute rewards
-        for (uint i = 0; i < rewardableVaults.length; i++) {
+        for (uint256 i = 0; i < rewardableVaults.length; i++) {
             address vaultAddress = rewardableVaults[i];
             uint256 amountToDistribute = (amount * vaultsRewardWeight[vaultAddress]) / totalRewardableRewardWeight;
 
@@ -282,19 +282,19 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
                 amountToDistribute = 1;
             }
 
-						// As we don't sort the array of "rewardableVaults" and due to the previous "if" statement
-						// We must verify that "amountToDistribute" is not greater than "remainingRewardsToDistribute"
-						// In order to be sure that the reward pool doesn't allow more token than it balance
-						if (amountToDistribute > remainingRewardsToDistribute) {
-							amountToDistribute = remainingRewardsToDistribute;
-						}
+            // As we don't sort "rewardableVaults" and due to the previous "if" statement
+            // We must verify that "amountToDistribute" is not greater than "remainingRewardsToDistribute"
+            // In order to be sure that the reward pool doesn't allow more token than it has to distribute
+            if (amountToDistribute > remainingRewardsToDistribute) {
+                amountToDistribute = remainingRewardsToDistribute;
+            }
 
             remainingRewardsToDistribute -= amountToDistribute;
             collectedRewards[vaultAddress] += amountToDistribute;
         }
     }
 
-    /// @notice Total reward weight in the pool (only rewardable pools)
+    /// @notice Total reward weight in the pool (only rewardable vaults)
     function _totalRewardableRewardWeight() internal view returns (uint256) {
         uint256 totalRewardableRewardWeight = 0;
 

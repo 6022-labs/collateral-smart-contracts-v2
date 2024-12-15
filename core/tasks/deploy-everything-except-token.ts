@@ -9,6 +9,9 @@ export default task("deploy-everything-except-token")
     types.boolean
   )
   .setAction(async (taskArgs, hre) => {
+    const [owner] = await hre.ethers.getSigners();
+    console.log("Deploying contracts with the account:", owner.address);
+
     const token6022Address = taskArgs.token6022Address;
 
     const Controller6022 =
@@ -44,6 +47,8 @@ export default task("deploy-everything-except-token")
       throw new Error("addFactory failed");
     }
 
+    console.log("RewardPoolFactory6022 updated in Controller6022");
+
     const verify = taskArgs.verify;
     if (verify) {
       // Wait for 5 blocks
@@ -60,6 +65,4 @@ export default task("deploy-everything-except-token")
         constructorArguments: [controller6022Address, token6022Address],
       });
     }
-
-    console.log("CollectionGenerator updated in Controller6022");
   });

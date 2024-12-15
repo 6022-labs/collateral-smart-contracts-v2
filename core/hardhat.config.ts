@@ -2,6 +2,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import checkSupply from "./tasks/check-supply";
 import createWallet from "./tasks/create-wallet";
 import { HardhatUserConfig } from "hardhat/config";
+import giveOwnership from "./tasks/give-ownership";
 import deployEverything from "./tasks/deploy-everything";
 import deployEverythingExceptToken from "./tasks/deploy-everything-except-token";
 
@@ -13,7 +14,11 @@ deployEverything.setDescription("Deploys all contracts to the network");
 deployEverythingExceptToken.setDescription(
   "Deploys the RewardPoolFactory contract and RewardPoolController to the network"
 );
+giveOwnership.setDescription(
+  "Gives ownership of the controller contract to another address"
+);
 
+const infuraKey = process?.env?.INFURA_KEY?.trim() ?? "";
 const privateKey = process?.env?.PRIVATE_KEY?.trim() ?? "";
 const polygonScanApiKey = process?.env?.POLYGONSCAN_API_KEY?.trim() ?? "";
 const coinmarketcapApiKey = process?.env?.COINMARKETCAP_API_KEY?.trim() ?? "";
@@ -30,7 +35,7 @@ const config: HardhatUserConfig = {
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: "https://polygon.llamarpc.com",
+      url: "https://polygon-mainnet.infura.io/v3/" + infuraKey,
     },
     amoy: {
       gas: "auto",
@@ -40,7 +45,7 @@ const config: HardhatUserConfig = {
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: "https://rpc-amoy.polygon.technology",
+      url: "https://polygon-amoy.infura.io/v3/" + infuraKey,
     },
     local: {
       gas: "auto",

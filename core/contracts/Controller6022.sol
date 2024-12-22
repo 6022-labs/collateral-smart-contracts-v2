@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IVault6022} from "./interfaces/IVault6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";

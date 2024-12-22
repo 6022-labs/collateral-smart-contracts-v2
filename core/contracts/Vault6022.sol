@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import {BaseVault6022} from "./BaseVault6022.sol";
 import {IVault6022} from "./interfaces/IVault6022.sol";
 import {VaultStorageEnum} from "./VaultStorageEnum.sol";
-import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {ITokenOperation} from "./interfaces/ITokenOperation.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";

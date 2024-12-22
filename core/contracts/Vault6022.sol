@@ -193,7 +193,7 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
             rewardWeight: rewardPool.vaultsRewardWeight(address(this)),
             balanceOfWantedToken: wantedToken.balanceOf(address(this)),
             collectedRewards: rewardPool.collectedRewards(address(this)),
-            backedValueProtocolToken: rewardPool.vaultsRewardWeight(address(this)) / rewardPool.FEES_PERCENT() * 100
+            backedValueProtocolToken: rewardPool.vaultsRewardWeight(address(this)) * 100 / rewardPool.FEES_PERCENT()
         });
     }
 }

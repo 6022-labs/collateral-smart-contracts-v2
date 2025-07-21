@@ -3,6 +3,7 @@ import checkSupply from "./tasks/check-supply";
 import createWallet from "./tasks/create-wallet";
 import { HardhatUserConfig } from "hardhat/config";
 import giveOwnership from "./tasks/give-ownership";
+import impersonateTest from "./tasks/impersonate-test";
 import deployEverything from "./tasks/deploy-everything";
 import deployEverythingExceptToken from "./tasks/deploy-everything-except-token";
 
@@ -14,6 +15,7 @@ deployEverything.setDescription("Deploys all contracts to the network");
 deployEverythingExceptToken.setDescription(
   "Deploys the RewardPoolFactory contract and RewardPoolController to the network"
 );
+impersonateTest.setDescription("Impersonates a signer and calls a function");
 giveOwnership.setDescription(
   "Gives ownership of the controller contract to another address"
 );
@@ -26,7 +28,13 @@ const coinmarketcapApiKey = process?.env?.COINMARKETCAP_API_KEY?.trim() ?? "";
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {},
+    hardhat: {
+      forking: {
+        enabled: true,
+        url: "https://polygon-mainnet.infura.io/v3/" + infuraKey,
+        blockNumber: 68690480,
+      },
+    },
     polygon: {
       gas: "auto",
       chainId: 137,
@@ -47,11 +55,15 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       url: "https://polygon-amoy.infura.io/v3/" + infuraKey,
     },
-    local: {
+    citreaTestnet: {
       gas: "auto",
-      chainId: 31337,
+      chainId: 5115,
+      gasMultiplier: 2,
       accounts: [privateKey],
-      url: "http://localhost:8545",
+      throwOnCallFailures: true,
+      throwOnTransactionFailures: true,
+      allowUnlimitedContractSize: true,
+      url: "https://rpc.testnet.citrea.xyz",
     },
   },
   solidity: {

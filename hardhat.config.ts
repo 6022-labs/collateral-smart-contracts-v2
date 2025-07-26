@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-toolbox";
+import addFactory from "./tasks/add-factory";
 import checkSupply from "./tasks/check-supply";
 import createWallet from "./tasks/create-wallet";
 import { HardhatUserConfig } from "hardhat/config";
@@ -9,6 +10,7 @@ import deployEverythingExceptToken from "./tasks/deploy-everything-except-token"
 
 require("dotenv").config();
 
+addFactory.setDescription("Add a factory to the Controller6022 contract");
 createWallet.setDescription("Creates a new wallet");
 checkSupply.setDescription("Checks the total supply of the token");
 deployEverything.setDescription("Deploys all contracts to the network");
@@ -64,6 +66,16 @@ const config: HardhatUserConfig = {
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
       url: "https://rpc.testnet.citrea.xyz",
+    },
+    adiTestnet: {
+      gas: "auto",
+      chainId: 36900,
+      gasMultiplier: 2,
+      accounts: [privateKey],
+      throwOnCallFailures: true,
+      throwOnTransactionFailures: true,
+      allowUnlimitedContractSize: true,
+      url: "https://rpc.testnet.adifoundation.ai/rpc",
     },
   },
   solidity: {

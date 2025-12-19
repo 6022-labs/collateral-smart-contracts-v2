@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 
-export default task("check-supply")
+export default task("6022:check-supply")
+  .setDescription("Checks the total supply of the token")
   .addParam("token6022", "The address of the Token6022 contract")
   .setAction(async (taskArgs, hre) => {
     let token6022Address = taskArgs.token6022;

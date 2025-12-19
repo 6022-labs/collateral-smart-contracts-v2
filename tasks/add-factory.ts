@@ -1,6 +1,7 @@
-import { task, types } from "hardhat/config";
+import { task } from "hardhat/config";
 
-export default task("add-factory")
+export default task("6022:add-factory")
+  .setDescription("Add a factory to the Controller6022 contract")
   .addParam(
     "controller6022Address",
     "The address of the Controller6022 contract"

@@ -1,4 +1,4 @@
-# 6022 Protocol
+# 6022 Collateral Protocol
 
 ## 0. Install
 
@@ -13,13 +13,7 @@ npm install -g hardhat
 To deploy you can use tasks that are already defined in the tasks folder. To deploy the contract you can use the following command:
 
 ```bash
-npx hardhat deploy-everything --total-supply <supply> --minter <minter-address> --network <network>
-```
-
-To only deploy a contract generator and assign it to a existing controller :
-
-```bash
-npx hardhat deploy-factory --controller-6022-address <controller-address> --token-6022-address <token-address> --network <network>
+npx hardhat ignition deploy ./ignition/modules/RewardPoolFactory6022.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/RewardPoolFactory6022.json
 ```
 
 ## 2. Documentation

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import {IController6022} from "./interfaces/IController6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
@@ -79,7 +79,9 @@ contract Controller6022 is AccessControl, IController6022 {
         emit VaultPushed(_vault);
     }
 
-    function pushRewardPool(address _rewardPool) external onlyRole(FACTORY_ROLE) {
+    function pushRewardPool(
+        address _rewardPool
+    ) external onlyRole(FACTORY_ROLE) {
         allRewardPools.push(_rewardPool);
         isRewardPool[_rewardPool] = true;
         emit RewardPoolPushed(_rewardPool);
@@ -105,7 +107,9 @@ contract Controller6022 is AccessControl, IController6022 {
         emit AdminRemoved(account);
     }
 
-    function getRewardPoolsByCreator(address creator) external view returns (address[] memory) {
+    function getRewardPoolsByCreator(
+        address creator
+    ) external view returns (address[] memory) {
         uint256 counter = 0;
 
         for (uint256 i = 0; i < allRewardPools.length; i++) {
@@ -129,7 +133,9 @@ contract Controller6022 is AccessControl, IController6022 {
         return creatorRewardPool;
     }
 
-    function getVaultsByOwner(address owner) external view returns (address[] memory) {
+    function getVaultsByOwner(
+        address owner
+    ) external view returns (address[] memory) {
         uint256 counter = 0;
 
         for (uint256 i = 0; i < allVaults.length; i++) {

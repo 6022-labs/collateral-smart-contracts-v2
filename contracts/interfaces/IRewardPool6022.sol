@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import {VaultStorageEnum} from "../VaultStorageEnum.sol";
 
@@ -7,14 +7,15 @@ interface IRewardPool6022 {
     function reinvestRewards() external;
 
     function harvestRewards(address to) external;
-    
+
     function createVault(
-        string memory _name, 
-        uint256 _lockedUntil, 
+        string memory _name,
+        uint256 _lockedUntil,
         uint256 _wantedAmount,
         address _wantedTokenAddress,
         VaultStorageEnum _storageType,
-        uint256 _backedValueProtocolToken) external;
+        uint256 _backedValueProtocolToken
+    ) external;
 
     function creator() external view returns (address);
 

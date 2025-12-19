@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import {IBaseVault6022} from "./interfaces/IBaseVault6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
@@ -23,10 +23,7 @@ abstract contract BaseVault6022 is IBaseVault6022 {
     /// @notice Reward pool
     IRewardPool6022 public rewardPool;
 
-    constructor(
-        address _rewardPool,
-        uint256 _wantedAmount
-    ) {
+    constructor(address _rewardPool, uint256 _wantedAmount) {
         isDeposited = false;
         isWithdrawn = false;
 

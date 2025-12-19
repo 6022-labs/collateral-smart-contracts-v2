@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import {BaseVault6022} from "./BaseVault6022.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -36,7 +36,8 @@ contract RewardPoolLifetimeVault6022 is Ownable, BaseVault6022 {
     // ----------------- MODIFIERS ----------------- //
     modifier onlyWhenLastVaultInPool() {
         // Check if there is only one rewardable vault left (this one, because of onlyWhenNotWithdrawn)
-        if (rewardPool.countRewardableVaults() != 1) revert RemainingRewardableVaults();
+        if (rewardPool.countRewardableVaults() != 1)
+            revert RemainingRewardableVaults();
         _;
     }
 
@@ -61,8 +62,8 @@ contract RewardPoolLifetimeVault6022 is Ownable, BaseVault6022 {
         onlyOwner
         onlyWhenDeposited
         onlyWhenNotWithdrawn
-        onlyWhenLastVaultInPool {
-
+        onlyWhenLastVaultInPool
+    {
         protocolToken.transfer(_msgSender(), wantedAmount);
 
         rewardPool.harvestRewards(_msgSender());

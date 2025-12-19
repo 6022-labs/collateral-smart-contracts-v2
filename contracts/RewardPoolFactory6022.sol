@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import {RewardPool6022} from "./RewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";
@@ -33,7 +33,8 @@ contract RewardPoolFactory6022 {
 
     // ----------------- MODIFIERS ----------------- //
     modifier onlyWhenSenderDoesNotHaveRewardPool() {
-        address[] memory alreadyCreatedRewardPools = controller.getRewardPoolsByCreator(msg.sender);
+        address[] memory alreadyCreatedRewardPools = controller
+            .getRewardPoolsByCreator(msg.sender);
 
         if (alreadyCreatedRewardPools.length > 0) {
             revert AlreadyCreatedRewardPool();
@@ -43,7 +44,9 @@ contract RewardPoolFactory6022 {
     }
 
     // ----------------- FUNCS ----------------- //
-    function createRewardPool(uint256 _lifetimeVaultAmount) external onlyWhenSenderDoesNotHaveRewardPool {
+    function createRewardPool(
+        uint256 _lifetimeVaultAmount
+    ) external onlyWhenSenderDoesNotHaveRewardPool {
         RewardPool6022 rewardPool = new RewardPool6022(
             msg.sender,
             address(controller),
@@ -52,7 +55,11 @@ contract RewardPoolFactory6022 {
 
         rewardPool.createLifetimeVault(_lifetimeVaultAmount);
 
-        protocolTokenAddress.transferFrom(msg.sender, address(rewardPool), _lifetimeVaultAmount);
+        protocolTokenAddress.transferFrom(
+            msg.sender,
+            address(rewardPool),
+            _lifetimeVaultAmount
+        );
         rewardPool.depositToLifetimeVault();
 
         controller.pushRewardPool(address(rewardPool));

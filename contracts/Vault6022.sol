@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import {BaseVault6022} from "./BaseVault6022.sol";
 import {IVault6022} from "./interfaces/IVault6022.sol";
@@ -52,7 +52,7 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
 
     /// @notice Indicates the deposit timestamp
     uint256 public depositTimestamp;
-    
+
     /// @notice Indicates the withdraw timestamp
     uint256 public withdrawTimestamp;
 
@@ -76,8 +76,8 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
     error NotEnoughNFTToWithdraw();
 
     constructor(
-        address _creator, 
-        string memory _name, 
+        address _creator,
+        string memory _name,
         uint256 _lockedUntil,
         uint256 _wantedAmount,
         address _rewardPoolAddress,
@@ -91,7 +91,7 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
         wantedTokenAddress = _wantedTokenAddress;
 
         // Mint tokens to the creator (transaction signer)
-        for(uint i = 1; i <= MAX_TOKENS; i++) {
+        for (uint i = 1; i <= MAX_TOKENS; i++) {
             _mint(address(_creator), i);
         }
     }
@@ -115,7 +115,12 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
     }
 
     /// @notice Once the vault is withdrawn, the vault is considered as a "dead" smart contract.
-    function withdraw() public onlyWhenDeposited onlyWhenNotWithdrawn nonReentrant {
+    function withdraw()
+        public
+        onlyWhenDeposited
+        onlyWhenNotWithdrawn
+        nonReentrant
+    {
         uint256 requiredNFTs = getRequiredNftsToWithdraw();
         if (requiredNFTs > balanceOf(msg.sender)) {
             revert NotEnoughNFTToWithdraw();
@@ -148,7 +153,10 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
     }
 
     function getRequiredNftsToWithdraw() public view returns (uint256) {
-        return block.timestamp < lockedUntil ? WITHDRAW_NFTS_EARLY : WITHDRAW_NFTS_LATE;
+        return
+            block.timestamp < lockedUntil
+                ? WITHDRAW_NFTS_EARLY
+                : WITHDRAW_NFTS_LATE;
     }
 
     function isRewardable() external view returns (bool) {
@@ -157,43 +165,52 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
 
     function vaultOverview() external view returns (VaultOverview memory) {
         string memory wantedTokenSymbol = "N/A";
-        (bool success, bytes memory data) = wantedTokenAddress.staticcall(abi.encodeWithSignature("symbol()"));
+        (bool success, bytes memory data) = wantedTokenAddress.staticcall(
+            abi.encodeWithSignature("symbol()")
+        );
         if (success) {
             wantedTokenSymbol = abi.decode(data, (string));
         } else {
-            (success, data) = wantedTokenAddress.staticcall(abi.encodeWithSignature("name()"));
+            (success, data) = wantedTokenAddress.staticcall(
+                abi.encodeWithSignature("name()")
+            );
             if (success) {
                 wantedTokenSymbol = abi.decode(data, (string));
             }
         }
 
         uint8 wantedTokenDecimals = 0;
-        (success, data) = wantedTokenAddress.staticcall(abi.encodeWithSignature("decimals()"));
+        (success, data) = wantedTokenAddress.staticcall(
+            abi.encodeWithSignature("decimals()")
+        );
         if (success) {
             wantedTokenDecimals = abi.decode(data, (uint8));
         }
 
         ITokenOperation wantedToken = ITokenOperation(wantedTokenAddress);
 
-        return VaultOverview({
-            name: name(),
-            creator: creator,
-            isDeposited: isDeposited,
-            isWithdrawn: isWithdrawn,
-            lockedUntil: lockedUntil,
-            storageType: storageType,
-            wantedAmount: wantedAmount,
-            depositTimestamp: depositTimestamp,
-            withdrawTimestamp: withdrawTimestamp,
-            creationTimestamp: creationTimestamp,
-            wantedTokenSymbol: wantedTokenSymbol,
-            rewardPoolAddress: address(rewardPool),
-            wantedTokenAddress: wantedTokenAddress,
-            wantedTokenDecimals: wantedTokenDecimals,
-            rewardWeight: rewardPool.vaultsRewardWeight(address(this)),
-            balanceOfWantedToken: wantedToken.balanceOf(address(this)),
-            collectedRewards: rewardPool.collectedRewards(address(this)),
-            backedValueProtocolToken: rewardPool.vaultsRewardWeight(address(this)) * 100 / rewardPool.FEES_PERCENT()
-        });
+        return
+            VaultOverview({
+                name: name(),
+                creator: creator,
+                isDeposited: isDeposited,
+                isWithdrawn: isWithdrawn,
+                lockedUntil: lockedUntil,
+                storageType: storageType,
+                wantedAmount: wantedAmount,
+                depositTimestamp: depositTimestamp,
+                withdrawTimestamp: withdrawTimestamp,
+                creationTimestamp: creationTimestamp,
+                wantedTokenSymbol: wantedTokenSymbol,
+                rewardPoolAddress: address(rewardPool),
+                wantedTokenAddress: wantedTokenAddress,
+                wantedTokenDecimals: wantedTokenDecimals,
+                rewardWeight: rewardPool.vaultsRewardWeight(address(this)),
+                balanceOfWantedToken: wantedToken.balanceOf(address(this)),
+                collectedRewards: rewardPool.collectedRewards(address(this)),
+                backedValueProtocolToken: (rewardPool.vaultsRewardWeight(
+                    address(this)
+                ) * 100) / rewardPool.FEES_PERCENT()
+            });
     }
 }

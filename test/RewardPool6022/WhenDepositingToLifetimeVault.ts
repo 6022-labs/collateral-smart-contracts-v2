@@ -7,7 +7,7 @@ import {
   parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
 } from "../utils";
 import {
-  Token6022,
+  MockERC20,
   RewardPool6022,
   RewardPoolLifetimeVault6022,
 } from "../../typechain-types";
@@ -15,7 +15,7 @@ import {
 describe("When depositing to lifetime vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
 
   let _owner: HardhatEthersSigner;
@@ -30,8 +30,8 @@ describe("When depositing to lifetime vault", async function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );

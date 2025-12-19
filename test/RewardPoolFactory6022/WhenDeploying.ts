@@ -17,8 +17,8 @@ describe("When deploying reward pool factory 6022", function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );

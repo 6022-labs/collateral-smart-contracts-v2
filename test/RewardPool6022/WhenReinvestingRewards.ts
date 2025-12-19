@@ -5,7 +5,7 @@ import {
   getRewardableVaults,
   parseRewardPoolFromRewardPoolCreatedLogs,
 } from "../utils";
-import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
+import { RewardPool6022, MockERC20, Vault6022 } from "../../typechain-types";
 import {
   reset,
   loadFixture,
@@ -17,7 +17,7 @@ describe("When reinvesting reward", function () {
 
   const lifetimeVaultAmount = ethers.parseEther("1");
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
 
   async function deployRewardPool() {
@@ -29,8 +29,8 @@ describe("When reinvesting reward", function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );
@@ -50,8 +50,9 @@ describe("When reinvesting reward", function () {
       lifetimeVaultAmount
     );
 
-    const tx =
-      await rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+    const tx = await rewardPoolFactory6022.createRewardPool(
+      lifetimeVaultAmount
+    );
     const txReceipt = await tx.wait();
 
     const rewardPool6022 = await parseRewardPoolFromRewardPoolCreatedLogs(
@@ -142,8 +143,9 @@ describe("When reinvesting reward", function () {
           collectedRewardsBefore[element] =
             await _rewardPool6022.collectedRewards(element);
 
-          const rewardWeight =
-            await _rewardPool6022.vaultsRewardWeight(element);
+          const rewardWeight = await _rewardPool6022.vaultsRewardWeight(
+            element
+          );
           vaultRewardWeights[element] = rewardWeight;
           totalVaultRewardWeight += rewardWeight;
         }
@@ -151,8 +153,9 @@ describe("When reinvesting reward", function () {
         await _vault.withdraw();
 
         for (let element of rewardableVaultsWithoutCurrentVault) {
-          let collectedRewardsAfter =
-            await _rewardPool6022.collectedRewards(element);
+          let collectedRewardsAfter = await _rewardPool6022.collectedRewards(
+            element
+          );
 
           let expectedCollectedRewards =
             collectedRewardsBefore[element] +

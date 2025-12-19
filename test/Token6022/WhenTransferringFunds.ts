@@ -4,13 +4,13 @@ import {
   reset,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { Token6022 } from "../../typechain-types";
+import { MockERC20 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("When transferring funds of token 6022", function () {
   const totalSupply = ethers.parseUnits("5", 16);
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _owner: HardhatEthersSigner;
   let _otherAccount: HardhatEthersSigner;
 
@@ -20,8 +20,8 @@ describe("When transferring funds of token 6022", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       totalSupply
     );

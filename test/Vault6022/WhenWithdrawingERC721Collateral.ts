@@ -9,7 +9,7 @@ import {
 } from "@nomicfoundation/hardhat-network-helpers";
 import {
   ERC721,
-  Token6022,
+  MockERC20,
   Vault6022,
   RewardPool6022,
 } from "../../typechain-types";
@@ -20,7 +20,7 @@ describe("When withdrawing ERC721 collateral", async function () {
 
   let _erc721: ERC721;
   let _vault6022: Vault6022;
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
 
   let _owner: HardhatEthersSigner;
@@ -32,8 +32,8 @@ describe("When withdrawing ERC721 collateral", async function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );

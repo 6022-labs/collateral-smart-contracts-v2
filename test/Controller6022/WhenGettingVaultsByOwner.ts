@@ -46,8 +46,8 @@ describe("When getting vaults by owner from controller 6022", function () {
     ownerAddress: string,
     controller: Controller6022
   ) {
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       ownerAddress,
       ethers.parseEther("100000")
     );
@@ -67,8 +67,9 @@ describe("When getting vaults by owner from controller 6022", function () {
       lifetimeVaultAmount
     );
 
-    const tx =
-      await rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+    const tx = await rewardPoolFactory6022.createRewardPool(
+      lifetimeVaultAmount
+    );
 
     const txReceipt = await tx.wait();
 

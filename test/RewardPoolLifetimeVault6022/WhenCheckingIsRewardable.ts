@@ -5,13 +5,13 @@ import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import {
   RewardPool6022,
   RewardPoolLifetimeVault6022,
-  Token6022,
+  MockERC20,
 } from "../../typechain-types";
 
 describe("When checking is rewardable for reward pool lifetime vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
   let _rewardPoolLifetimeVault: RewardPoolLifetimeVault6022;
 
@@ -20,8 +20,8 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
 
     const [owner] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );

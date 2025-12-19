@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Token6022 } from "../../typechain-types";
+import { MockERC20 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   reset,
@@ -10,7 +10,7 @@ import {
 describe("When deploying token 6022", function () {
   const totalSupply = ethers.parseUnits("5", 16);
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _owner: HardhatEthersSigner;
 
   async function deployToken() {
@@ -19,8 +19,8 @@ describe("When deploying token 6022", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       totalSupply
     );

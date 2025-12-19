@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
+import { RewardPool6022, MockERC20, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   computeFeesFromCollateral,
@@ -21,7 +21,7 @@ describe("When creating vault from reward pool 6022", function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
   const wantedAmountInTheVault = ethers.parseEther("1");
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
 
   let _owner: HardhatEthersSigner;
@@ -36,8 +36,8 @@ describe("When creating vault from reward pool 6022", function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );
@@ -367,8 +367,9 @@ describe("When creating vault from reward pool 6022", function () {
           BigInt(50) // To have 1$ fees (2%)
         );
 
-        const totalCollectedRewards =
-          await rewardPoolTotalCollectedRewards(_rewardPool6022);
+        const totalCollectedRewards = await rewardPoolTotalCollectedRewards(
+          _rewardPool6022
+        );
         const rewardPoolBalanceOf = await _token6022.balanceOf(
           await _rewardPool6022.getAddress()
         );
@@ -452,10 +453,12 @@ describe("When creating vault from reward pool 6022", function () {
         }[] = [];
 
         for (let rewardableVault of rewardableVaults) {
-          const collectedRewardsBefore =
-            await _rewardPool6022.collectedRewards(rewardableVault);
-          const weight =
-            await _rewardPool6022.vaultsRewardWeight(rewardableVault);
+          const collectedRewardsBefore = await _rewardPool6022.collectedRewards(
+            rewardableVault
+          );
+          const weight = await _rewardPool6022.vaultsRewardWeight(
+            rewardableVault
+          );
 
           rewardableVaultsInfos.push({
             weight,

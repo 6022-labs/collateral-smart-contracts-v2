@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
-  Token6022,
+  MockERC20,
   RewardPoolFactory6022,
   Controller6022,
 } from "../../typechain-types";
@@ -23,7 +23,7 @@ describe("When creating reward pool from factory 6022", function () {
 
   let _owner: HardhatEthersSigner;
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _controller6022: Controller6022;
   let _rewardPoolFactory6022: RewardPoolFactory6022;
 
@@ -35,8 +35,8 @@ describe("When creating reward pool from factory 6022", function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );
@@ -112,8 +112,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should emit 'VaultCreated' event", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const vaultCreatedEvents = findEventFromLogs(
@@ -125,8 +126,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should emit 'Deposited' event", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const vaultCreatedEvents = findEventFromLogs(
@@ -144,8 +146,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should add the created reward pool to the controller", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const createdRewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
@@ -165,8 +168,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should store the lifetime vault wanted amount into the lifetime vault", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const vaultCreatedEvents = await logsToLogDescriptions(
@@ -187,8 +191,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should store the lifetime vault fees into the reward pool", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
@@ -204,8 +209,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should mark the lifetime vault as deposited", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const lifetimeVault =
@@ -215,8 +221,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should set the lifetime vault as rewardable", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const lifetimeVault =
@@ -227,8 +234,9 @@ describe("When creating reward pool from factory 6022", function () {
 
     it("Should take the collateral of the lifetime vault from the caller", async function () {
       const callerBalanceOfBefore = await _token6022.balanceOf(_owner.address);
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const vaultCreatedEvents = await logsToLogDescriptions(
@@ -240,8 +248,9 @@ describe("When creating reward pool from factory 6022", function () {
       const lifetimeVaultAddress = vaultCreatedEvents[0].args[0];
 
       const callerBalanceOfAfter = await _token6022.balanceOf(_owner.address);
-      const vaultBalanceOfAfter =
-        await _token6022.balanceOf(lifetimeVaultAddress);
+      const vaultBalanceOfAfter = await _token6022.balanceOf(
+        lifetimeVaultAddress
+      );
 
       const expectedFees =
         computeFeesFromCollateralWithFees(lifetimeVaultAmount);
@@ -252,8 +261,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should take the fees of the lifetime vault from the caller", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
@@ -271,8 +281,9 @@ describe("When creating reward pool from factory 6022", function () {
     });
 
     it("Should increase the reward weight for lifetime vault", async function () {
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
@@ -299,8 +310,9 @@ describe("When creating reward pool from factory 6022", function () {
       const lockedUntil = Math.floor(Date.now() / 1000) + lockedDuring;
       const wantedAmountInTheVault = ethers.parseEther("1");
 
-      const tx =
-        await _rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+      const tx = await _rewardPoolFactory6022.createRewardPool(
+        lifetimeVaultAmount
+      );
       const txReceipt = await tx.wait();
 
       const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(

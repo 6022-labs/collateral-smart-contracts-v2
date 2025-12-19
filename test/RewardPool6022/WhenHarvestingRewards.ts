@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { RewardPool6022, Token6022, Vault6022 } from "../../typechain-types";
+import { RewardPool6022, MockERC20, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   createDepositedVault,
@@ -18,7 +18,7 @@ describe("When harvesting rewards", function () {
 
   const lifetimeVaultAmount = ethers.parseEther("1");
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
 
   let _owner: HardhatEthersSigner;
@@ -32,8 +32,8 @@ describe("When harvesting rewards", function () {
     const Controller6022 = await ethers.getContractFactory("Controller6022");
     const controller6022 = await Controller6022.deploy();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );
@@ -53,8 +53,9 @@ describe("When harvesting rewards", function () {
       lifetimeVaultAmount
     );
 
-    const tx =
-      await rewardPoolFactory6022.createRewardPool(lifetimeVaultAmount);
+    const tx = await rewardPoolFactory6022.createRewardPool(
+      lifetimeVaultAmount
+    );
     const txReceipt = await tx.wait();
 
     const rewardPool6022 = await parseRewardPoolFromRewardPoolCreatedLogs(
@@ -69,8 +70,9 @@ describe("When harvesting rewards", function () {
   }
 
   beforeEach(async function () {
-    const { token6022, rewardPool6022, owner } =
-      await loadFixture(deployRewardPool);
+    const { token6022, rewardPool6022, owner } = await loadFixture(
+      deployRewardPool
+    );
 
     _owner = owner;
     _token6022 = token6022;
@@ -101,7 +103,7 @@ describe("When harvesting rewards", function () {
 
     describe("And there is no rewards to harvest", function () {
       beforeEach(async function () {
-        await time.increase(lockedDuring);
+        await time.increase(lockedDuring + 1);
       });
 
       it("Should emit 'Harvested' event", async function () {

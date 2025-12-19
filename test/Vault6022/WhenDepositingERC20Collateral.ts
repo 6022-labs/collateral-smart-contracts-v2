@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { parseVaultFromVaultCreatedLogs } from "../utils";
-import { Token6022, Vault6022 } from "../../typechain-types";
+import { MockERC20, Vault6022 } from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   time,
@@ -14,7 +14,7 @@ describe("When depositing ERC20 collateral", function () {
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
 
   let _vault6022: Vault6022;
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
 
   let _owner: HardhatEthersSigner;
   let _otherAccount: HardhatEthersSigner;
@@ -25,8 +25,8 @@ describe("When depositing ERC20 collateral", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );
@@ -79,8 +79,9 @@ describe("When depositing ERC20 collateral", function () {
   }
 
   beforeEach(async function () {
-    const { vault6022, token6022, owner, otherAccount } =
-      await loadFixture(deployVault);
+    const { vault6022, token6022, owner, otherAccount } = await loadFixture(
+      deployVault
+    );
 
     _vault6022 = vault6022;
     _token6022 = token6022;

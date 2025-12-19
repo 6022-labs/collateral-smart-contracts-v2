@@ -7,7 +7,7 @@ import {
   parseRewardPoolLifetimeVaultFromVaultCreatedLogs,
 } from "../utils";
 import {
-  Token6022,
+  MockERC20,
   RewardPool6022,
   RewardPoolLifetimeVault6022,
 } from "../../typechain-types";
@@ -21,7 +21,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
   let _owner: HardhatEthersSigner;
   let _otherAccount: HardhatEthersSigner;
 
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
   let _rewardPool6022: RewardPool6022;
   let _rewardPoolLifetimeVault: RewardPoolLifetimeVault6022;
 
@@ -31,8 +31,8 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );

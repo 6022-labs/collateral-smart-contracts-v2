@@ -3,7 +3,7 @@ import { EventLog, Log, LogDescription } from "ethers";
 import {
   RewardPool6022,
   RewardPoolLifetimeVault6022,
-  Token6022,
+  MockERC20,
   Vault6022,
 } from "../typechain-types";
 
@@ -88,7 +88,7 @@ export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
 }
 
 export async function createDepositedVault(
-  token6022: Token6022,
+  token6022: MockERC20,
   rewardPool6022: RewardPool6022,
   lockedUntil: number,
   wantedAmountInTheVault: bigint

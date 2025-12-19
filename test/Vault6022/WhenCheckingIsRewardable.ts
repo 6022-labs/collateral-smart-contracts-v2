@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { parseVaultFromVaultCreatedLogs } from "../utils";
-import { Token6022, Vault6022 } from "../../typechain-types";
+import { MockERC20, Vault6022 } from "../../typechain-types";
 import {
   loadFixture,
   reset,
@@ -15,7 +15,7 @@ describe("When checking is rewardable for vault", async function () {
   const lifetimeVaultAmount = ethers.parseEther("1");
 
   let _vault6022: Vault6022;
-  let _token6022: Token6022;
+  let _token6022: MockERC20;
 
   async function deployVault() {
     await reset();
@@ -23,8 +23,8 @@ describe("When checking is rewardable for vault", async function () {
     // Contracts are deployed using the first signer/account by default
     const [owner] = await ethers.getSigners();
 
-    const Token6022 = await ethers.getContractFactory("Token6022");
-    const token6022 = await Token6022.deploy(
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const token6022 = await MockERC20.deploy(
       await owner.getAddress(),
       ethers.parseEther("100000")
     );

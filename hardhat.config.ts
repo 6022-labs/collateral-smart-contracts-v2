@@ -24,8 +24,8 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      polygon: process?.env?.POLYGONSCAN_API_KEY ?? "",
-      polygonAmoy: process?.env?.POLYGONSCAN_API_KEY ?? "",
+      polygon: process?.env?.ETHERSCAN_API_KEY ?? "",
+      polygonAmoy: process?.env?.ETHERSCAN_API_KEY ?? "",
     },
   },
   paths: {
@@ -39,7 +39,7 @@ const config: HardhatUserConfig = {
     enabled: true,
     currency: "USD",
     outputFile: "gas-report-matic.txt",
-    coinmarketcap: process?.env?.COINMARKETCAP_API_KEY ?? "",
+    etherscan: process?.env?.ETHERSCAN_API_KEY ?? "",
     noColors: true,
     token: "POL",
   },

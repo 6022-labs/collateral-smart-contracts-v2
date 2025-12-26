@@ -3,33 +3,13 @@ pragma solidity ^0.8.28;
 
 import {BaseVault6022} from "./BaseVault6022.sol";
 import {IVault6022} from "./interfaces/IVault6022.sol";
+import {VaultOverview} from "./structs/VaultOverview.sol";
 import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
 import {ITokenOperation} from "./interfaces/ITokenOperation.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-struct VaultOverview {
-    string name;
-    address creator;
-    bool isDeposited;
-    bool isWithdrawn;
-    uint256 lockedUntil;
-    uint256 wantedAmount;
-    uint256 rewardWeight;
-    uint256 collectedRewards;
-    string wantedTokenSymbol;
-    uint256 depositTimestamp;
-    uint8 wantedTokenDecimals;
-    uint256 withdrawTimestamp;
-    uint256 creationTimestamp;
-    address rewardPoolAddress;
-    address wantedTokenAddress;
-    uint256 balanceOfWantedToken;
-    VaultStorageEnum storageType;
-    uint256 backedValueProtocolToken;
-}
 
 /**
  * @title Vault6022

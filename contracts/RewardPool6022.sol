@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Vault6022} from "./Vault6022.sol";
-import {VaultStorageEnum} from "./VaultStorageEnum.sol";
+import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
 import {IBaseVault6022} from "./interfaces/IBaseVault6022.sol";
 import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IController6022} from "./interfaces/IController6022.sol";

@@ -44,13 +44,6 @@ const config: HardhatUserConfig = {
     token: "POL",
   },
   networks: {
-    hardhat: {
-      forking: {
-        enabled: true,
-        url: process?.env?.POLYGON_MAINNET_URL ?? "",
-        blockNumber: 68690480,
-      },
-    },
     polygon: {
       gas: "auto",
       chainId: 137,

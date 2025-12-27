@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IBaseVault6022} from "./interfaces/IBaseVault6022.sol";
-import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
+import {IBaseVault6022} from "./interfaces/IBaseVault6022/IBaseVault6022.sol";
 
 /**
  * @title Base Vault 6022
@@ -21,14 +20,14 @@ abstract contract BaseVault6022 is IBaseVault6022 {
     uint256 public wantedAmount;
 
     /// @notice Reward pool
-    IRewardPool6022 public rewardPool;
+    address public rewardPool;
 
     constructor(address _rewardPool, uint256 _wantedAmount) {
         isDeposited = false;
         isWithdrawn = false;
 
+        rewardPool = _rewardPool;
         wantedAmount = _wantedAmount;
-        rewardPool = IRewardPool6022(_rewardPool);
     }
 
     // ----------------- MODIFIERS ----------------- //

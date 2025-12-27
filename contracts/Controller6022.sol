@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IController6022} from "./interfaces/IController6022.sol";
-import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+
+import {IController6022} from "./interfaces/IController6022/IController6022.sol";
+import {IRewardPool6022States} from "./interfaces/IRewardPool6022/IRewardPool6022States.sol";
 
 /**
  * @title Controller 6022
@@ -113,7 +114,7 @@ contract Controller6022 is AccessControl, IController6022 {
         uint256 counter = 0;
 
         for (uint256 i = 0; i < allRewardPools.length; i++) {
-            IRewardPool6022 rewardPool = IRewardPool6022(allRewardPools[i]);
+            IRewardPool6022States rewardPool = IRewardPool6022States(allRewardPools[i]);
             if (rewardPool.creator() == creator) {
                 counter++;
             }
@@ -123,7 +124,7 @@ contract Controller6022 is AccessControl, IController6022 {
         uint256 index = 0;
 
         for (uint256 i = 0; i < allRewardPools.length; i++) {
-            IRewardPool6022 rewardPool = IRewardPool6022(allRewardPools[i]);
+            IRewardPool6022States rewardPool = IRewardPool6022States(allRewardPools[i]);
             if (rewardPool.creator() == creator) {
                 creatorRewardPool[index] = allRewardPools[i];
                 index++;

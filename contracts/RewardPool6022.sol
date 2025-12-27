@@ -3,12 +3,13 @@ pragma solidity ^0.8.28;
 
 import {Vault6022} from "./Vault6022.sol";
 import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
-import {IBaseVault6022} from "./interfaces/IBaseVault6022.sol";
-import {IRewardPool6022} from "./interfaces/IRewardPool6022.sol";
-import {IController6022} from "./interfaces/IController6022.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {RewardPoolLifetimeVault6022} from "./RewardPoolLifetimeVault6022.sol";
+import {IRewardPool6022} from "./interfaces/IRewardPool6022/IRewardPool6022.sol";
+import {IBaseVault6022States} from "./interfaces/IBaseVault6022/IBaseVault6022States.sol";
+import {IController6022RewardPoolActions} from "./interfaces/IController6022/IController6022RewardPoolActions.sol";
 
 /**
  * @title Reward Pool
@@ -29,7 +30,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     IERC20 public protocolToken;
 
     /// @notice Controller 6022
-    IController6022 public controller;
+    address public controller;
 
     /// @notice Lifetime vault that will act as default fee collector and serve as reward pool state.
     RewardPoolLifetimeVault6022 public lifetimeVault;
@@ -84,7 +85,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         address _protocolTokenAddress
     ) Ownable(_owner) {
         protocolToken = IERC20(_protocolTokenAddress);
-        controller = IController6022(_controllerAddress);
+        controller = _controllerAddress;
     }
 
     // ----------------- MODIFIERS ----------------- //
@@ -240,7 +241,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         isVault[address(vault)] = true;
         vaultsRewardWeight[address(vault)] += _protocolTokenFees;
 
-        controller.pushVault(address(vault));
+        IController6022RewardPoolActions(controller).pushVault(address(vault));
 
         emit VaultCreated(address(vault));
     }
@@ -275,7 +276,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         uint256 count = 0;
 
         for (uint i = 0; i < allVaults.length; i++) {
-            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
+            IBaseVault6022States vault = IBaseVault6022States(allVaults[i]);
             if (vault.isRewardable()) {
                 count++;
             }
@@ -325,7 +326,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
         uint256 totalRewardableRewardWeight = 0;
 
         for (uint i = 0; i < allVaults.length; i++) {
-            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
+            IBaseVault6022States vault = IBaseVault6022States(allVaults[i]);
             if (vault.isRewardable()) {
                 totalRewardableRewardWeight += vaultsRewardWeight[
                     address(vault)
@@ -343,7 +344,7 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
 
         uint256 index = 0;
         for (uint i = 0; i < allVaults.length; i++) {
-            IBaseVault6022 vault = IBaseVault6022(allVaults[i]);
+            IBaseVault6022States vault = IBaseVault6022States(allVaults[i]);
             if (vault.isRewardable()) {
                 rewardableVaults[index] = address(vault);
                 index++;

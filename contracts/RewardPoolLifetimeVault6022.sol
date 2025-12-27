@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {BaseVault6022} from "./BaseVault6022.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import {BaseVault6022} from "./BaseVault6022.sol";
+import {IRewardPool6022States} from "./interfaces/IRewardPool6022/IRewardPool6022States.sol";
+import {IRewardPool6022VaultActions} from "./interfaces/IRewardPool6022/IRewardPool6022VaultActions.sol";
 
 /**
  * @title Reward Pool Lifetime Vault
@@ -36,7 +39,7 @@ contract RewardPoolLifetimeVault6022 is Ownable, BaseVault6022 {
     // ----------------- MODIFIERS ----------------- //
     modifier onlyWhenLastVaultInPool() {
         // Check if there is only one rewardable vault left (this one, because of onlyWhenNotWithdrawn)
-        if (rewardPool.countRewardableVaults() != 1)
+        if (IRewardPool6022States(rewardPool).countRewardableVaults() != 1)
             revert RemainingRewardableVaults();
         _;
     }
@@ -66,7 +69,7 @@ contract RewardPoolLifetimeVault6022 is Ownable, BaseVault6022 {
     {
         protocolToken.transfer(_msgSender(), wantedAmount);
 
-        rewardPool.harvestRewards(_msgSender());
+        IRewardPool6022VaultActions(rewardPool).harvestRewards(_msgSender());
 
         isWithdrawn = true;
         emit Withdrawn(_msgSender(), wantedAmount);

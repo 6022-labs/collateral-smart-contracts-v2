@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {BaseVault6022} from "./BaseVault6022.sol";
-import {IVault6022} from "./interfaces/IVault6022.sol";
-import {VaultOverview} from "./structs/VaultOverview.sol";
-import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
-import {ITokenOperation} from "./interfaces/ITokenOperation.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+import {BaseVault6022} from "./BaseVault6022.sol";
+import {VaultOverview} from "./structs/VaultOverview.sol";
+import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
+import {ITokenOperation} from "./interfaces/ITokenOperation.sol";
+import {IVault6022} from "./interfaces/IVault6022/IVault6022.sol";
+import {IRewardPool6022States} from "./interfaces/IRewardPool6022/IRewardPool6022States.sol";
+import {IRewardPool6022VaultActions} from "./interfaces/IRewardPool6022/IRewardPool6022VaultActions.sol";
 
 /**
  * @title Vault6022
@@ -126,9 +129,9 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
         withdrawTimestamp = block.timestamp;
 
         if (requiredNFTs == WITHDRAW_NFTS_LATE) {
-            rewardPool.harvestRewards(msg.sender);
+            IRewardPool6022VaultActions(rewardPool).harvestRewards(msg.sender);
         } else {
-            rewardPool.reinvestRewards();
+            IRewardPool6022VaultActions(rewardPool).reinvestRewards();
         }
     }
 
@@ -168,6 +171,9 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
         }
 
         ITokenOperation wantedToken = ITokenOperation(wantedTokenAddress);
+        IRewardPool6022States rewardPoolStates = IRewardPool6022States(
+            rewardPool
+        );
 
         return
             VaultOverview({
@@ -185,12 +191,12 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
                 rewardPoolAddress: address(rewardPool),
                 wantedTokenAddress: wantedTokenAddress,
                 wantedTokenDecimals: wantedTokenDecimals,
-                rewardWeight: rewardPool.vaultsRewardWeight(address(this)),
+                rewardWeight: rewardPoolStates.vaultsRewardWeight(address(this)),
                 balanceOfWantedToken: wantedToken.balanceOf(address(this)),
-                collectedRewards: rewardPool.collectedRewards(address(this)),
-                backedValueProtocolToken: (rewardPool.vaultsRewardWeight(
+                collectedRewards: rewardPoolStates.collectedRewards(address(this)),
+                backedValueProtocolToken: (rewardPoolStates.vaultsRewardWeight(
                     address(this)
-                ) * 100) / rewardPool.FEES_PERCENT()
+                ) * 100) / rewardPoolStates.FEES_PERCENT()
             });
     }
 }

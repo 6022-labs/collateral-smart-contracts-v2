@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-interface IController6022 {
-    function pushVault(address _vault) external;
-
-    function pushRewardPool(address _rewardPool) external;
-
+interface IController6022States {
     function allVaultsLength() external view returns (uint);
 
     function allVaults(uint) external view returns (address);
@@ -13,8 +9,4 @@ interface IController6022 {
     function allRewardPoolsLength() external view returns (uint);
 
     function allRewardPools(uint) external view returns (address);
-
-    function getRewardPoolsByCreator(
-        address
-    ) external view returns (address[] memory);
 }

@@ -48,16 +48,6 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
     /// @notice Indicate if the 'wantedTokenAddress' is a ERC20 or ERC721 token
     VaultStorageEnum public storageType;
 
-    // ----------------- ERRORS ----------------- //
-    /// @dev Error when user tries to deposit after the lockedUntil timestamp
-    error TooLateToDeposit();
-
-    /// @dev Error when trying to deposit without enough NFTs
-    error NotEnoughNFTToDeposit();
-
-    /// @dev Error when trying to withdraw without enough NFTs
-    error NotEnoughNFTToWithdraw();
-
     constructor(
         address _creator,
         string memory _name,

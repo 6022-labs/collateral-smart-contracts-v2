@@ -3,9 +3,9 @@ import { ethers } from "hardhat";
 import { parseRewardPoolLifetimeVaultFromVaultCreatedLogs } from "../utils";
 import { loadFixture, reset } from "@nomicfoundation/hardhat-network-helpers";
 import {
+  MockERC20,
   RewardPool6022,
   RewardPoolLifetimeVault6022,
-  MockERC20,
 } from "../../typechain-types";
 
 describe("When checking is rewardable for reward pool lifetime vault", async function () {

@@ -122,7 +122,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
 
     describe("But collateral is already withdrawn", async function () {
       beforeEach(async function () {
-        _rewardPoolLifetimeVault.withdraw();
+        await _rewardPoolLifetimeVault.withdraw();
       });
 
       it("Should revert with 'AlreadyWithdrawn' error", async function () {
@@ -177,19 +177,19 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
             ethers.parseEther("1")
           );
 
-          vault.withdraw();
+          await vault.withdraw();
         }
       });
 
       it("Should emit 'Withdrawn' event", async function () {
-        expect(await _rewardPoolLifetimeVault.withdraw()).to.emit(
+        await expect(_rewardPoolLifetimeVault.withdraw()).to.emit(
           _rewardPoolLifetimeVault,
           "Withdrawn"
         );
       });
 
       it("Should emit 'Harvested' event", async function () {
-        expect(await _rewardPoolLifetimeVault.withdraw()).to.emit(
+        await expect(_rewardPoolLifetimeVault.withdraw()).to.emit(
           _rewardPool6022,
           "Harvested"
         );

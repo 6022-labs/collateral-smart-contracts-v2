@@ -30,29 +30,6 @@ contract Controller6022 is AccessControl, IController6022 {
     /// @notice Mapping of all reward pools
     mapping(address => bool) public isRewardPool;
 
-    // ----------------- EVENTS ----------------- //
-    /// @dev Emitted when a vault is pushed
-    event VaultPushed(address vault);
-
-    /// @dev Emitted when a admin is added
-    event AdminAdded(address account);
-
-    /// @dev Emitted when a admin is removed
-    event AdminRemoved(address account);
-
-    /// @dev Emitted when a factory is added
-    event FactoryAdded(address account);
-
-    /// @dev Emitted when a factory is removed
-    event FactoryRemoved(address account);
-
-    /// @dev Emitted when a reward pool is pushed
-    event RewardPoolPushed(address rewardPool);
-
-    // ----------------- ERRORS ----------------- //
-    /// @dev Error when the caller is not a reward pool
-    error NotRewardPool();
-
     constructor() {
         _grantRole(ADMIN_ROLE, msg.sender);
         emit AdminAdded(msg.sender);

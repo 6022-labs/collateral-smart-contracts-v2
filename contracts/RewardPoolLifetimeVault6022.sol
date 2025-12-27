@@ -7,6 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseVault6022} from "./BaseVault6022.sol";
 import {IRewardPool6022States} from "./interfaces/IRewardPool6022/IRewardPool6022States.sol";
 import {IRewardPool6022VaultActions} from "./interfaces/IRewardPool6022/IRewardPool6022VaultActions.sol";
+import {IRewardPoolLifetimeVault6022} from "./interfaces/IRewardPoolLifetimeVault6022/IRewardPoolLifetimeVault6022.sol";
 
 /**
  * @title Reward Pool Lifetime Vault
@@ -15,14 +16,10 @@ import {IRewardPool6022VaultActions} from "./interfaces/IRewardPool6022/IRewardP
  * It will be used as a default vault for the rewards in case there is no rewardable vault in the pool.
  * The collateral and the rewards for this contract are owned by the creator of the reward pool.
  */
-contract RewardPoolLifetimeVault6022 is Ownable, BaseVault6022 {
+contract RewardPoolLifetimeVault6022 is Ownable, BaseVault6022, IRewardPoolLifetimeVault6022 {
     // ----------------- VARIABLES ----------------- //
     /// @notice Contract of the protocol token
     IERC20 public protocolToken;
-
-    // ----------------- ERRORS ----------------- //
-    /// @dev Thrown when there is still remaining rewardable vaults while trying to close the pool
-    error RemainingRewardableVaults();
 
     constructor(
         address _owner,

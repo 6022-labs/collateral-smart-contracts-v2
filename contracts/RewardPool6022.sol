@@ -44,41 +44,6 @@ contract RewardPool6022 is Ownable, IRewardPool6022 {
     /// @notice Mapping of all vault weight in the reward mechanism
     mapping(address => uint256) public vaultsRewardWeight;
 
-    // ----------------- EVENTS ----------------- //
-    /// @dev Emitted when a vault rewards are harvested
-    event Harvested(address vault, uint256 value);
-
-    /// @dev Emitted when a vault rewards are reinvested
-    event Reinvested(address vault, uint256 value);
-
-    /// @dev Emitted when a vault is pushed
-    event VaultCreated(address vault);
-
-    /// @dev Emitted when dust is collected
-    event DustCollected(uint256 amount);
-
-    // ----------------- ERRORS ----------------- //
-    /// @dev Thrown when caller is not a vault from this reward pool
-    error CallerNotVault();
-
-    /// @dev Thrown when the lifetime vault is already created
-    error LifeTimeVaultAlreadyExist();
-
-    /// @dev Thrown when the lifetime vault is not created
-    error LifeTimeVaultDoesNotExist();
-
-    /// @dev Thrown when the lifetime vault is not rewardable
-    error LifeTimeVaultIsNotRewardable();
-
-    /// @dev Thrown when the lifetime vault is rewardable
-    error LifeTimeVaultIsRewardable();
-
-    /// @dev Thrown when their is no dust to collect
-    error NoDustToCollect();
-
-    /// @dev Thrown when the given locked until is too short compared to block.timestamp
-    error LockedUntilTooShort();
-
     constructor(
         address _owner,
         address _controllerAddress,

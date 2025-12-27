@@ -14,7 +14,4 @@ interface IRewardPool6022 is
     IRewardPool6022Actions,
     IRewardPool6022VaultActions
 {
-    function reinvestRewards() external;
-
-    function harvestRewards(address to) external;
 }

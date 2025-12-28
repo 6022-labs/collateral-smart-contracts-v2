@@ -9,4 +9,6 @@ interface IController6022ModeratorActions {
     function addAdmin(address) external;
 
     function removeAdmin(address) external;
+
+    function updateVaultDescriptor(address) external;
 }

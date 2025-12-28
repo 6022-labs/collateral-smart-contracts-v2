@@ -27,6 +27,8 @@ contract Controller6022 is AccessControl, IController6022 {
     /// @notice List of all reward pools
     address[] public allRewardPools;
 
+    address public vaultDescriptor;
+
     /// @notice Mapping of all reward pools
     mapping(address => bool) public isRewardPool;
 
@@ -63,6 +65,13 @@ contract Controller6022 is AccessControl, IController6022 {
         allRewardPools.push(_rewardPool);
         isRewardPool[_rewardPool] = true;
         emit RewardPoolPushed(_rewardPool);
+    }
+
+    function updateVaultDescriptor(
+        address _vaultDescriptor
+    ) external onlyRole(ADMIN_ROLE) {
+        vaultDescriptor = _vaultDescriptor;
+        emit VaultDescriptorUpdated(_vaultDescriptor);
     }
 
     function addFactory(address account) external onlyRole(ADMIN_ROLE) {

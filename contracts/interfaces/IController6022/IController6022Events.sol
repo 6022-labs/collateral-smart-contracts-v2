@@ -19,4 +19,7 @@ interface IController6022Events {
 
     /// @dev Emitted when a reward pool is pushed
     event RewardPoolPushed(address rewardPool);
+
+    /// @dev Emitted when the vault descriptor is updated
+    event VaultDescriptorUpdated(address vaultDescriptor);
 }

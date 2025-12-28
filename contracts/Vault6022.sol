@@ -11,6 +11,8 @@ import {VaultOverview} from "./structs/VaultOverview.sol";
 import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
 import {ITokenOperation} from "./interfaces/ITokenOperation.sol";
 import {IVault6022} from "./interfaces/IVault6022/IVault6022.sol";
+import {IVaultDescriptor6022} from "./interfaces/IVaultDescriptor6022.sol";
+import {IController6022States} from "./interfaces/IController6022/IController6022States.sol";
 import {IRewardPool6022States} from "./interfaces/IRewardPool6022/IRewardPool6022States.sol";
 import {IRewardPool6022VaultActions} from "./interfaces/IRewardPool6022/IRewardPool6022VaultActions.sol";
 
@@ -188,5 +190,24 @@ contract Vault6022 is ERC721, BaseVault6022, ReentrancyGuard, IVault6022 {
                     address(this)
                 ) * 100) / rewardPoolStates.FEES_PERCENT()
             });
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        _requireOwned(tokenId);
+
+        address controllerAddress = IRewardPool6022States(rewardPool)
+            .controller();
+        address vaultDescriptorAddress = IController6022States(controllerAddress)
+            .vaultDescriptor();
+
+        return IVaultDescriptor6022(vaultDescriptorAddress).buildTokenURI(
+            address(this),
+            tokenId
+        );
     }
 }

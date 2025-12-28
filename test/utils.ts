@@ -153,3 +153,12 @@ export async function getRewardableVaults(rewardPool: RewardPool6022) {
 
   return rewardableVaults;
 }
+
+export function decodeTokenURI(tokenURI: string) {
+  const decoded = Buffer.from(
+    tokenURI.replace("data:application/json;base64,", ""),
+    "base64"
+  ).toString("utf-8");
+
+  return JSON.parse(decoded);
+}

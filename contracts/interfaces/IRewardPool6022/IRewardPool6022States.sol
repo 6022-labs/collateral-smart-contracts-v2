@@ -4,6 +4,8 @@ pragma solidity ^0.8.28;
 interface IRewardPool6022States {
     function creator() external view returns (address);
 
+    function controller() external view returns (address);
+
     function FEES_PERCENT() external view returns (uint8);
 
     function allVaultsLength() external view returns (uint);

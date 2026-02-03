@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
 import { EventLog, Log, LogDescription } from "ethers";
 import {
-  RewardPool6022,
-  RewardPoolLifetimeVault6022,
+  RewardPool,
+  RewardPoolLifetimeVault,
   MockERC20,
-  Vault6022,
+  Vault,
 } from "../typechain-types";
 
 const PROTOCOL_FEES = BigInt(2);
@@ -47,12 +47,12 @@ export async function parseVaultFromVaultCreatedLogs(logs: (EventLog | Log)[]) {
   const vaultCreatedLogs = await logsToLogDescriptions(
     logs,
     "VaultCreated(address)",
-    "RewardPool6022"
+    "RewardPool"
   );
 
   const vaultAddress = vaultCreatedLogs[0].args[0];
-  const Vault6022 = await ethers.getContractFactory("Vault6022");
-  return Vault6022.attach(vaultAddress) as Vault6022;
+  const Vault = await ethers.getContractFactory("Vault");
+  return Vault.attach(vaultAddress) as Vault;
 }
 
 export async function parseRewardPoolFromRewardPoolCreatedLogs(
@@ -61,12 +61,12 @@ export async function parseRewardPoolFromRewardPoolCreatedLogs(
   const rewardPoolCreatedLogs = await logsToLogDescriptions(
     logs,
     "RewardPoolCreated(address)",
-    "RewardPoolFactory6022"
+    "RewardPoolFactory"
   );
 
   const rewardPoolAddress = rewardPoolCreatedLogs[0].args[0];
-  const RewardPool6022 = await ethers.getContractFactory("RewardPool6022");
-  return RewardPool6022.attach(rewardPoolAddress) as RewardPool6022;
+  const RewardPool = await ethers.getContractFactory("RewardPool");
+  return RewardPool.attach(rewardPoolAddress) as RewardPool;
 }
 
 export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
@@ -75,49 +75,49 @@ export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
   const vaultCreatedLogs = await logsToLogDescriptions(
     logs,
     "VaultCreated(address)",
-    "RewardPool6022"
+    "RewardPool"
   );
 
   const lifetimeVaultAddress = vaultCreatedLogs[0].args[0];
-  const RewardPoolLifetimeVault6022 = await ethers.getContractFactory(
-    "RewardPoolLifetimeVault6022"
+  const RewardPoolLifetimeVault = await ethers.getContractFactory(
+    "RewardPoolLifetimeVault"
   );
-  return RewardPoolLifetimeVault6022.attach(
+  return RewardPoolLifetimeVault.attach(
     lifetimeVaultAddress
-  ) as RewardPoolLifetimeVault6022;
+  ) as RewardPoolLifetimeVault;
 }
 
 export async function createDepositedVault(
-  token6022: MockERC20,
-  rewardPool6022: RewardPool6022,
+  token: MockERC20,
+  rewardPool: RewardPool,
   lockedUntil: number,
   wantedAmountInTheVault: bigint
 ) {
   // Just approve a lot of tokens to pay vault creation fees
-  await token6022.approve(
-    await rewardPool6022.getAddress(),
+  await token.approve(
+    await rewardPool.getAddress(),
     wantedAmountInTheVault
   );
 
-  const tx = await rewardPool6022.createVault(
+  const tx = await rewardPool.createVault(
     "TestVault",
     lockedUntil,
     wantedAmountInTheVault,
-    await token6022.getAddress(),
+    await token.getAddress(),
     BigInt(0),
     wantedAmountInTheVault
   );
   const txReceipt = await tx.wait();
 
   const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
-  await token6022.approve(await vault.getAddress(), await vault.wantedAmount());
+  await token.approve(await vault.getAddress(), await vault.wantedAmount());
   await vault.deposit();
 
   return vault;
 }
 
 export async function rewardPoolTotalCollectedRewards(
-  rewardPool: RewardPool6022
+  rewardPool: RewardPool
 ) {
   let totalCollectedRewards = BigInt(0);
   const allVaultsLength = await rewardPool.allVaultsLength();
@@ -130,17 +130,17 @@ export async function rewardPoolTotalCollectedRewards(
   return totalCollectedRewards;
 }
 
-export async function getRewardableVaults(rewardPool: RewardPool6022) {
+export async function getRewardableVaults(rewardPool: RewardPool) {
   let rewardableVaults = [];
   let index = 0;
 
   let currentVault: string;
 
-  const Vault6022 = await ethers.getContractFactory("Vault6022");
+  const Vault = await ethers.getContractFactory("Vault");
 
   try {
     while ((currentVault = await rewardPool.allVaults(index))) {
-      let vault = Vault6022.attach(currentVault) as Vault6022;
+      let vault = Vault.attach(currentVault) as Vault;
 
       if (await vault.isRewardable()) {
         rewardableVaults.push(currentVault);

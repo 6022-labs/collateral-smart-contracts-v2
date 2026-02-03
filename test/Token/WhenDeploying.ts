@@ -20,10 +20,7 @@ describe("When deploying token 6022", function () {
     const [owner] = await ethers.getSigners();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
-    const token = await MockERC20.deploy(
-      await owner.getAddress(),
-      totalSupply
-    );
+    const token = await MockERC20.deploy(await owner.getAddress(), totalSupply);
 
     return { token, owner };
   }

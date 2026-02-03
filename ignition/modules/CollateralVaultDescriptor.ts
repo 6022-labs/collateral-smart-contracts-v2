@@ -4,7 +4,10 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const VaultDescriptorModule = buildModule("CollateralVaultDescriptor", (m) => {
-  const CollateralVaultDescriptor = m.contract("CollateralVaultDescriptor");
+  const ipfsGateway = m.getParameter("ipfsGateway", "ipfs://");
+  const CollateralVaultDescriptor = m.contract("CollateralVaultDescriptor", [
+    ipfsGateway,
+  ]);
 
   return { CollateralVaultDescriptor };
 });

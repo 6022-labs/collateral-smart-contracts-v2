@@ -34,19 +34,23 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     // Didn't deploy the CollateralRewardPoolFactory
     // In order to test the deposit (CollateralRewardPoolFactory directly calls the deposit method)
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -54,10 +58,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
     await controller.removeFactory(await owner.getAddress());
 
     // Create the lifetime vault using the CollateralRewardPool
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
 
     const tx = await rewardPool.createLifetimeVault(lifetimeVaultAmount);
     const txReceipt = await tx.wait();
@@ -76,13 +77,8 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
   }
 
   beforeEach(async function () {
-    const {
-      owner,
-      token,
-      otherAccount,
-      rewardPool,
-      rewardPoolLifetimeVault,
-    } = await loadFixture(deployRewardPoolLifetimeVault);
+    const { owner, token, otherAccount, rewardPool, rewardPoolLifetimeVault } =
+      await loadFixture(deployRewardPoolLifetimeVault);
 
     _owner = owner;
     _token = token;
@@ -94,10 +90,10 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
   describe("Given caller is not the owner", async function () {
     it("Should revert with 'OwnableUnauthorizedAccount' error", async function () {
       await expect(
-        _rewardPoolLifetimeVault.connect(_otherAccount).withdraw()
+        _rewardPoolLifetimeVault.connect(_otherAccount).withdraw(),
       ).to.be.revertedWithCustomError(
         _rewardPoolLifetimeVault,
-        "OwnableUnauthorizedAccount"
+        "OwnableUnauthorizedAccount",
       );
     });
   });
@@ -105,7 +101,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
   describe("Given collateral is not deposited", async function () {
     it("Should revert with 'NotDeposited' error", async function () {
       await expect(
-        _rewardPoolLifetimeVault.withdraw()
+        _rewardPoolLifetimeVault.withdraw(),
       ).to.be.revertedWithCustomError(_rewardPoolLifetimeVault, "NotDeposited");
     });
   });
@@ -114,7 +110,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
 
       await _rewardPool.depositToLifetimeVault();
@@ -127,10 +123,10 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
 
       it("Should revert with 'AlreadyWithdrawn' error", async function () {
         await expect(
-          _rewardPoolLifetimeVault.withdraw()
+          _rewardPoolLifetimeVault.withdraw(),
         ).to.be.revertedWithCustomError(
           _rewardPoolLifetimeVault,
-          "AlreadyWithdrawn"
+          "AlreadyWithdrawn",
         );
       });
     });
@@ -144,16 +140,16 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
           _token,
           _rewardPool,
           lockedUntil,
-          wantedAmountInTheVault
+          wantedAmountInTheVault,
         );
       });
 
       it("Should revert with 'RemainingRewardableVaults' error", async function () {
         await expect(
-          _rewardPoolLifetimeVault.withdraw()
+          _rewardPoolLifetimeVault.withdraw(),
         ).to.be.revertedWithCustomError(
           _rewardPoolLifetimeVault,
-          "RemainingRewardableVaults"
+          "RemainingRewardableVaults",
         );
       });
     });
@@ -165,7 +161,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
 
         await _token.approve(
           await _rewardPool.getAddress(),
-          ethers.parseEther("100")
+          ethers.parseEther("100"),
         );
 
         // Just create some withdrawn vaults
@@ -174,7 +170,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
             _token,
             _rewardPool,
             lockedUntil,
-            ethers.parseEther("1")
+            ethers.parseEther("1"),
           );
 
           await vault.withdraw();
@@ -184,25 +180,24 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
       it("Should emit 'Withdrawn' event", async function () {
         await expect(_rewardPoolLifetimeVault.withdraw()).to.emit(
           _rewardPoolLifetimeVault,
-          "Withdrawn"
+          "Withdrawn",
         );
       });
 
       it("Should emit 'Harvested' event", async function () {
         await expect(_rewardPoolLifetimeVault.withdraw()).to.emit(
           _rewardPool,
-          "Harvested"
+          "Harvested",
         );
       });
 
       it("Should send the collateral and collected rewards to the caller", async function () {
         const balanceOfVaultBefore = await _token.balanceOf(
-          await _rewardPoolLifetimeVault.getAddress()
+          await _rewardPoolLifetimeVault.getAddress(),
         );
-        const rewardsOfLifetimeVaultBefore =
-          await _rewardPool.collectedRewards(
-            await _rewardPoolLifetimeVault.getAddress()
-          );
+        const rewardsOfLifetimeVaultBefore = await _rewardPool.collectedRewards(
+          await _rewardPoolLifetimeVault.getAddress(),
+        );
 
         const balanceCallerBefore = await _token.balanceOf(_owner.address);
         await _rewardPoolLifetimeVault.withdraw();
@@ -211,7 +206,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
         expect(balanceCallerAfter).to.be.equal(
           balanceOfVaultBefore +
             balanceCallerBefore +
-            rewardsOfLifetimeVaultBefore
+            rewardsOfLifetimeVaultBefore,
         );
       });
 
@@ -219,9 +214,7 @@ describe("When withdrawing collateral from reward pool lifetime vault", async fu
         await _rewardPoolLifetimeVault.withdraw();
 
         expect(
-          await _token.balanceOf(
-            await _rewardPoolLifetimeVault.getAddress()
-          )
+          await _token.balanceOf(await _rewardPoolLifetimeVault.getAddress()),
         ).to.be.equal(BigInt(0));
       });
 

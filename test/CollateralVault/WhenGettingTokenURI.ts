@@ -11,6 +11,8 @@ import {
 describe("When getting token URI for vault", async function () {
   const lockIn = 60 * 60 * 24 * 30 * 6; // 6 months
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
+  const ipfsGateway = "https://ipfs.io/ipfs/";
+  const image = "vault-image.png";
 
   const lifetimeVaultAmount = ethers.parseEther("1");
 
@@ -27,17 +29,21 @@ describe("When getting token URI for vault", async function () {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -45,34 +51,29 @@ describe("When getting token URI for vault", async function () {
     await controller.removeFactory(await owner.getAddress());
 
     const CollateralVaultDescriptor = await ethers.getContractFactory(
-      "CollateralVaultDescriptor"
+      "CollateralVaultDescriptor",
     );
-    const vaultDescriptor = await CollateralVaultDescriptor.deploy();
+    const vaultDescriptor = await CollateralVaultDescriptor.deploy(ipfsGateway);
 
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
     await rewardPool.createLifetimeVault(lifetimeVaultAmount);
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
     await rewardPool.depositToLifetimeVault();
 
     const tx = await rewardPool.createVault(
       "CollateralVault",
+      image,
       lockUntil,
       ethers.parseEther("10"),
       await token.getAddress(),
       BigInt(0),
-      ethers.parseEther("10")
+      ethers.parseEther("10"),
     );
     const txReceipt = await tx.wait();
 
@@ -86,8 +87,9 @@ describe("When getting token URI for vault", async function () {
   }
 
   beforeEach(async function () {
-    const { vault, controller, vaultDescriptor } =
-      await loadFixture(deployVault);
+    const { vault, controller, vaultDescriptor } = await loadFixture(
+      deployVault,
+    );
 
     _vault = vault;
     _controller = controller;
@@ -103,7 +105,7 @@ describe("When getting token URI for vault", async function () {
   describe("And a vault descriptor is set", async function () {
     beforeEach(async function () {
       await _controller.updateVaultDescriptor(
-        await _vaultDescriptor.getAddress()
+        await _vaultDescriptor.getAddress(),
       );
     });
 
@@ -111,9 +113,10 @@ describe("When getting token URI for vault", async function () {
       let _tokenId = 4;
 
       it("Should revert", async function () {
-        await expect(
-          _vault.tokenURI(_tokenId)
-        ).to.be.revertedWithCustomError(_vault, "ERC721NonexistentToken");
+        await expect(_vault.tokenURI(_tokenId)).to.be.revertedWithCustomError(
+          _vault,
+          "ERC721NonexistentToken",
+        );
       });
     });
 

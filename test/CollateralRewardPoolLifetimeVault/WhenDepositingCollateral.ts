@@ -31,19 +31,23 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     // Didn't deploy the CollateralRewardPoolFactory
     // In order to test the deposit (CollateralRewardPoolFactory directly calls the deposit method)
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -79,10 +83,10 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
   describe("Given caller is not the reward pool", async function () {
     it("Should revert with 'OwnableUnauthorizedAccount' error", async function () {
       await expect(
-        _rewardPoolLifetimeVault.deposit()
+        _rewardPoolLifetimeVault.deposit(),
       ).to.be.revertedWithCustomError(
         _rewardPoolLifetimeVault,
-        "OwnableUnauthorizedAccount"
+        "OwnableUnauthorizedAccount",
       );
     });
   });
@@ -90,7 +94,7 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
   describe("Given reward pool didn't has the funds to deposit", async function () {
     it("Should revert with 'ERC20InsufficientBalance' error", async function () {
       await expect(
-        _rewardPool.depositToLifetimeVault()
+        _rewardPool.depositToLifetimeVault(),
       ).to.be.revertedWithCustomError(_token, "ERC20InsufficientBalance");
     });
   });
@@ -99,7 +103,7 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
 
       await _rewardPool.depositToLifetimeVault();
@@ -107,10 +111,10 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
 
     it("Should revert with 'AlreadyDeposited' error", async function () {
       await expect(
-        _rewardPool.depositToLifetimeVault()
+        _rewardPool.depositToLifetimeVault(),
       ).to.be.revertedWithCustomError(
         _rewardPoolLifetimeVault,
-        "AlreadyDeposited"
+        "AlreadyDeposited",
       );
     });
   });
@@ -119,7 +123,7 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
     });
 
@@ -129,7 +133,7 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
 
       const depositedEvents = findEventFromLogs(
         txReceipt!.logs,
-        "Deposited(address,uint256)"
+        "Deposited(address,uint256)",
       );
 
       expect(depositedEvents.length).to.equal(1);
@@ -154,25 +158,25 @@ describe("When depositing collateral into reward pool lifetime vault", async fun
         computeFeesFromCollateralWithFees(lifetimeVaultAmount);
 
       expect(
-        await _token.balanceOf(await _rewardPoolLifetimeVault.getAddress())
+        await _token.balanceOf(await _rewardPoolLifetimeVault.getAddress()),
       ).to.equal(lifetimeVaultAmount - expectedFees);
     });
 
     it("Should take the collateral from the reward pool", async function () {
       const rewardPoolBalanceOfBefore = await _token.balanceOf(
-        await _rewardPool.getAddress()
+        await _rewardPool.getAddress(),
       );
       await _rewardPool.depositToLifetimeVault();
       const rewardPoolBalanceOfAfter = await _token.balanceOf(
-        await _rewardPool.getAddress()
+        await _rewardPool.getAddress(),
       );
 
       const lifetimeVaultBalanceOfAfter = await _token.balanceOf(
-        await _rewardPoolLifetimeVault.getAddress()
+        await _rewardPoolLifetimeVault.getAddress(),
       );
 
       expect(lifetimeVaultBalanceOfAfter).to.be.equal(
-        rewardPoolBalanceOfBefore - rewardPoolBalanceOfAfter
+        rewardPoolBalanceOfBefore - rewardPoolBalanceOfAfter,
       );
     });
   });

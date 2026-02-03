@@ -36,22 +36,26 @@ describe("When collecting dust from reward pool", async function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     // Deploy directly a CollateralRewardPool instead of using a CollateralRewardPoolFactory
     // To be able to test more case (CollateralRewardPoolFactory automatically create the lifetime vault...)
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -62,8 +66,9 @@ describe("When collecting dust from reward pool", async function () {
   }
 
   beforeEach(async function () {
-    const { token, rewardPool, owner, otherAccount } =
-      await loadFixture(deployRewardPool);
+    const { token, rewardPool, owner, otherAccount } = await loadFixture(
+      deployRewardPool,
+    );
 
     _token = token;
     _rewardPool = rewardPool;
@@ -75,10 +80,10 @@ describe("When collecting dust from reward pool", async function () {
   describe("Given caller is not the owner", function () {
     it("Should revert with 'OwnableUnauthorizedAccount' error", async function () {
       await expect(
-        _rewardPool.connect(_otherAccount).collectDust()
+        _rewardPool.connect(_otherAccount).collectDust(),
       ).to.be.revertedWithCustomError(
         _rewardPool,
-        "OwnableUnauthorizedAccount"
+        "OwnableUnauthorizedAccount",
       );
     });
   });
@@ -87,7 +92,7 @@ describe("When collecting dust from reward pool", async function () {
     it("Should revert with 'LifeTimeVaultDoesNotExist' error", async function () {
       await expect(_rewardPool.collectDust()).to.be.revertedWithCustomError(
         _rewardPool,
-        "LifeTimeVaultDoesNotExist"
+        "LifeTimeVaultDoesNotExist",
       );
     });
   });
@@ -97,7 +102,7 @@ describe("When collecting dust from reward pool", async function () {
       await _rewardPool.createLifetimeVault(lifetimeVaultAmount);
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.depositToLifetimeVault();
     });
@@ -105,7 +110,7 @@ describe("When collecting dust from reward pool", async function () {
     it("Should revert with 'LifeTimeVaultIsRewardable' error", async function () {
       await expect(_rewardPool.collectDust()).to.be.revertedWithCustomError(
         _rewardPool,
-        "LifeTimeVaultIsRewardable"
+        "LifeTimeVaultIsRewardable",
       );
     });
   });
@@ -120,12 +125,12 @@ describe("When collecting dust from reward pool", async function () {
       const tx = await _rewardPool.createLifetimeVault(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
       _lifetimeVault = await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
-        txReceipt!.logs
+        txReceipt!.logs,
       );
 
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.depositToLifetimeVault();
 
@@ -136,7 +141,7 @@ describe("When collecting dust from reward pool", async function () {
     it("Should revert with 'NoDustToCollect' error", async function () {
       await expect(_rewardPool.collectDust()).to.be.revertedWithCustomError(
         _rewardPool,
-        "NoDustToCollect"
+        "NoDustToCollect",
       );
     });
   });
@@ -149,12 +154,12 @@ describe("When collecting dust from reward pool", async function () {
       const tx = await _rewardPool.createLifetimeVault(lifetimeVaultAmount);
       const txReceipt = await tx.wait();
       _lifetimeVault = await parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
-        txReceipt!.logs
+        txReceipt!.logs,
       );
 
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.depositToLifetimeVault();
 
@@ -164,14 +169,14 @@ describe("When collecting dust from reward pool", async function () {
       for (let index = 0; index < numberOfVaults; index++) {
         const vaultWantedAmount = Math.floor(Math.random() * 100) + 1;
         const vaultWantedAmountEther = ethers.parseEther(
-          vaultWantedAmount.toString()
+          vaultWantedAmount.toString(),
         );
 
         const vault = await createDepositedVault(
           _token,
           _rewardPool,
           lockedUntil,
-          vaultWantedAmountEther
+          vaultWantedAmountEther,
         );
 
         _createdVaults.push(vault);
@@ -187,7 +192,7 @@ describe("When collecting dust from reward pool", async function () {
     it("Should emit 'DustCollected' event", async function () {
       await expect(_rewardPool.collectDust()).to.emit(
         _rewardPool,
-        "DustCollected"
+        "DustCollected",
       );
     });
 
@@ -195,22 +200,22 @@ describe("When collecting dust from reward pool", async function () {
     // We must keep those rewards into the pool (in order to harvest them when the vaults will be withdrawn).
     it("Should let the remaining rewards in the pool", async function () {
       const totalRemainingRewards = await rewardPoolTotalCollectedRewards(
-        _rewardPool
+        _rewardPool,
       );
 
       await _rewardPool.collectDust();
 
       expect(
-        await _token.balanceOf(await _rewardPool.getAddress())
+        await _token.balanceOf(await _rewardPool.getAddress()),
       ).to.be.equal(totalRemainingRewards);
     });
 
     it("Should transfer the dust to the caller", async function () {
       const totalRemainingRewards = await rewardPoolTotalCollectedRewards(
-        _rewardPool
+        _rewardPool,
       );
       const rewardPoolBalanceOfBefore = await _token.balanceOf(
-        await _rewardPool.getAddress()
+        await _rewardPool.getAddress(),
       );
 
       const dust = rewardPoolBalanceOfBefore - totalRemainingRewards;
@@ -219,13 +224,13 @@ describe("When collecting dust from reward pool", async function () {
       expect(dust).to.not.be.equal(0);
 
       const callerBalanceOfBefore = await _token.balanceOf(
-        await _owner.getAddress()
+        await _owner.getAddress(),
       );
 
       await _rewardPool.collectDust();
 
       expect(await _token.balanceOf(await _owner.getAddress())).to.be.equal(
-        callerBalanceOfBefore + dust
+        callerBalanceOfBefore + dust,
       );
     });
   });

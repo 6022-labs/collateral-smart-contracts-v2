@@ -35,17 +35,21 @@ describe("When withdrawing ERC721 collateral", async function () {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -55,35 +59,36 @@ describe("When withdrawing ERC721 collateral", async function () {
     // Approve a lot of tokens to pay fees
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      ethers.parseEther("1")
-    );
+    await token.transfer(await rewardPool.getAddress(), ethers.parseEther("1"));
     await rewardPool.createLifetimeVault(ethers.parseEther("1"));
     await rewardPool.depositToLifetimeVault();
 
     // Create a vault (ERC721) to use it as collateral for another vault
     let tx = await rewardPool.createVault(
       "CollateralVault",
+      "vault-image.png",
       lockUntil,
       ethers.parseEther("10"),
       await token.getAddress(),
-      BigInt(0), // ERC20
-      ethers.parseEther("10")
+      BigInt(0),
+      // ERC20
+      ethers.parseEther("10"),
     );
     let txReceipt = await tx.wait();
     const erc721 = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
     tx = await rewardPool.createVault(
       "CollateralVault",
+      "vault-image.png",
       lockUntil,
       1,
       await erc721.getAddress(),
-      BigInt(1), // ERC721
-      ethers.parseEther("10")
+      BigInt(1),
+      // ERC721
+      ethers.parseEther("10"),
     );
     txReceipt = await tx.wait();
     const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
@@ -99,14 +104,8 @@ describe("When withdrawing ERC721 collateral", async function () {
   }
 
   beforeEach(async function () {
-    const {
-      owner,
-      erc721,
-      token,
-      vault,
-      otherAccount,
-      rewardPool,
-    } = await loadFixture(deployVault);
+    const { owner, erc721, token, vault, otherAccount, rewardPool } =
+      await loadFixture(deployVault);
 
     _owner = owner;
     _erc721 = erc721;
@@ -120,7 +119,7 @@ describe("When withdrawing ERC721 collateral", async function () {
     it("Should revert with 'NotDeposited' error", async function () {
       await expect(_vault.withdraw()).to.be.revertedWithCustomError(
         _vault,
-        "NotDeposited"
+        "NotDeposited",
       );
     });
   });
@@ -129,7 +128,7 @@ describe("When withdrawing ERC721 collateral", async function () {
     beforeEach(async function () {
       await _erc721.approve(
         await _vault.getAddress(),
-        await _vault.wantedAmount()
+        await _vault.wantedAmount(),
       );
       await _vault.deposit();
     });
@@ -142,7 +141,7 @@ describe("When withdrawing ERC721 collateral", async function () {
       it("Should revert with 'AlreadyWithdrawn' error", async function () {
         await expect(_vault.withdraw()).to.be.revertedWithCustomError(
           _vault,
-          "AlreadyWithdrawn"
+          "AlreadyWithdrawn",
         );
       });
     });
@@ -155,26 +154,26 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.transferFrom(
             await _owner.getAddress(),
             await _otherAccount.getAddress(),
-            1
+            1,
           );
           await _vault.transferFrom(
             await _owner.getAddress(),
             await _otherAccount.getAddress(),
-            2
+            2,
           );
         });
 
         it("Should emit 'Withdrawn' event", async function () {
           await expect(_vault.connect(_otherAccount).withdraw()).to.emit(
             _vault,
-            "Withdrawn"
+            "Withdrawn",
           );
         });
 
         it("Should emit 'Reinvested' event", async function () {
           await expect(_vault.connect(_otherAccount).withdraw()).to.emit(
             _rewardPool,
-            "Reinvested"
+            "Reinvested",
           );
         });
 
@@ -194,19 +193,19 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.connect(_otherAccount).withdraw();
 
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.not.be.equal(await _vault.getAddress());
         });
 
         it("Should withdraw the collateral to the caller", async function () {
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.be.equal(await _vault.getAddress());
 
           await _vault.connect(_otherAccount).withdraw();
 
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.be.equal(_otherAccount.address);
         });
       });
@@ -217,13 +216,13 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.transferFrom(
             await _owner.getAddress(),
             await _otherAccount.getAddress(),
-            1
+            1,
           );
         });
 
         it("Should revert with 'NotEnoughtNFTToWithdraw' error", async function () {
           await expect(
-            _vault.connect(_otherAccount).withdraw()
+            _vault.connect(_otherAccount).withdraw(),
           ).to.be.revertedWithCustomError(_vault, "NotEnoughNFTToWithdraw");
         });
       });
@@ -231,7 +230,7 @@ describe("When withdrawing ERC721 collateral", async function () {
       describe("But caller don't have any NFT", async function () {
         it("Should revert with 'NotEnoughtNFTToWithdraw' error", async function () {
           await expect(
-            _vault.connect(_otherAccount).withdraw()
+            _vault.connect(_otherAccount).withdraw(),
           ).to.be.revertedWithCustomError(_vault, "NotEnoughNFTToWithdraw");
         });
       });
@@ -249,26 +248,26 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.transferFrom(
             await _owner.getAddress(),
             await _otherAccount.getAddress(),
-            1
+            1,
           );
           await _vault.transferFrom(
             await _owner.getAddress(),
             await _otherAccount.getAddress(),
-            2
+            2,
           );
         });
 
         it("Should emit 'Withdrawn' event", async function () {
           await expect(_vault.connect(_otherAccount).withdraw()).to.emit(
             _vault,
-            "Withdrawn"
+            "Withdrawn",
           );
         });
 
         it("Should emit 'Harvested' event", async function () {
           await expect(_vault.connect(_otherAccount).withdraw()).to.emit(
             _rewardPool,
-            "Harvested"
+            "Harvested",
           );
         });
 
@@ -288,19 +287,19 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.connect(_otherAccount).withdraw();
 
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.not.be.equal(await _vault.getAddress());
         });
 
         it("Should withdraw the collateral to the caller", async function () {
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.be.equal(await _vault.getAddress());
 
           await _vault.connect(_otherAccount).withdraw();
 
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.be.equal(_otherAccount.address);
         });
       });
@@ -311,21 +310,21 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.transferFrom(
             await _owner.getAddress(),
             await _otherAccount.getAddress(),
-            1
+            1,
           );
         });
 
         it("Should emit 'Withdrawn' event", async function () {
           await expect(_vault.connect(_otherAccount).withdraw()).to.emit(
             _vault,
-            "Withdrawn"
+            "Withdrawn",
           );
         });
 
         it("Should emit 'Harvested' event", async function () {
           await expect(_vault.connect(_otherAccount).withdraw()).to.emit(
             _rewardPool,
-            "Harvested"
+            "Harvested",
           );
         });
 
@@ -345,19 +344,19 @@ describe("When withdrawing ERC721 collateral", async function () {
           await _vault.connect(_otherAccount).withdraw();
 
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.not.be.equal(await _vault.getAddress());
         });
 
         it("Should withdraw the collateral to the caller", async function () {
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.be.equal(await _vault.getAddress());
 
           await _vault.connect(_otherAccount).withdraw();
 
           expect(
-            await _erc721.ownerOf(await _vault.wantedAmount())
+            await _erc721.ownerOf(await _vault.wantedAmount()),
           ).to.be.equal(_otherAccount.address);
         });
       });
@@ -365,7 +364,7 @@ describe("When withdrawing ERC721 collateral", async function () {
       describe("But caller don't have any NFT", async function () {
         it("Should revert with 'NotEnoughtNFTToWithdraw' error", async function () {
           await expect(
-            _vault.connect(_otherAccount).withdraw()
+            _vault.connect(_otherAccount).withdraw(),
           ).to.be.revertedWithCustomError(_vault, "NotEnoughNFTToWithdraw");
         });
       });

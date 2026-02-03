@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { decodeTokenURI, parseVaultFromVaultCreatedLogs } from "../utils";
 import { reset, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
@@ -13,6 +12,8 @@ import {
 describe("When building token URI", async function () {
   const lockIn = 60 * 60 * 24 * 30 * 6; // 6 months
   const lockUntil = Math.floor(Date.now() / 1000) + lockIn;
+  const ipfsGateway = "https://ipfs.io/ipfs/";
+  const image = "vault-image.png";
 
   const lifetimeVaultAmount = ethers.parseEther("1");
 
@@ -29,17 +30,21 @@ describe("When building token URI", async function () {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -47,25 +52,19 @@ describe("When building token URI", async function () {
     await controller.removeFactory(await owner.getAddress());
 
     const CollateralVaultDescriptor = await ethers.getContractFactory(
-      "CollateralVaultDescriptor"
+      "CollateralVaultDescriptor",
     );
-    const vaultDescriptor = await CollateralVaultDescriptor.deploy();
+    const vaultDescriptor = await CollateralVaultDescriptor.deploy(ipfsGateway);
 
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
     await rewardPool.createLifetimeVault(lifetimeVaultAmount);
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
     await rewardPool.depositToLifetimeVault();
 
     return {
@@ -76,8 +75,9 @@ describe("When building token URI", async function () {
   }
 
   beforeEach(async function () {
-    const { token, rewardPool, vaultDescriptor } =
-      await loadFixture(deployVault);
+    const { token, rewardPool, vaultDescriptor } = await loadFixture(
+      deployVault,
+    );
 
     _token = token;
     _rewardPool = rewardPool;
@@ -92,11 +92,12 @@ describe("When building token URI", async function () {
     beforeEach(async function () {
       const tx = await _rewardPool.createVault(
         vaultName,
+        image,
         lockUntil,
         ethers.parseEther("10"),
         await _token.getAddress(),
         BigInt(0),
-        ethers.parseEther("10")
+        ethers.parseEther("10"),
       );
       const txReceipt = await tx.wait();
 
@@ -106,7 +107,7 @@ describe("When building token URI", async function () {
     it("Should contain name property", async function () {
       const tokenURI = await _vaultDescriptor.buildTokenURI(
         await _vault.getAddress(),
-        1
+        1,
       );
 
       const parsed = decodeTokenURI(tokenURI);
@@ -116,43 +117,24 @@ describe("When building token URI", async function () {
     it("Should contain description property", async function () {
       const tokenURI = await _vaultDescriptor.buildTokenURI(
         await _vault.getAddress(),
-        1
+        1,
       );
 
       const parsed = decodeTokenURI(tokenURI);
       expect(parsed.description).to.equal(
-        "Keys to collateral vaults at 6022 protocol."
+        "Keys to collateral vaults at 6022 protocol.",
       );
     });
 
-    it("Should contain image property encoded as base64 SVG", async function () {
+    it("Should contain image property from IPFS gateway + vault image", async function () {
       const tokenURI = await _vaultDescriptor.buildTokenURI(
         await _vault.getAddress(),
-        1
+        1,
       );
 
       const parsed = decodeTokenURI(tokenURI);
       expect(parsed.image).to.be.a("string");
-      const svg = Buffer.from(parsed.image, "base64").toString("utf-8");
-
-      expect(svg.trim().startsWith("<svg")).to.be.true;
-
-      const validation = XMLValidator.validate(svg);
-      expect(validation).to.equal(true);
-
-      const escapedName = vaultName
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-      expect(svg).to.contain(escapedName);
-
-      const parser = new XMLParser({ ignoreAttributes: false });
-      const parsedSvg = parser.parse(svg);
-
-      expect(parsedSvg).to.have.property("svg");
-      expect(parsedSvg.svg).to.be.an("object");
-      expect(parsedSvg.svg).to.have.property("defs");
-      expect(parsedSvg.svg).to.have.property("g");
+      expect(parsed.image).to.equal(`${ipfsGateway}${image}`);
     });
   });
 
@@ -164,11 +146,12 @@ describe("When building token URI", async function () {
     beforeEach(async function () {
       const tx = await _rewardPool.createVault(
         vaultName,
+        image,
         lockUntil,
         ethers.parseEther("10"),
         await _token.getAddress(),
         BigInt(0),
-        ethers.parseEther("10")
+        ethers.parseEther("10"),
       );
       const txReceipt = await tx.wait();
 
@@ -178,7 +161,7 @@ describe("When building token URI", async function () {
     it("Should contain name property", async function () {
       const tokenURI = await _vaultDescriptor.buildTokenURI(
         await _vault.getAddress(),
-        1
+        1,
       );
 
       const parsed = decodeTokenURI(tokenURI);
@@ -188,37 +171,24 @@ describe("When building token URI", async function () {
     it("Should contain description property", async function () {
       const tokenURI = await _vaultDescriptor.buildTokenURI(
         await _vault.getAddress(),
-        1
+        1,
       );
 
       const parsed = decodeTokenURI(tokenURI);
       expect(parsed.description).to.equal(
-        "Keys to collateral vaults at 6022 protocol."
+        "Keys to collateral vaults at 6022 protocol.",
       );
     });
 
-    it("Should contain image property encoded as base64 SVG", async function () {
+    it("Should contain image property from IPFS gateway + vault image", async function () {
       const tokenURI = await _vaultDescriptor.buildTokenURI(
         await _vault.getAddress(),
-        1
+        1,
       );
 
       const parsed = decodeTokenURI(tokenURI);
       expect(parsed.image).to.be.a("string");
-      const svg = Buffer.from(parsed.image, "base64").toString("utf-8");
-
-      expect(svg.trim().startsWith("<svg")).to.be.true;
-
-      const validation = XMLValidator.validate(svg);
-      expect(validation).to.equal(true);
-
-      const parser = new XMLParser({ ignoreAttributes: false });
-      const parsedSvg = parser.parse(svg);
-
-      expect(parsedSvg).to.have.property("svg");
-      expect(parsedSvg.svg).to.be.an("object");
-      expect(parsedSvg.svg).to.have.property("defs");
-      expect(parsedSvg.svg).to.have.property("g");
+      expect(parsed.image).to.equal(`${ipfsGateway}${image}`);
     });
   });
 });

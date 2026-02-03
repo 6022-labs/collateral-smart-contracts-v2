@@ -16,7 +16,9 @@ describe("When adding admin to controller 6022", function () {
 
     const [_, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     return {
@@ -26,8 +28,7 @@ describe("When adding admin to controller 6022", function () {
   }
 
   beforeEach(async function () {
-    const { otherAccount, controller } =
-      await loadFixture(deployController);
+    const { otherAccount, controller } = await loadFixture(deployController);
 
     _otherAccount = otherAccount;
     _controller = controller;
@@ -38,10 +39,10 @@ describe("When adding admin to controller 6022", function () {
       await expect(
         _controller
           .connect(_otherAccount)
-          .addAdmin(await _otherAccount.getAddress())
+          .addAdmin(await _otherAccount.getAddress()),
       ).to.be.revertedWithCustomError(
         _controller,
-        "AccessControlUnauthorizedAccount"
+        "AccessControlUnauthorizedAccount",
       );
     });
   });
@@ -49,7 +50,7 @@ describe("When adding admin to controller 6022", function () {
   describe("Given caller is an admin", async function () {
     it("Should emit 'AdminAdded' event", async function () {
       await expect(
-        _controller.addAdmin(await _otherAccount.getAddress())
+        _controller.addAdmin(await _otherAccount.getAddress()),
       ).to.emit(_controller, "AdminAdded");
     });
   });

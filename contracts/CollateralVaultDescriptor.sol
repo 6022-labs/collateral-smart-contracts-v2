@@ -2,15 +2,26 @@
 pragma solidity ^0.8.28;
 
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
-
-import {NFTSVG} from "./librairies/NFTSVG.sol";
 import {VaultOverview} from "./structs/VaultOverview.sol";
-import {StringEscape} from "./librairies/StringEscape.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ICollateralVaultStates} from "./interfaces/ICollateralVault/ICollateralVaultStates.sol";
-import {ICollateralVaultDescriptor} from "./interfaces/ICollateralVaultDescriptor.sol";
+import {ICollateralVaultDescriptor} from "./interfaces/ICollateralVaultDescriptor/ICollateralVaultDescriptor.sol";
 
-contract CollateralVaultDescriptor is ICollateralVaultDescriptor {
-    using StringEscape for string;
+contract CollateralVaultDescriptor is AccessControl, ICollateralVaultDescriptor {
+    string private _ipfsGateway;
+
+    constructor(string memory ipfsGateway) {
+        _ipfsGateway = ipfsGateway;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function updateIpfsGateway(
+        string memory ipfsGateway
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        string memory oldGateway = _ipfsGateway;
+        _ipfsGateway = ipfsGateway;
+        emit IpfsGatewayUpdated(oldGateway, ipfsGateway);
+    }
 
     /// @dev Build the ERC721 token URI for a specific token.
     /// @param vault The vault collection address.
@@ -21,18 +32,13 @@ contract CollateralVaultDescriptor is ICollateralVaultDescriptor {
         uint256 tokenId
     ) external view returns (string memory) {
         ICollateralVaultStates vaultContract = ICollateralVaultStates(vault);
-
         VaultOverview memory overview = vaultContract.vaultOverview();
 
-        string memory image = NFTSVG.generateSVG(NFTSVG.SVGParams({
-            name: overview.name,
-            tokenId: tokenId,
-            vaultAddress: vault,
-            creatorAddress: overview.creator,
-            rewardPoolAddress: overview.rewardPoolAddress,
-            wantedTokenAddress: overview.wantedTokenAddress
-        }));
-        string memory encodedImage = Base64.encode(bytes(image));
+        string memory name = _escapeQuotes(overview.name);
+        string memory description = _escapeQuotes(
+            "Keys to collateral vaults."
+        );
+        string memory imageUrl = _generateImageUrl(_getImage(vaultContract, tokenId));
 
         return
             string(
@@ -42,16 +48,59 @@ contract CollateralVaultDescriptor is ICollateralVaultDescriptor {
                         bytes(
                             abi.encodePacked(
                                 '{"name":"',
-                                overview.name.json(),
+                                name,
                                 '", "description":"',
-                                "Keys to collateral vaults at 6022 protocol.",
+                                description,
                                 '", "image": "',
-                                encodedImage,
+                                imageUrl,
                                 '"}'
                             )
                         )
                     )
                 )
             );
+    }
+
+    function _escapeQuotes(
+        string memory value
+    ) internal pure returns (string memory) {
+        bytes memory valueBytes = bytes(value);
+        uint256 quotesCount = 0;
+        for (uint256 i = 0; i < valueBytes.length; i++) {
+            if (valueBytes[i] == '"') {
+                quotesCount++;
+            }
+        }
+        if (quotesCount > 0) {
+            bytes memory escapedBytes = new bytes(valueBytes.length + quotesCount);
+            uint256 index;
+            for (uint256 i = 0; i < valueBytes.length; i++) {
+                if (valueBytes[i] == '"') {
+                    escapedBytes[index++] = "\\";
+                }
+                escapedBytes[index++] = valueBytes[i];
+            }
+            return string(escapedBytes);
+        }
+
+        return value;
+    }
+
+    function _getImage(
+        ICollateralVaultStates vaultContract,
+        uint256 /* tokenId */
+    ) internal view returns (string memory) {
+        string memory image = vaultContract.image();
+        if (bytes(image).length == 0) {
+            revert MissingImage();
+        }
+
+        return image;
+    }
+
+    function _generateImageUrl(
+        string memory image
+    ) internal view returns (string memory) {
+        return string(abi.encodePacked(_ipfsGateway, image));
     }
 }

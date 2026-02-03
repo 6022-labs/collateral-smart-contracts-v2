@@ -16,7 +16,9 @@ describe("When removing admin from controller 6022", function () {
 
     const [_, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     return {
@@ -26,8 +28,7 @@ describe("When removing admin from controller 6022", function () {
   }
 
   beforeEach(async function () {
-    const { controller, otherAccount } =
-      await loadFixture(deployController);
+    const { controller, otherAccount } = await loadFixture(deployController);
 
     _controller = controller;
     _otherAccount = otherAccount;
@@ -38,10 +39,10 @@ describe("When removing admin from controller 6022", function () {
       await expect(
         _controller
           .connect(_otherAccount)
-          .removeAdmin(await _otherAccount.getAddress())
+          .removeAdmin(await _otherAccount.getAddress()),
       ).to.be.revertedWithCustomError(
         _controller,
-        "AccessControlUnauthorizedAccount"
+        "AccessControlUnauthorizedAccount",
       );
     });
   });
@@ -53,7 +54,7 @@ describe("When removing admin from controller 6022", function () {
 
     it("Should emit 'AdminRemoved' event", async function () {
       await expect(
-        _controller.removeAdmin(await _otherAccount.getAddress())
+        _controller.removeAdmin(await _otherAccount.getAddress()),
       ).to.emit(_controller, "AdminRemoved");
     });
   });

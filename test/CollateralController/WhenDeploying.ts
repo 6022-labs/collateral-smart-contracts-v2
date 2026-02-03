@@ -12,7 +12,9 @@ describe("When deploying controller 6022", function () {
   async function deployController() {
     await reset();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     return {

@@ -14,21 +14,23 @@ describe("When deploying reward pool factory 6022", function () {
 
     const [owner] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     const CollateralRewardPoolFactory = await ethers.getContractFactory(
-      "CollateralRewardPoolFactory"
+      "CollateralRewardPoolFactory",
     );
     const rewardPoolFactory = await CollateralRewardPoolFactory.deploy(
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     return {
@@ -38,7 +40,7 @@ describe("When deploying reward pool factory 6022", function () {
 
   beforeEach(async function () {
     ({ rewardPoolFactory: _rewardPoolFactory } = await loadFixture(
-      deployRewardPoolFactory
+      deployRewardPoolFactory,
     ));
   });
 

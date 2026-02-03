@@ -22,10 +22,7 @@ describe("When allowing funds of token 6022", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
-    const token = await MockERC20.deploy(
-      await owner.getAddress(),
-      totalSupply
-    );
+    const token = await MockERC20.deploy(await owner.getAddress(), totalSupply);
 
     return { token, otherAccount, owner };
   }
@@ -44,7 +41,7 @@ describe("When allowing funds of token 6022", function () {
     // Check balances
     const balance = await _token.allowance(
       _owner.address,
-      _otherAccount.address
+      _otherAccount.address,
     );
 
     expect(balance).to.equal(50);

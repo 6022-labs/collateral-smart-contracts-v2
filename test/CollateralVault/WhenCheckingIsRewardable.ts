@@ -26,17 +26,21 @@ describe("When checking is rewardable for vault", async function () {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -45,28 +49,23 @@ describe("When checking is rewardable for vault", async function () {
 
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
     await rewardPool.createLifetimeVault(lifetimeVaultAmount);
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
     await rewardPool.depositToLifetimeVault();
 
     const tx = await rewardPool.createVault(
       "CollateralVault",
+      "vault-image.png",
       lockUntil,
       ethers.parseEther("10"),
       await token.getAddress(),
       BigInt(0),
-      ethers.parseEther("10")
+      ethers.parseEther("10"),
     );
     const txReceipt = await tx.wait();
 
@@ -95,7 +94,7 @@ describe("When checking is rewardable for vault", async function () {
     beforeEach(async function () {
       await _token.approve(
         await _vault.getAddress(),
-        await _vault.wantedAmount()
+        await _vault.wantedAmount(),
       );
 
       await _vault.deposit();
@@ -111,7 +110,7 @@ describe("When checking is rewardable for vault", async function () {
     beforeEach(async function () {
       await _token.approve(
         await _vault.getAddress(),
-        await _vault.wantedAmount()
+        await _vault.wantedAmount(),
       );
 
       await _vault.deposit();
@@ -128,7 +127,7 @@ describe("When checking is rewardable for vault", async function () {
     beforeEach(async function () {
       await _token.approve(
         await _vault.getAddress(),
-        await _vault.wantedAmount()
+        await _vault.wantedAmount(),
       );
 
       await _vault.deposit();

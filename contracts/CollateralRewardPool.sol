@@ -156,6 +156,7 @@ contract CollateralRewardPool is Ownable, ICollateralRewardPool {
     /// @notice This method will create a new vault.
     function createVault(
         string memory _name,
+        string memory _image,
         uint256 _lockedUntil,
         uint256 _wantedAmount,
         address _wantedTokenAddress,
@@ -195,6 +196,7 @@ contract CollateralRewardPool is Ownable, ICollateralRewardPool {
         CollateralVault vault = new CollateralVault(
             msg.sender,
             _name,
+            _image,
             _lockedUntil,
             _wantedAmount,
             address(this),

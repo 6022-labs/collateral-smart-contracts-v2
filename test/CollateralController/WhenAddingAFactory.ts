@@ -16,7 +16,9 @@ describe("When adding a factory to controller 6022", function () {
 
     const [_, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     return {
@@ -26,8 +28,7 @@ describe("When adding a factory to controller 6022", function () {
   }
 
   beforeEach(async function () {
-    const { controller, otherAccount } =
-      await loadFixture(deployController);
+    const { controller, otherAccount } = await loadFixture(deployController);
 
     _controller = controller;
     _otherAccount = otherAccount;
@@ -38,10 +39,10 @@ describe("When adding a factory to controller 6022", function () {
       await expect(
         _controller
           .connect(_otherAccount)
-          .addFactory(await _otherAccount.getAddress())
+          .addFactory(await _otherAccount.getAddress()),
       ).to.be.revertedWithCustomError(
         _controller,
-        "AccessControlUnauthorizedAccount"
+        "AccessControlUnauthorizedAccount",
       );
     });
   });
@@ -49,7 +50,7 @@ describe("When adding a factory to controller 6022", function () {
   describe("Given caller is an admin", async function () {
     it("Should emit 'FactoryAdded' event", async function () {
       await expect(
-        _controller.addFactory(await _otherAccount.getAddress())
+        _controller.addFactory(await _otherAccount.getAddress()),
       ).to.emit(_controller, "FactoryAdded");
     });
   });

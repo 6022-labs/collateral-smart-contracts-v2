@@ -11,10 +11,10 @@ import {VaultOverview} from "./structs/VaultOverview.sol";
 import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
 import {ICollateralTokenOperation} from "./interfaces/ICollateralTokenOperation.sol";
 import {ICollateralVault} from "./interfaces/ICollateralVault/ICollateralVault.sol";
-import {ICollateralVaultDescriptor} from "./interfaces/ICollateralVaultDescriptor.sol";
 import {ICollateralControllerStates} from "./interfaces/ICollateralController/ICollateralControllerStates.sol";
 import {ICollateralRewardPoolStates} from "./interfaces/ICollateralRewardPool/ICollateralRewardPoolStates.sol";
 import {ICollateralRewardPoolVaultActions} from "./interfaces/ICollateralRewardPool/ICollateralRewardPoolVaultActions.sol";
+import {ICollateralVaultDescriptorActions} from "./interfaces/ICollateralVaultDescriptor/ICollateralVaultDescriptorActions.sol";
 
 /**
  * @title CollateralVault
@@ -35,6 +35,9 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
     /// @notice Timestamp until the contract is locked (before = 2 NFT to withdraw, after = 1 NFT to withdraw)
     uint256 public lockedUntil;
 
+    /// @notice Vault image (IPFS hash/path)
+    string public image;
+
     /// @notice Indicates the deposit timestamp
     uint256 public depositTimestamp;
 
@@ -53,6 +56,7 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
     constructor(
         address _creator,
         string memory _name,
+        string memory _image,
         uint256 _lockedUntil,
         uint256 _wantedAmount,
         address _rewardPoolAddress,
@@ -60,6 +64,7 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
         VaultStorageEnum _storageType
     ) ERC721(_name, "6022") CollateralBaseVault(_rewardPoolAddress, _wantedAmount) {
         creator = _creator;
+        image = _image;
         lockedUntil = _lockedUntil;
         storageType = _storageType;
         creationTimestamp = block.timestamp;
@@ -205,7 +210,7 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
         address vaultDescriptorAddress = ICollateralControllerStates(controllerAddress)
             .vaultDescriptor();
 
-        return ICollateralVaultDescriptor(vaultDescriptorAddress).buildTokenURI(
+        return ICollateralVaultDescriptorActions(vaultDescriptorAddress).buildTokenURI(
             address(this),
             tokenId
         );

@@ -21,10 +21,7 @@ describe("When transferring funds of token 6022", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
-    const token = await MockERC20.deploy(
-      await owner.getAddress(),
-      totalSupply
-    );
+    const token = await MockERC20.deploy(await owner.getAddress(), totalSupply);
 
     return { token, otherAccount, owner };
   }
@@ -39,9 +36,8 @@ describe("When transferring funds of token 6022", function () {
   describe("Given transferrer does not have enough funds", function () {
     it("Should revert", async function () {
       let transferValue = ethers.parseUnits("6", 16);
-      await expect(
-        _token.transfer(await _token.getAddress(), transferValue)
-      ).to.be.reverted;
+      await expect(_token.transfer(await _token.getAddress(), transferValue)).to
+        .be.reverted;
     });
   });
 

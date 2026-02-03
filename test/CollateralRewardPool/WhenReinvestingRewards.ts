@@ -5,7 +5,11 @@ import {
   getRewardableVaults,
   parseRewardPoolFromRewardPoolCreatedLogs,
 } from "../utils";
-import { CollateralRewardPool, MockERC20, CollateralVault } from "../../typechain-types";
+import {
+  CollateralRewardPool,
+  MockERC20,
+  CollateralVault,
+} from "../../typechain-types";
 import {
   reset,
   loadFixture,
@@ -26,37 +30,37 @@ describe("When reinvesting reward", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     const CollateralRewardPoolFactory = await ethers.getContractFactory(
-      "CollateralRewardPoolFactory"
+      "CollateralRewardPoolFactory",
     );
     const rewardPoolFactory = await CollateralRewardPoolFactory.deploy(
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await rewardPoolFactory.getAddress());
 
     await token.approve(
       await rewardPoolFactory.getAddress(),
-      lifetimeVaultAmount
+      lifetimeVaultAmount,
     );
 
-    const tx = await rewardPoolFactory.createRewardPool(
-      lifetimeVaultAmount
-    );
+    const tx = await rewardPoolFactory.createRewardPool(lifetimeVaultAmount);
     const txReceipt = await tx.wait();
 
     const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
-      txReceipt!.logs
+      txReceipt!.logs,
     );
 
     return { token, rewardPool };
@@ -71,9 +75,10 @@ describe("When reinvesting reward", function () {
 
   describe("Given the caller is not register as a vault", function () {
     it("Should revert with 'CallerNotVault' error", async function () {
-      await expect(
-        _rewardPool.reinvestRewards()
-      ).to.revertedWithCustomError(_rewardPool, "CallerNotVault");
+      await expect(_rewardPool.reinvestRewards()).to.revertedWithCustomError(
+        _rewardPool,
+        "CallerNotVault",
+      );
     });
   });
 
@@ -87,7 +92,7 @@ describe("When reinvesting reward", function () {
         _token,
         _rewardPool,
         lockedUntil,
-        vaultWantedAmountEther
+        vaultWantedAmountEther,
       );
     });
 
@@ -109,14 +114,14 @@ describe("When reinvesting reward", function () {
             _token,
             _rewardPool,
             lockedUntil,
-            wantedAmount
+            wantedAmount,
           );
         }
       });
 
       it("Should emit 'Reinvested' event", async function () {
         const collectedRewards = await _rewardPool.collectedRewards(
-          await _vault.getAddress()
+          await _vault.getAddress(),
         );
 
         await expect(_vault.withdraw())
@@ -132,7 +137,7 @@ describe("When reinvesting reward", function () {
 
         let currentVaultAddress = await _vault.getAddress();
         const rewardableVaultsWithoutCurrentVault = rewardableVaults.filter(
-          (x) => x != currentVaultAddress
+          (x) => x != currentVaultAddress,
         );
 
         let collectedRewardsBefore: { [key: string]: bigint } = {};
@@ -140,12 +145,11 @@ describe("When reinvesting reward", function () {
         let totalVaultRewardWeight = BigInt(0);
 
         for (let element of rewardableVaultsWithoutCurrentVault) {
-          collectedRewardsBefore[element] =
-            await _rewardPool.collectedRewards(element);
-
-          const rewardWeight = await _rewardPool.vaultsRewardWeight(
-            element
+          collectedRewardsBefore[element] = await _rewardPool.collectedRewards(
+            element,
           );
+
+          const rewardWeight = await _rewardPool.vaultsRewardWeight(element);
           vaultRewardWeights[element] = rewardWeight;
           totalVaultRewardWeight += rewardWeight;
         }
@@ -154,7 +158,7 @@ describe("When reinvesting reward", function () {
 
         for (let element of rewardableVaultsWithoutCurrentVault) {
           let collectedRewardsAfter = await _rewardPool.collectedRewards(
-            element
+            element,
           );
 
           let expectedCollectedRewards =

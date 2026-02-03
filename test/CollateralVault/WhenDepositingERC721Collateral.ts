@@ -29,17 +29,21 @@ describe("When depositing ERC721 collateral", function () {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -49,35 +53,36 @@ describe("When depositing ERC721 collateral", function () {
     // Approve a lot of tokens to pay fees
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      ethers.parseEther("1")
-    );
+    await token.transfer(await rewardPool.getAddress(), ethers.parseEther("1"));
     await rewardPool.createLifetimeVault(ethers.parseEther("1"));
     await rewardPool.depositToLifetimeVault();
 
     // Create a vault (ERC721) to use it as collateral for another vault
     let tx = await rewardPool.createVault(
       "CollateralVault",
+      "vault-image.png",
       lockUntil,
       ethers.parseEther("10"),
       await token.getAddress(),
-      BigInt(0), // ERC20
-      ethers.parseEther("10")
+      BigInt(0),
+      // ERC20
+      ethers.parseEther("10"),
     );
     let txReceipt = await tx.wait();
     const erc721 = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
     tx = await rewardPool.createVault(
       "CollateralVault",
+      "vault-image.png",
       lockUntil,
       1,
       await erc721.getAddress(),
-      BigInt(1), // ERC721
-      ethers.parseEther("10")
+      BigInt(1),
+      // ERC721
+      ethers.parseEther("10"),
     );
     txReceipt = await tx.wait();
     const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
@@ -92,8 +97,9 @@ describe("When depositing ERC721 collateral", function () {
   }
 
   beforeEach(async function () {
-    const { vault, erc721, token, owner, otherAccount } =
-      await loadFixture(deployVault);
+    const { vault, erc721, token, owner, otherAccount } = await loadFixture(
+      deployVault,
+    );
 
     _erc721 = erc721;
     _vault = vault;
@@ -106,7 +112,7 @@ describe("When depositing ERC721 collateral", function () {
   describe("Given caller don't have a key", async function () {
     it("Should revert with 'NotEnoughtNFTToDeposit' error", async function () {
       await expect(
-        _vault.connect(_otherAccount).deposit()
+        _vault.connect(_otherAccount).deposit(),
       ).to.be.revertedWithCustomError(_vault, "NotEnoughNFTToDeposit");
     });
   });
@@ -117,22 +123,19 @@ describe("When depositing ERC721 collateral", function () {
       _vault.transferFrom(
         await _owner.getAddress(),
         await _otherAccount.getAddress(),
-        1
+        1,
       );
 
       _erc721.approve(await _owner.getAddress(), 1);
       _erc721.transferFrom(
         await _owner.getAddress(),
         await _otherAccount.getAddress(),
-        1
+        1,
       );
 
       await _erc721
         .connect(_otherAccount)
-        .approve(
-          await _vault.getAddress(),
-          await _vault.wantedAmount()
-        );
+        .approve(await _vault.getAddress(), await _vault.wantedAmount());
     });
 
     describe("But collateral is already deposited", async function () {
@@ -142,7 +145,7 @@ describe("When depositing ERC721 collateral", function () {
 
       it("Should revert with 'AlreadyDeposited' error", async function () {
         await expect(
-          _vault.connect(_otherAccount).deposit()
+          _vault.connect(_otherAccount).deposit(),
         ).to.be.revertedWithCustomError(_vault, "AlreadyDeposited");
       });
     });
@@ -154,7 +157,7 @@ describe("When depositing ERC721 collateral", function () {
 
       it("Should revert with 'TooLateToDeposit' error", async function () {
         await expect(
-          _vault.connect(_otherAccount).deposit()
+          _vault.connect(_otherAccount).deposit(),
         ).to.be.revertedWithCustomError(_vault, "TooLateToDeposit");
       });
     });
@@ -163,7 +166,7 @@ describe("When depositing ERC721 collateral", function () {
       it("Should emit 'Deposit' event", async function () {
         await expect(_vault.connect(_otherAccount).deposit()).to.emit(
           _vault,
-          "Deposited"
+          "Deposited",
         );
       });
 
@@ -189,11 +192,11 @@ describe("When depositing ERC721 collateral", function () {
         const wantedAmount = await _vault.wantedAmount();
 
         expect(await _erc721.ownerOf(wantedAmount)).to.be.equal(
-          _otherAccount.address
+          _otherAccount.address,
         );
         await _vault.connect(_otherAccount).deposit();
         expect(await _erc721.ownerOf(wantedAmount)).to.be.equal(
-          await _vault.getAddress()
+          await _vault.getAddress(),
         );
       });
     });

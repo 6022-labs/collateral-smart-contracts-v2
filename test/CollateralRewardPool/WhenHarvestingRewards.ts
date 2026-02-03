@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { CollateralRewardPool, MockERC20, CollateralVault } from "../../typechain-types";
+import {
+  CollateralRewardPool,
+  MockERC20,
+  CollateralVault,
+} from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   createDepositedVault,
@@ -29,37 +33,37 @@ describe("When harvesting rewards", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     const CollateralRewardPoolFactory = await ethers.getContractFactory(
-      "CollateralRewardPoolFactory"
+      "CollateralRewardPoolFactory",
     );
     const rewardPoolFactory = await CollateralRewardPoolFactory.deploy(
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await rewardPoolFactory.getAddress());
 
     await token.approve(
       await rewardPoolFactory.getAddress(),
-      lifetimeVaultAmount
+      lifetimeVaultAmount,
     );
 
-    const tx = await rewardPoolFactory.createRewardPool(
-      lifetimeVaultAmount
-    );
+    const tx = await rewardPoolFactory.createRewardPool(lifetimeVaultAmount);
     const txReceipt = await tx.wait();
 
     const rewardPool = await parseRewardPoolFromRewardPoolCreatedLogs(
-      txReceipt!.logs
+      txReceipt!.logs,
     );
 
     return {
@@ -70,9 +74,7 @@ describe("When harvesting rewards", function () {
   }
 
   beforeEach(async function () {
-    const { token, rewardPool, owner } = await loadFixture(
-      deployRewardPool
-    );
+    const { token, rewardPool, owner } = await loadFixture(deployRewardPool);
 
     _owner = owner;
     _token = token;
@@ -82,7 +84,7 @@ describe("When harvesting rewards", function () {
   describe("Given caller is not register as a vault", function () {
     it("Should revert with 'CallerNotVault' error", async function () {
       await expect(
-        _rewardPool.harvestRewards(await _owner.getAddress())
+        _rewardPool.harvestRewards(await _owner.getAddress()),
       ).to.revertedWithCustomError(_rewardPool, "CallerNotVault");
     });
   });
@@ -97,7 +99,7 @@ describe("When harvesting rewards", function () {
         _token,
         _rewardPool,
         lockedUntil,
-        vaultWantedAmountEther
+        vaultWantedAmountEther,
       );
     });
 
@@ -135,7 +137,7 @@ describe("When harvesting rewards", function () {
             _token,
             _rewardPool,
             lockedUntil,
-            vaultWantedAmountEther
+            vaultWantedAmountEther,
           );
         }
 
@@ -144,7 +146,7 @@ describe("When harvesting rewards", function () {
 
       it("Should emit 'Harvested' event", async function () {
         const collectedRewards = await _rewardPool.collectedRewards(
-          await _vault.getAddress()
+          await _vault.getAddress(),
         );
 
         await expect(_vault.withdraw())
@@ -155,7 +157,7 @@ describe("When harvesting rewards", function () {
       it("Should increase caller balance", async function () {
         const balanceBefore = await _token.balanceOf(_owner.address);
         const collectedRewards = await _rewardPool.collectedRewards(
-          await _vault.getAddress()
+          await _vault.getAddress(),
         );
 
         // Value in the collateral will increase the caller balance as we must withdraw the contract
@@ -165,7 +167,7 @@ describe("When harvesting rewards", function () {
         const balanceAfter = await _token.balanceOf(_owner.address);
 
         expect(balanceAfter).to.be.equal(
-          balanceBefore + valueInCollateral + collectedRewards
+          balanceBefore + valueInCollateral + collectedRewards,
         );
       });
     });

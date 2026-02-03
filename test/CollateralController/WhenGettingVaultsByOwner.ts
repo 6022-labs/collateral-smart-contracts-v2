@@ -26,12 +26,14 @@ describe("When getting vaults by owner from controller 6022", function () {
 
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     const rewardPool = await deployRewardPool(
       await owner.getAddress(),
-      controller
+      controller,
     );
 
     return {
@@ -44,32 +46,30 @@ describe("When getting vaults by owner from controller 6022", function () {
 
   async function deployRewardPool(
     ownerAddress: string,
-    controller: CollateralController
+    controller: CollateralController,
   ) {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       ownerAddress,
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     const CollateralRewardPoolFactory = await ethers.getContractFactory(
-      "CollateralRewardPoolFactory"
+      "CollateralRewardPoolFactory",
     );
     const rewardPoolFactory = await CollateralRewardPoolFactory.deploy(
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await rewardPoolFactory.getAddress());
 
     await token.approve(
       await rewardPoolFactory.getAddress(),
-      lifetimeVaultAmount
+      lifetimeVaultAmount,
     );
 
-    const tx = await rewardPoolFactory.createRewardPool(
-      lifetimeVaultAmount
-    );
+    const tx = await rewardPoolFactory.createRewardPool(lifetimeVaultAmount);
 
     const txReceipt = await tx.wait();
 
@@ -79,17 +79,19 @@ describe("When getting vaults by owner from controller 6022", function () {
     const rewardPoolCreatedEvent = events.filter(
       (x) =>
         x.fragment.name ===
-        rewardPoolFactory.filters["RewardPoolCreated(address)"].name
+        rewardPoolFactory.filters["RewardPoolCreated(address)"].name,
     )[0];
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = CollateralRewardPool.attach(
-      rewardPoolCreatedEvent.args[0]
+      rewardPoolCreatedEvent.args[0],
     ) as CollateralRewardPool;
 
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     return rewardPool;
@@ -100,11 +102,12 @@ describe("When getting vaults by owner from controller 6022", function () {
 
     const tx = await rewardPool.createVault(
       "TestVault",
+      "vault-image.png",
       Math.floor(lockedUntil),
       ethers.parseEther("1"),
       await rewardPool.protocolToken(),
       BigInt(0),
-      ethers.parseEther("1")
+      ethers.parseEther("1"),
     );
 
     const txReceipt = await tx.wait();
@@ -114,7 +117,7 @@ describe("When getting vaults by owner from controller 6022", function () {
     );
     const vaultCreatedEvent = events.filter(
       (x) =>
-        x.fragment.name === rewardPool.filters["VaultCreated(address)"].name
+        x.fragment.name === rewardPool.filters["VaultCreated(address)"].name,
     )[0];
 
     const CollateralVault = await ethers.getContractFactory("CollateralVault");
@@ -122,8 +125,9 @@ describe("When getting vaults by owner from controller 6022", function () {
   }
 
   beforeEach(async function () {
-    const { controller, rewardPool, owner, otherAccount } =
-      await loadFixture(deployController);
+    const { controller, rewardPool, owner, otherAccount } = await loadFixture(
+      deployController,
+    );
 
     _owner = owner;
     _otherAccount = otherAccount;
@@ -134,7 +138,7 @@ describe("When getting vaults by owner from controller 6022", function () {
   describe("Given no vaults were created", function () {
     it("Should return empty", async function () {
       const vaults = await _controller.getVaultsByOwner(
-        await _otherAccount.getAddress()
+        await _otherAccount.getAddress(),
       );
       expect(vaults.length).to.equal(0);
     });
@@ -149,7 +153,7 @@ describe("When getting vaults by owner from controller 6022", function () {
 
     it("Should return one vault", async function () {
       const vaults = await _controller.getVaultsByOwner(
-        await _owner.getAddress()
+        await _owner.getAddress(),
       );
       expect(vaults.length).to.equal(1);
       expect(vaults[0]).to.equal(await _createdVault.getAddress());
@@ -168,7 +172,7 @@ describe("When getting vaults by owner from controller 6022", function () {
 
     it("Should return multiple vaults", async function () {
       const vaults = await _controller.getVaultsByOwner(
-        await _owner.getAddress()
+        await _owner.getAddress(),
       );
       expect(vaults.length).to.equal(2);
       expect(vaults[0]).to.equal(await _createdVaults[0].getAddress());

@@ -23,19 +23,23 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     // Didn't deploy the CollateralRewardPoolFactory
     // In order to test the deposit (CollateralRewardPoolFactory directly calls the deposit method)
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -43,10 +47,7 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
     await controller.removeFactory(await owner.getAddress());
 
     // Create the lifetime vault using the CollateralRewardPool
-    await token.transfer(
-      await rewardPool.getAddress(),
-      lifetimeVaultAmount
-    );
+    await token.transfer(await rewardPool.getAddress(), lifetimeVaultAmount);
 
     const tx = await rewardPool.createLifetimeVault(lifetimeVaultAmount);
     const txReceipt = await tx.wait();
@@ -63,8 +64,9 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
   }
 
   beforeEach(async function () {
-    const { token, rewardPool, rewardPoolLifetimeVault } =
-      await loadFixture(deployRewardPoolLifetimeVault);
+    const { token, rewardPool, rewardPoolLifetimeVault } = await loadFixture(
+      deployRewardPoolLifetimeVault,
+    );
 
     _token = token;
     _rewardPool = rewardPool;
@@ -81,7 +83,7 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.depositToLifetimeVault();
       await _rewardPoolLifetimeVault.withdraw();
@@ -96,7 +98,7 @@ describe("When checking is rewardable for reward pool lifetime vault", async fun
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.depositToLifetimeVault();
     });

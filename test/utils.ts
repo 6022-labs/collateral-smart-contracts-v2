@@ -30,7 +30,7 @@ export function findEventFromLogs(logs: (EventLog | Log)[], eventKey: string) {
 export async function logsToLogDescriptions(
   logs: (EventLog | Log)[],
   eventKey: string,
-  contract: string
+  contract: string,
 ): Promise<LogDescription[]> {
   const wantedEvents = findEventFromLogs(logs, eventKey);
 
@@ -47,7 +47,7 @@ export async function parseVaultFromVaultCreatedLogs(logs: (EventLog | Log)[]) {
   const vaultCreatedLogs = await logsToLogDescriptions(
     logs,
     "VaultCreated(address)",
-    "CollateralRewardPool"
+    "CollateralRewardPool",
   );
 
   const vaultAddress = vaultCreatedLogs[0].args[0];
@@ -56,34 +56,36 @@ export async function parseVaultFromVaultCreatedLogs(logs: (EventLog | Log)[]) {
 }
 
 export async function parseRewardPoolFromRewardPoolCreatedLogs(
-  logs: (EventLog | Log)[]
+  logs: (EventLog | Log)[],
 ) {
   const rewardPoolCreatedLogs = await logsToLogDescriptions(
     logs,
     "RewardPoolCreated(address)",
-    "CollateralRewardPoolFactory"
+    "CollateralRewardPoolFactory",
   );
 
   const rewardPoolAddress = rewardPoolCreatedLogs[0].args[0];
-  const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+  const CollateralRewardPool = await ethers.getContractFactory(
+    "CollateralRewardPool",
+  );
   return CollateralRewardPool.attach(rewardPoolAddress) as CollateralRewardPool;
 }
 
 export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
-  logs: (EventLog | Log)[]
+  logs: (EventLog | Log)[],
 ) {
   const vaultCreatedLogs = await logsToLogDescriptions(
     logs,
     "VaultCreated(address)",
-    "CollateralRewardPool"
+    "CollateralRewardPool",
   );
 
   const lifetimeVaultAddress = vaultCreatedLogs[0].args[0];
   const CollateralRewardPoolLifetimeVault = await ethers.getContractFactory(
-    "CollateralRewardPoolLifetimeVault"
+    "CollateralRewardPoolLifetimeVault",
   );
   return CollateralRewardPoolLifetimeVault.attach(
-    lifetimeVaultAddress
+    lifetimeVaultAddress,
   ) as CollateralRewardPoolLifetimeVault;
 }
 
@@ -91,21 +93,19 @@ export async function createDepositedVault(
   token: MockERC20,
   rewardPool: CollateralRewardPool,
   lockedUntil: number,
-  wantedAmountInTheVault: bigint
+  wantedAmountInTheVault: bigint,
 ) {
   // Just approve a lot of tokens to pay vault creation fees
-  await token.approve(
-    await rewardPool.getAddress(),
-    wantedAmountInTheVault
-  );
+  await token.approve(await rewardPool.getAddress(), wantedAmountInTheVault);
 
   const tx = await rewardPool.createVault(
     "TestVault",
+    "vault-image.png",
     lockedUntil,
     wantedAmountInTheVault,
     await token.getAddress(),
     BigInt(0),
-    wantedAmountInTheVault
+    wantedAmountInTheVault,
   );
   const txReceipt = await tx.wait();
 
@@ -117,7 +117,7 @@ export async function createDepositedVault(
 }
 
 export async function rewardPoolTotalCollectedRewards(
-  rewardPool: CollateralRewardPool
+  rewardPool: CollateralRewardPool,
 ) {
   let totalCollectedRewards = BigInt(0);
   const allVaultsLength = await rewardPool.allVaultsLength();
@@ -157,7 +157,7 @@ export async function getRewardableVaults(rewardPool: CollateralRewardPool) {
 export function decodeTokenURI(tokenURI: string) {
   const decoded = Buffer.from(
     tokenURI.replace("data:application/json;base64,", ""),
-    "base64"
+    "base64",
   ).toString("utf-8");
 
   return JSON.parse(decoded);

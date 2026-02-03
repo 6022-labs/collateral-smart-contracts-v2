@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { CollateralRewardPool, MockERC20, CollateralVault } from "../../typechain-types";
+import {
+  CollateralRewardPool,
+  MockERC20,
+  CollateralVault,
+} from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   computeFeesFromCollateral,
@@ -33,22 +37,26 @@ describe("When creating vault from reward pool 6022", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
     // Deploy directly a CollateralRewardPool instead of using a CollateralRewardPoolFactory
     // To be able to test more case (CollateralRewardPoolFactory automatically create the lifetime vault...)
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -59,8 +67,9 @@ describe("When creating vault from reward pool 6022", function () {
   }
 
   beforeEach(async function () {
-    const { token, rewardPool, owner, otherAccount } =
-      await loadFixture(deployRewardPool);
+    const { token, rewardPool, owner, otherAccount } = await loadFixture(
+      deployRewardPool,
+    );
 
     _token = token;
     _rewardPool = rewardPool;
@@ -76,16 +85,14 @@ describe("When creating vault from reward pool 6022", function () {
           .connect(_otherAccount)
           .createVault(
             "TestVault",
+            "vault-image.png",
             lockedUntil,
             wantedAmountInTheVault,
             await _rewardPool.protocolToken(),
             BigInt(0),
-            wantedAmountInTheVault
-          )
-      ).to.revertedWithCustomError(
-        _rewardPool,
-        "OwnableUnauthorizedAccount"
-      );
+            wantedAmountInTheVault,
+          ),
+      ).to.revertedWithCustomError(_rewardPool, "OwnableUnauthorizedAccount");
     });
   });
 
@@ -94,16 +101,14 @@ describe("When creating vault from reward pool 6022", function () {
       await expect(
         _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          wantedAmountInTheVault
-        )
-      ).to.revertedWithCustomError(
-        _rewardPool,
-        "LifeTimeVaultDoesNotExist"
-      );
+          wantedAmountInTheVault,
+        ),
+      ).to.revertedWithCustomError(_rewardPool, "LifeTimeVaultDoesNotExist");
     });
   });
 
@@ -112,7 +117,7 @@ describe("When creating vault from reward pool 6022", function () {
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
 
       // Create the lifetime vault but don't deposit the collateral (not rewardable)
@@ -123,16 +128,14 @@ describe("When creating vault from reward pool 6022", function () {
       await expect(
         _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          wantedAmountInTheVault
-        )
-      ).to.revertedWithCustomError(
-        _rewardPool,
-        "LifeTimeVaultIsNotRewardable"
-      );
+          wantedAmountInTheVault,
+        ),
+      ).to.revertedWithCustomError(_rewardPool, "LifeTimeVaultIsNotRewardable");
     });
   });
 
@@ -140,7 +143,7 @@ describe("When creating vault from reward pool 6022", function () {
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.createLifetimeVault(lifetimeVaultAmount);
       await _rewardPool.depositToLifetimeVault();
@@ -150,12 +153,13 @@ describe("When creating vault from reward pool 6022", function () {
       await expect(
         _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          wantedAmountInTheVault
-        )
+          wantedAmountInTheVault,
+        ),
       ).to.be.revertedWithCustomError(_token, "ERC20InsufficientAllowance");
     });
   });
@@ -164,14 +168,14 @@ describe("When creating vault from reward pool 6022", function () {
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.createLifetimeVault(lifetimeVaultAmount);
       await _rewardPool.depositToLifetimeVault();
 
       await _token.approve(
         await _rewardPool.getAddress(),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
     });
 
@@ -181,12 +185,13 @@ describe("When creating vault from reward pool 6022", function () {
       await expect(
         _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          wantedAmountInTheVault
-        )
+          wantedAmountInTheVault,
+        ),
       ).to.be.revertedWithCustomError(_rewardPool, "LockedUntilTooShort()");
     });
   });
@@ -195,14 +200,14 @@ describe("When creating vault from reward pool 6022", function () {
     beforeEach(async function () {
       await _token.transfer(
         await _rewardPool.getAddress(),
-        lifetimeVaultAmount
+        lifetimeVaultAmount,
       );
       await _rewardPool.createLifetimeVault(lifetimeVaultAmount);
       await _rewardPool.depositToLifetimeVault();
 
       await _token.approve(
         await _rewardPool.getAddress(),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
     });
 
@@ -210,70 +215,74 @@ describe("When creating vault from reward pool 6022", function () {
       await expect(
         _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          wantedAmountInTheVault
-        )
+          wantedAmountInTheVault,
+        ),
       ).to.emit(_rewardPool, "VaultCreated");
     });
 
     it("Should increase reward weight", async function () {
       await _rewardPool.createVault(
         "TestVault",
+        "vault-image.png",
         lockedUntil,
         wantedAmountInTheVault,
         await _rewardPool.protocolToken(),
         BigInt(0),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
 
       const vaultAddress = await _rewardPool.allVaults(1);
 
       expect(
-        await _rewardPool.vaultsRewardWeight(vaultAddress)
+        await _rewardPool.vaultsRewardWeight(vaultAddress),
       ).to.be.greaterThan(0);
     });
 
     it("Should pay fees to the pool", async function () {
       const callerBalanceOfBefore = await _token.balanceOf(_owner.address);
       const rewardPoolBalanceOfBefore = await _token.balanceOf(
-        await _rewardPool.getAddress()
+        await _rewardPool.getAddress(),
       );
 
       await _rewardPool.createVault(
         "TestVault",
+        "vault-image.png",
         lockedUntil,
         wantedAmountInTheVault,
         await _rewardPool.protocolToken(),
         BigInt(0),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
 
       const callerBalanceOfAfter = await _token.balanceOf(_owner.address);
       const rewardPoolBalanceOfAfter = await _token.balanceOf(
-        await _rewardPool.getAddress()
+        await _rewardPool.getAddress(),
       );
 
       const expectedFees = computeFeesFromCollateral(wantedAmountInTheVault);
 
       expect(callerBalanceOfAfter).to.be.equal(
-        callerBalanceOfBefore - expectedFees
+        callerBalanceOfBefore - expectedFees,
       );
       expect(rewardPoolBalanceOfAfter).to.be.equal(
-        rewardPoolBalanceOfBefore + expectedFees
+        rewardPoolBalanceOfBefore + expectedFees,
       );
     });
 
     it("Should send the keys of the vault to the caller (owner)", async function () {
       const tx = await _rewardPool.createVault(
         "TestVault",
+        "vault-image.png",
         lockedUntil,
         wantedAmountInTheVault,
         await _rewardPool.protocolToken(),
         BigInt(0),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
       const txReceipt = await tx.wait();
 
@@ -285,11 +294,12 @@ describe("When creating vault from reward pool 6022", function () {
     it("Should create the vault as non rewardable", async function () {
       const tx = await _rewardPool.createVault(
         "TestVault",
+        "vault-image.png",
         lockedUntil,
         wantedAmountInTheVault,
         await _rewardPool.protocolToken(),
         BigInt(0),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
       const txReceipt = await tx.wait();
 
@@ -301,11 +311,12 @@ describe("When creating vault from reward pool 6022", function () {
     it("Should mark the vault as non deposited", async function () {
       const tx = await _rewardPool.createVault(
         "TestVault",
+        "vault-image.png",
         lockedUntil,
         wantedAmountInTheVault,
         await _rewardPool.protocolToken(),
         BigInt(0),
-        wantedAmountInTheVault
+        wantedAmountInTheVault,
       );
       const txReceipt = await tx.wait();
 
@@ -322,11 +333,12 @@ describe("When creating vault from reward pool 6022", function () {
           await _rewardPool.collectedRewards(lifetimeVaultAddress);
         await _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          wantedAmountInTheVault
+          wantedAmountInTheVault,
         );
 
         const lifetimeVaultCollectedRewardsAfter =
@@ -335,7 +347,7 @@ describe("When creating vault from reward pool 6022", function () {
         const expectedFees = computeFeesFromCollateral(wantedAmountInTheVault);
 
         expect(lifetimeVaultCollectedRewardsAfter).to.be.equal(
-          lifetimeVaultCollectedRewardsBefore + expectedFees
+          lifetimeVaultCollectedRewardsBefore + expectedFees,
         );
       });
     });
@@ -352,7 +364,7 @@ describe("When creating vault from reward pool 6022", function () {
             _token,
             _rewardPool,
             lockedUntil,
-            vaultAmountBigInt
+            vaultAmountBigInt,
           );
         }
       });
@@ -360,60 +372,55 @@ describe("When creating vault from reward pool 6022", function () {
       it("Should not be more rewards than the balance", async function () {
         await _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
-          BigInt(50), // To have 1$ fees (2%)
+          BigInt(50),
+          // To have 1$ fees (2%)
           await _rewardPool.protocolToken(),
           BigInt(0),
-          BigInt(50) // To have 1$ fees (2%)
+          BigInt(50), // To have 1$ fees (2%)
         );
 
         const totalCollectedRewards = await rewardPoolTotalCollectedRewards(
-          _rewardPool
+          _rewardPool,
         );
         const rewardPoolBalanceOf = await _token.balanceOf(
-          await _rewardPool.getAddress()
+          await _rewardPool.getAddress(),
         );
 
         expect(totalCollectedRewards).to.be.lessThanOrEqual(
-          rewardPoolBalanceOf
+          rewardPoolBalanceOf,
         );
       });
 
       it("Should pay the oldest vaults firsts", async function () {
         const lifetimeVaultCollectedRewardsBefore =
-          await _rewardPool.collectedRewards(
-            await _rewardPool.allVaults(0)
-          );
+          await _rewardPool.collectedRewards(await _rewardPool.allVaults(0));
 
         const firstVaultCollectedRewardsBefore =
-          await _rewardPool.collectedRewards(
-            await _rewardPool.allVaults(1)
-          );
+          await _rewardPool.collectedRewards(await _rewardPool.allVaults(1));
 
         await _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           BigInt(100), // To have 2$ fees (2%)
           await _rewardPool.protocolToken(),
           BigInt(0),
-          BigInt(100) // To have 2$ fees (2%)
+          BigInt(100), // To have 2$ fees (2%)
         );
 
         const lifetimeVaultCollectedRewardsAfter =
-          await _rewardPool.collectedRewards(
-            await _rewardPool.allVaults(0)
-          );
+          await _rewardPool.collectedRewards(await _rewardPool.allVaults(0));
 
         const firstVaultCollectedRewardsAfter =
-          await _rewardPool.collectedRewards(
-            await _rewardPool.allVaults(1)
-          );
+          await _rewardPool.collectedRewards(await _rewardPool.allVaults(1));
 
         expect(lifetimeVaultCollectedRewardsAfter).to.be.equal(
-          lifetimeVaultCollectedRewardsBefore + BigInt(1)
+          lifetimeVaultCollectedRewardsBefore + BigInt(1),
         );
         expect(firstVaultCollectedRewardsAfter).to.be.equal(
-          firstVaultCollectedRewardsBefore + BigInt(1)
+          firstVaultCollectedRewardsBefore + BigInt(1),
         );
       });
     });
@@ -432,7 +439,7 @@ describe("When creating vault from reward pool 6022", function () {
             _token,
             _rewardPool,
             lockedUntil,
-            vaultAmountBigInt
+            vaultAmountBigInt,
           );
           _rewardableVaults.push(vault);
         }
@@ -454,11 +461,9 @@ describe("When creating vault from reward pool 6022", function () {
 
         for (let rewardableVault of rewardableVaults) {
           const collectedRewardsBefore = await _rewardPool.collectedRewards(
-            rewardableVault
+            rewardableVault,
           );
-          const weight = await _rewardPool.vaultsRewardWeight(
-            rewardableVault
-          );
+          const weight = await _rewardPool.vaultsRewardWeight(rewardableVault);
 
           rewardableVaultsInfos.push({
             weight,
@@ -476,27 +481,25 @@ describe("When creating vault from reward pool 6022", function () {
             (expectedFees * rewardableVaultInfo.weight) / totalRewardWeight;
         }
 
-        await _token.approve(
-          await _rewardPool.getAddress(),
-          vaultAmount
-        );
+        await _token.approve(await _rewardPool.getAddress(), vaultAmount);
 
         await _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           vaultAmount,
           await _rewardPool.protocolToken(),
           BigInt(0),
-          vaultAmount
+          vaultAmount,
         );
 
         for (let rewardableVault of rewardableVaultsInfos) {
           const collectedRewardsAfter = await _rewardPool.collectedRewards(
-            rewardableVault.address
+            rewardableVault.address,
           );
 
           expect(collectedRewardsAfter).to.be.equal(
-            rewardableVault.expectedCollectRewardsAfter!
+            rewardableVault.expectedCollectRewardsAfter!,
           );
         }
       });
@@ -506,36 +509,35 @@ describe("When creating vault from reward pool 6022", function () {
       it("Should pay fees according to backed value to the pool", async function () {
         const backedValueProtocolToken = BigInt(10);
 
-        const callerBalanceOfBefore = await _token.balanceOf(
-          _owner.address
-        );
+        const callerBalanceOfBefore = await _token.balanceOf(_owner.address);
         const rewardPoolBalanceOfBefore = await _token.balanceOf(
-          await _rewardPool.getAddress()
+          await _rewardPool.getAddress(),
         );
 
         await _rewardPool.createVault(
           "TestVault",
+          "vault-image.png",
           lockedUntil,
           wantedAmountInTheVault,
           ethers.ZeroAddress, // Put any address you want, just must not be the _token address
           BigInt(0),
-          backedValueProtocolToken
+          backedValueProtocolToken,
         );
 
         const callerBalanceOfAfter = await _token.balanceOf(_owner.address);
         const rewardPoolBalanceOfAfter = await _token.balanceOf(
-          await _rewardPool.getAddress()
+          await _rewardPool.getAddress(),
         );
 
         const expectedFees = computeFeesFromCollateral(
-          backedValueProtocolToken
+          backedValueProtocolToken,
         );
 
         expect(callerBalanceOfAfter).to.be.equal(
-          callerBalanceOfBefore - expectedFees
+          callerBalanceOfBefore - expectedFees,
         );
         expect(rewardPoolBalanceOfAfter).to.be.equal(
-          rewardPoolBalanceOfBefore + expectedFees
+          rewardPoolBalanceOfBefore + expectedFees,
         );
       });
     });
@@ -543,76 +545,70 @@ describe("When creating vault from reward pool 6022", function () {
     describe("And wanted token is protocol token", async function () {
       describe("But caller put a different amount between backed value and wanted token", async function () {
         it("Should pay fees according to wanted amount to the pool", async function () {
-          const callerBalanceOfBefore = await _token.balanceOf(
-            _owner.address
-          );
+          const callerBalanceOfBefore = await _token.balanceOf(_owner.address);
           const rewardPoolBalanceOfBefore = await _token.balanceOf(
-            await _rewardPool.getAddress()
+            await _rewardPool.getAddress(),
           );
 
           await _rewardPool.createVault(
             "TestVault",
+            "vault-image.png",
             lockedUntil,
             wantedAmountInTheVault,
             await _rewardPool.protocolToken(),
             BigInt(0),
-            BigInt(0) // Here we put another value than "wantedAmountInTheVault"
+            BigInt(0), // Here we put another value than "wantedAmountInTheVault"
           );
 
-          const callerBalanceOfAfter = await _token.balanceOf(
-            _owner.address
-          );
+          const callerBalanceOfAfter = await _token.balanceOf(_owner.address);
           const rewardPoolBalanceOfAfter = await _token.balanceOf(
-            await _rewardPool.getAddress()
+            await _rewardPool.getAddress(),
           );
 
           const expectedFees = computeFeesFromCollateral(
-            wantedAmountInTheVault
+            wantedAmountInTheVault,
           );
 
           expect(callerBalanceOfAfter).to.be.equal(
-            callerBalanceOfBefore - expectedFees
+            callerBalanceOfBefore - expectedFees,
           );
           expect(rewardPoolBalanceOfAfter).to.be.equal(
-            rewardPoolBalanceOfBefore + expectedFees
+            rewardPoolBalanceOfBefore + expectedFees,
           );
         });
       });
 
       describe("But caller put same amount between backed value and wanted token", async function () {
         it("Should pay fees according to backed value to the pool", async function () {
-          const callerBalanceOfBefore = await _token.balanceOf(
-            _owner.address
-          );
+          const callerBalanceOfBefore = await _token.balanceOf(_owner.address);
           const rewardPoolBalanceOfBefore = await _token.balanceOf(
-            await _rewardPool.getAddress()
+            await _rewardPool.getAddress(),
           );
 
           await _rewardPool.createVault(
             "TestVault",
+            "vault-image.png",
             lockedUntil,
             wantedAmountInTheVault,
             await _rewardPool.protocolToken(),
             BigInt(0),
-            wantedAmountInTheVault // Here we put the same value as wanted token
+            wantedAmountInTheVault, // Here we put the same value as wanted token
           );
 
-          const callerBalanceOfAfter = await _token.balanceOf(
-            _owner.address
-          );
+          const callerBalanceOfAfter = await _token.balanceOf(_owner.address);
           const rewardPoolBalanceOfAfter = await _token.balanceOf(
-            await _rewardPool.getAddress()
+            await _rewardPool.getAddress(),
           );
 
           const expectedFees = computeFeesFromCollateral(
-            wantedAmountInTheVault
+            wantedAmountInTheVault,
           );
 
           expect(callerBalanceOfAfter).to.be.equal(
-            callerBalanceOfBefore - expectedFees
+            callerBalanceOfBefore - expectedFees,
           );
           expect(rewardPoolBalanceOfAfter).to.be.equal(
-            rewardPoolBalanceOfBefore + expectedFees
+            rewardPoolBalanceOfBefore + expectedFees,
           );
         });
       });

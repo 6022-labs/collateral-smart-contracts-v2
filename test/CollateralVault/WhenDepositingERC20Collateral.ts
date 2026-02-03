@@ -28,17 +28,21 @@ describe("When depositing ERC20 collateral", function () {
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy(
       await owner.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
-    const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+    const CollateralRewardPool = await ethers.getContractFactory(
+      "CollateralRewardPool",
+    );
     const rewardPool = await CollateralRewardPool.deploy(
       await owner.getAddress(),
       await controller.getAddress(),
-      await token.getAddress()
+      await token.getAddress(),
     );
 
     await controller.addFactory(await owner.getAddress());
@@ -48,24 +52,23 @@ describe("When depositing ERC20 collateral", function () {
     // Approve a lot of tokens to pay fees
     await token.approve(
       await rewardPool.getAddress(),
-      ethers.parseEther("100000")
+      ethers.parseEther("100000"),
     );
 
-    await token.transfer(
-      await rewardPool.getAddress(),
-      ethers.parseEther("1")
-    );
+    await token.transfer(await rewardPool.getAddress(), ethers.parseEther("1"));
     await rewardPool.createLifetimeVault(ethers.parseEther("1"));
     await rewardPool.depositToLifetimeVault();
 
     // Use the token as collateral to simplify tests as it is a ERC20
     const tx = await rewardPool.createVault(
       "CollateralVault",
+      "vault-image.png",
       lockUntil,
       ethers.parseEther("10"),
       await token.getAddress(),
-      BigInt(0), // ERC20
-      ethers.parseEther("10")
+      BigInt(0),
+      // ERC20
+      ethers.parseEther("10"),
     );
     const txReceipt = await tx.wait();
     const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
@@ -80,7 +83,7 @@ describe("When depositing ERC20 collateral", function () {
 
   beforeEach(async function () {
     const { vault, token, owner, otherAccount } = await loadFixture(
-      deployVault
+      deployVault,
     );
 
     _vault = vault;
@@ -93,7 +96,7 @@ describe("When depositing ERC20 collateral", function () {
   describe("Given caller don't have a key", async function () {
     it("Should revert with 'NotEnoughtNFTToDeposit' error", async function () {
       await expect(
-        _vault.connect(_otherAccount).deposit()
+        _vault.connect(_otherAccount).deposit(),
       ).to.be.revertedWithCustomError(_vault, "NotEnoughNFTToDeposit");
     });
   });
@@ -104,20 +107,17 @@ describe("When depositing ERC20 collateral", function () {
       _vault.transferFrom(
         await _owner.getAddress(),
         await _otherAccount.getAddress(),
-        1
+        1,
       );
 
       await _token.transfer(
         await _otherAccount.getAddress(),
-        ethers.parseEther("1000")
+        ethers.parseEther("1000"),
       );
 
       await _token
         .connect(_otherAccount)
-        .approve(
-          await _vault.getAddress(),
-          await _vault.wantedAmount()
-        );
+        .approve(await _vault.getAddress(), await _vault.wantedAmount());
     });
 
     describe("But collateral is already deposited", async function () {
@@ -127,7 +127,7 @@ describe("When depositing ERC20 collateral", function () {
 
       it("Should revert with 'AlreadyDeposited' error", async function () {
         await expect(
-          _vault.connect(_otherAccount).deposit()
+          _vault.connect(_otherAccount).deposit(),
         ).to.be.revertedWithCustomError(_vault, "AlreadyDeposited");
       });
     });
@@ -139,7 +139,7 @@ describe("When depositing ERC20 collateral", function () {
 
       it("Should revert with 'TooLateToDeposit' error", async function () {
         await expect(
-          _vault.connect(_otherAccount).deposit()
+          _vault.connect(_otherAccount).deposit(),
         ).to.be.revertedWithCustomError(_vault, "TooLateToDeposit");
       });
     });
@@ -148,7 +148,7 @@ describe("When depositing ERC20 collateral", function () {
       it("Should emit 'Deposit' event", async function () {
         await expect(_vault.connect(_otherAccount).deposit()).to.emit(
           _vault,
-          "Deposited"
+          "Deposited",
         );
       });
 
@@ -174,15 +174,15 @@ describe("When depositing ERC20 collateral", function () {
         const wantedAmount = await _vault.wantedAmount();
 
         const callerBalanceOfBefore = await _token.balanceOf(
-          _otherAccount.address
+          _otherAccount.address,
         );
         await _vault.connect(_otherAccount).deposit();
         const callerBalanceOfAfter = await _token.balanceOf(
-          _otherAccount.address
+          _otherAccount.address,
         );
 
         expect(callerBalanceOfAfter).to.be.equal(
-          callerBalanceOfBefore - wantedAmount
+          callerBalanceOfBefore - wantedAmount,
         );
       });
     });

@@ -18,7 +18,9 @@ describe("When pushing vault to controller 6022", function () {
 
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const CollateralController = await ethers.getContractFactory("CollateralController");
+    const CollateralController = await ethers.getContractFactory(
+      "CollateralController",
+    );
     const controller = await CollateralController.deploy();
 
     return {
@@ -29,8 +31,9 @@ describe("When pushing vault to controller 6022", function () {
   }
 
   beforeEach(async function () {
-    const { controller, otherAccount, owner } =
-      await loadFixture(deployController);
+    const { controller, otherAccount, owner } = await loadFixture(
+      deployController,
+    );
 
     _controller = controller;
     _otherAccount = otherAccount;
@@ -40,7 +43,7 @@ describe("When pushing vault to controller 6022", function () {
   describe("Given caller is not a reward pool", async function () {
     it("Should revert with 'NotRewardPool' error", async function () {
       await expect(
-        _controller.pushVault(await _otherAccount.getAddress())
+        _controller.pushVault(await _otherAccount.getAddress()),
       ).to.be.revertedWithCustomError(_controller, "NotRewardPool");
     });
   });
@@ -51,7 +54,7 @@ describe("When pushing vault to controller 6022", function () {
       await _controller.pushRewardPool(await _owner.getAddress());
 
       await expect(
-        _controller.pushVault(await _otherAccount.getAddress())
+        _controller.pushVault(await _otherAccount.getAddress()),
       ).to.emit(_controller, "VaultPushed");
     });
   });

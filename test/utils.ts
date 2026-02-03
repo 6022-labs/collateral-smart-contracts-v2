@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
 import { EventLog, Log, LogDescription } from "ethers";
 import {
-  RewardPool,
-  RewardPoolLifetimeVault,
+  CollateralRewardPool,
+  CollateralRewardPoolLifetimeVault,
   MockERC20,
-  Vault,
+  CollateralVault,
 } from "../typechain-types";
 
 const PROTOCOL_FEES = BigInt(2);
@@ -47,12 +47,12 @@ export async function parseVaultFromVaultCreatedLogs(logs: (EventLog | Log)[]) {
   const vaultCreatedLogs = await logsToLogDescriptions(
     logs,
     "VaultCreated(address)",
-    "RewardPool"
+    "CollateralRewardPool"
   );
 
   const vaultAddress = vaultCreatedLogs[0].args[0];
-  const Vault = await ethers.getContractFactory("Vault");
-  return Vault.attach(vaultAddress) as Vault;
+  const CollateralVault = await ethers.getContractFactory("CollateralVault");
+  return CollateralVault.attach(vaultAddress) as CollateralVault;
 }
 
 export async function parseRewardPoolFromRewardPoolCreatedLogs(
@@ -61,12 +61,12 @@ export async function parseRewardPoolFromRewardPoolCreatedLogs(
   const rewardPoolCreatedLogs = await logsToLogDescriptions(
     logs,
     "RewardPoolCreated(address)",
-    "RewardPoolFactory"
+    "CollateralRewardPoolFactory"
   );
 
   const rewardPoolAddress = rewardPoolCreatedLogs[0].args[0];
-  const RewardPool = await ethers.getContractFactory("RewardPool");
-  return RewardPool.attach(rewardPoolAddress) as RewardPool;
+  const CollateralRewardPool = await ethers.getContractFactory("CollateralRewardPool");
+  return CollateralRewardPool.attach(rewardPoolAddress) as CollateralRewardPool;
 }
 
 export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
@@ -75,21 +75,21 @@ export async function parseRewardPoolLifetimeVaultFromVaultCreatedLogs(
   const vaultCreatedLogs = await logsToLogDescriptions(
     logs,
     "VaultCreated(address)",
-    "RewardPool"
+    "CollateralRewardPool"
   );
 
   const lifetimeVaultAddress = vaultCreatedLogs[0].args[0];
-  const RewardPoolLifetimeVault = await ethers.getContractFactory(
-    "RewardPoolLifetimeVault"
+  const CollateralRewardPoolLifetimeVault = await ethers.getContractFactory(
+    "CollateralRewardPoolLifetimeVault"
   );
-  return RewardPoolLifetimeVault.attach(
+  return CollateralRewardPoolLifetimeVault.attach(
     lifetimeVaultAddress
-  ) as RewardPoolLifetimeVault;
+  ) as CollateralRewardPoolLifetimeVault;
 }
 
 export async function createDepositedVault(
   token: MockERC20,
-  rewardPool: RewardPool,
+  rewardPool: CollateralRewardPool,
   lockedUntil: number,
   wantedAmountInTheVault: bigint
 ) {
@@ -117,7 +117,7 @@ export async function createDepositedVault(
 }
 
 export async function rewardPoolTotalCollectedRewards(
-  rewardPool: RewardPool
+  rewardPool: CollateralRewardPool
 ) {
   let totalCollectedRewards = BigInt(0);
   const allVaultsLength = await rewardPool.allVaultsLength();
@@ -130,17 +130,17 @@ export async function rewardPoolTotalCollectedRewards(
   return totalCollectedRewards;
 }
 
-export async function getRewardableVaults(rewardPool: RewardPool) {
+export async function getRewardableVaults(rewardPool: CollateralRewardPool) {
   let rewardableVaults = [];
   let index = 0;
 
   let currentVault: string;
 
-  const Vault = await ethers.getContractFactory("Vault");
+  const CollateralVault = await ethers.getContractFactory("CollateralVault");
 
   try {
     while ((currentVault = await rewardPool.allVaults(index))) {
-      let vault = Vault.attach(currentVault) as Vault;
+      let vault = CollateralVault.attach(currentVault) as CollateralVault;
 
       if (await vault.isRewardable()) {
         rewardableVaults.push(currentVault);

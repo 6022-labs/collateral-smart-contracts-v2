@@ -121,9 +121,7 @@ describe("When building token URI", async function () {
       );
 
       const parsed = decodeTokenURI(tokenURI);
-      expect(parsed.description).to.equal(
-        "Keys to collateral vaults at 6022 protocol.",
-      );
+      expect(parsed.description).to.equal("Keys to collateral vaults.");
     });
 
     it("Should contain image property from IPFS gateway + vault image", async function () {
@@ -175,9 +173,7 @@ describe("When building token URI", async function () {
       );
 
       const parsed = decodeTokenURI(tokenURI);
-      expect(parsed.description).to.equal(
-        "Keys to collateral vaults at 6022 protocol.",
-      );
+      expect(parsed.description).to.equal("Keys to collateral vaults.");
     });
 
     it("Should contain image property from IPFS gateway + vault image", async function () {

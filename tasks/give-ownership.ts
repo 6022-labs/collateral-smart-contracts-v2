@@ -1,31 +1,31 @@
 import { task } from "hardhat/config";
-import { Controller6022 } from "../typechain-types";
+import { CollateralController } from "../typechain-types";
 
-export default task("6022:give-ownership")
+export default task("collateral:give-ownership")
   .setDescription(
     "Gives ownership of the controller contract to another address"
   )
-  .addParam("controller6022Address", "The address of the controller 6022")
+  .addParam("controllerAddress", "The address of the collateral controller")
   .addParam("newOwnerAddress", "The address of the new owner")
   .setAction(async (taskArgs, hre) => {
     const [owner] = await hre.ethers.getSigners();
     console.log("Giving ownership with the account:", owner.address);
 
     const newOwnerAddress = taskArgs.newOwnerAddress;
-    const controller6022Address = taskArgs.controller6022Address;
+    const controllerAddress = taskArgs.controllerAddress;
 
-    const Controller6022 = await hre.ethers.getContractFactory(
-      "Controller6022"
+    const CollateralController = await hre.ethers.getContractFactory(
+      "CollateralController"
     );
-    const controller6022 = (await Controller6022.attach(
-      controller6022Address
-    )) as Controller6022;
+    const collateralController = (await CollateralController.attach(
+      controllerAddress
+    )) as CollateralController;
 
     console.log("Giving ownership to", newOwnerAddress);
 
-    await controller6022.addAdmin(newOwnerAddress);
+    await collateralController.addAdmin(newOwnerAddress);
     console.log("Ownership given to", newOwnerAddress);
 
-    await controller6022.removeAdmin(owner.address);
+    await collateralController.removeAdmin(owner.address);
     console.log("Ownership removed from", owner.address);
   });

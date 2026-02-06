@@ -1,19 +1,19 @@
 import { task } from "hardhat/config";
 
-export default task("6022:check-supply")
+export default task("collateral:check-supply")
   .setDescription("Checks the total supply of the token")
-  .addParam("token6022", "The address of the Token6022 contract")
+  .addParam("tokenAddress", "The address of the token contract")
   .setAction(async (taskArgs, hre) => {
-    let token6022Address = taskArgs.token6022;
+    let tokenAddress = taskArgs.tokenAddress;
 
-    console.log("Token6022 address: ", token6022Address);
+    console.log("Token address: ", tokenAddress);
 
-    let token6022 = await hre.ethers.getContractAt(
-      "Token6022",
-      token6022Address
+    let token = await hre.ethers.getContractAt(
+      "MockERC20",
+      tokenAddress
     );
 
-    let totalSupply = await token6022.totalSupply();
+    let totalSupply = await token.totalSupply();
 
-    console.log("Total supply of Token6022: ", totalSupply.toString());
+    console.log("Total supply of token: ", totalSupply.toString());
   });

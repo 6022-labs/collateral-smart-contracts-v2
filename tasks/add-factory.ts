@@ -1,28 +1,28 @@
 import { task } from "hardhat/config";
 
-export default task("6022:add-factory")
-  .setDescription("Add a factory to the Controller6022 contract")
+export default task("collateral:add-factory")
+  .setDescription("Add a factory to the CollateralController contract")
   .addParam(
-    "controller6022Address",
-    "The address of the Controller6022 contract"
+    "controllerAddress",
+    "The address of the CollateralController contract"
   )
   .addParam(
-    "rewardPoolFactory6022Address",
-    "The address of the RewardPoolFactory6022 contract"
+    "rewardPoolFactoryAddress",
+    "The address of the CollateralRewardPoolFactory contract"
   )
   .setAction(async (taskArgs, hre) => {
     const [owner] = await hre.ethers.getSigners();
     console.log("Adding factory with the account:", owner.address);
 
-    let controller6022Address = taskArgs.controller6022Address;
-    let rewardPoolFactory6022Address = taskArgs.rewardPoolFactory6022Address;
+    let controllerAddress = taskArgs.controllerAddress;
+    let rewardPoolFactoryAddress = taskArgs.rewardPoolFactoryAddress;
 
-    const controller6022 = await hre.ethers.getContractAt(
-      "Controller6022",
-      controller6022Address
+    const collateralController = await hre.ethers.getContractAt(
+      "CollateralController",
+      controllerAddress
     );
 
-    let tx = await controller6022.addFactory(rewardPoolFactory6022Address);
+    let tx = await collateralController.addFactory(rewardPoolFactoryAddress);
     let receipt = await tx.wait();
 
     if (!receipt?.status) {
@@ -30,5 +30,7 @@ export default task("6022:add-factory")
       throw new Error("addFactory failed");
     }
 
-    console.log("RewardPoolFactory6022 added as factory in Controller6022");
+    console.log(
+      "CollateralRewardPoolFactory added as factory in CollateralController"
+    );
   });

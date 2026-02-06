@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-export default task("6022:create-wallet")
+export default task("collateral:create-wallet")
   .setDescription("Creates a new wallet")
   .setAction(async (taskArgs, hre) => {
     const wallet = hre.ethers.Wallet.createRandom();

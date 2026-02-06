@@ -80,8 +80,19 @@ Follow these patterns exactly as seen in contracts:
   - Prefer `BigInt` for amounts (see test/utils.ts).
 - **Tasks**:
   - Use default export `task("namespace:name")`.
+  - Use the `collateral:*` namespace for task names.
   - Use `.setDescription()`, `.addParam()` and `.setAction()`.
   - Use `hre.ethers.getContractAt` and wait for receipts with status checks.
+
+- **Ignition Modules**:
+  - Keep module names aligned with current deployment paths:
+    - `CollateralController`
+    - `CollateralControllerWithExistingDescriptor`
+    - `CollateralRewardPoolFactory`
+    - `CollateralRewardPoolFactoryWithExistingController`
+    - `CollateralVaultDescriptor`
+  - When wiring controller setup, ensure `updateVaultDescriptor` is part of the deployment flow.
+  - Keep parameter keys explicit and consistent, e.g. `collateralControllerAddress`, `collateralVaultDescriptorAddress`, `tokenAddress`.
 
 ## Documentation Requirements
 
@@ -106,3 +117,4 @@ Follow these patterns exactly as seen in contracts:
 - Reuse existing interfaces in `contracts/interfaces/` for errors/events/states/actions instead of defining them inline.
 - Keep factories/controllers/vaults/reward-pools responsibilities consistent with existing flows.
 - Use `viaIR`-compatible Solidity code patterns (no reliance on undefined behavior) and maintain optimizer assumptions.
+- Keep deployment docs and parameter JSON files synchronized with Ignition module changes.

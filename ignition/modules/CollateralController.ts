@@ -2,9 +2,16 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import VaultDescriptorModule from "./CollateralVaultDescriptor";
 
 const ControllerModule = buildModule("CollateralController", (m) => {
+  const { CollateralVaultDescriptor } = m.useModule(VaultDescriptorModule);
+
   const CollateralController = m.contract("CollateralController");
+
+  m.call(CollateralController, "updateVaultDescriptor", [
+    CollateralVaultDescriptor,
+  ]);
 
   return { CollateralController };
 });

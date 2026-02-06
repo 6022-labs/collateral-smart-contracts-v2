@@ -1,31 +1,100 @@
-# Collateral Protocol
+# Collateral Protocol Contracts
 
-## 0. Install
+Smart contract suite for the collateral protocol (Controller, VaultDescriptor, RewardPoolFactory, RewardPool, Vault).
 
-To use the project you must install hardhat package:
+## Requirements
+
+- Node.js + npm
+- A `.env` file with the network values used in `hardhat.config.ts`
+- For live networks, `PRIVATE_KEY` must be set
+
+Supported network names:
+
+- `amoy`
+- `polygon`
+- `citreaTestnet`
+- `citrea`
+
+## Install
 
 ```bash
-npm install -g hardhat
+npm install
 ```
 
-## 1. Deploy
-
-To deploy you can use tasks that are already defined in the tasks folder. To deploy the contract you can use the following command:
+## Build And Test
 
 ```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactory.json
-```
-
-## 2. Documentation
-
-Here the link to the documentation written by Unblocked team :
-
-https://lofty-pyramid-206.notion.site/Documentation-97ff50ea2f694e09ab437af3a22cbfdd?pvs=4
-
-## 3. Tests
-
-To run the tests you can use the following command:
-
-```bash
+npx hardhat compile
 npx hardhat test
 ```
+
+## Deployment (Ignition)
+
+Use one of these deployment paths depending on your setup.
+
+### Path A: New Controller + New VaultDescriptor
+
+Deploys `CollateralController`, deploys `CollateralVaultDescriptor`, then calls `updateVaultDescriptor`.
+
+```bash
+npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <NETWORK>
+```
+
+### Path B: New Controller + Existing VaultDescriptor
+
+Set `collateralVaultDescriptorAddress` in:
+
+- `ignition/parameters/<NETWORK>/CollateralControllerWithExistingDescriptor.json`
+
+Then deploy:
+
+```bash
+npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralControllerWithExistingDescriptor.json
+```
+
+### Path C: New RewardPoolFactory + New Controller Setup
+
+This module deploys factory and reuses `CollateralController` module setup.
+
+Set `tokenAddress` in:
+
+- `ignition/parameters/<NETWORK>/CollateralRewardPoolFactory.json`
+
+Then deploy:
+
+```bash
+npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactory.json
+```
+
+### Path D: New RewardPoolFactory + Existing Controller
+
+Set values in:
+
+- `ignition/parameters/<NETWORK>/CollateralRewardPoolFactoryWithExistingController.json`
+  - `collateralControllerAddress`
+  - `tokenAddress`
+
+Then deploy:
+
+```bash
+npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactoryWithExistingController.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactoryWithExistingController.json
+```
+
+## Important Notes
+
+- Replace any `"tbd"` placeholder in parameter files before deploying.
+- If you deploy with an existing controller, ensure admin permissions are configured as expected for later setup actions.
+
+## Hardhat Tasks
+
+Project tasks are under `tasks/`.
+
+To list all registered tasks:
+
+```bash
+npx hardhat --help
+```
+
+## Documentation
+
+[Documentation](https://lofty-pyramid-206.notion.site/Documentation-97ff50ea2f694e09ab437af3a22cbfdd?pvs=4)

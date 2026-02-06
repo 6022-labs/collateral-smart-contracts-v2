@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Smart-contract suite for the 6022 Collateral Protocol. The repository contains Solidity contracts for controllers, reward pools, vaults, factories, plus TypeScript-based Hardhat tasks and tests.
+Smart-contract suite for the Collateral Protocol. The repository contains Solidity contracts for controllers, reward pools, vaults, factories, plus TypeScript-based Hardhat tasks and tests.
 
 Key technologies:
 
@@ -22,16 +22,26 @@ Repository structure:
 ## Setup Commands
 
 - Install dependencies: `npm install`
-- Create env file: `cp .env.example .env` and fill required values
+- Create `.env` and fill required values used in `hardhat.config.ts`:
+  - `PRIVATE_KEY`
+  - `POLYGON_MAINNET_URL`
+  - `POLYGON_AMOY_URL`
+  - `CITREA_TESTNET_URL`
+  - `CITREA_MAINNET_URL`
+  - `ETHERSCAN_API_KEY`
 
 ## Development Workflow
 
 - Compile contracts: `npx hardhat compile`
 - Run tests: `npx hardhat test`
 - Gas report: enabled by default in hardhat config and writes to gas-report-matic.txt when tests run
-- Run a task: `npx hardhat <task-name> --network <network> --params` (see tasks/)
+- List tasks: `npx hardhat --help`
+- Run a task: `npx hardhat <task-name> --network <network> --<param> <value>` (see tasks/)
 - Deploy via Ignition:
-  - `npx hardhat ignition deploy ./ignition/modules/RewardPoolFactory6022.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/RewardPoolFactory6022.json`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <MY_NETWORK>`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralControllerWithExistingDescriptor.json`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactory.json`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactoryWithExistingController.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactoryWithExistingController.json`
 
 ## Testing Instructions
 

@@ -37,7 +37,7 @@ Use one of these deployment paths depending on your setup.
 Deploys `CollateralController`, deploys `CollateralVaultDescriptor`, then calls `updateVaultDescriptor`.
 
 ```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <NETWORK>
+npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <NETWORK> --verify
 ```
 
 ### Path B: New Controller + Existing VaultDescriptor
@@ -49,7 +49,7 @@ Set `collateralVaultDescriptorAddress` in:
 Then deploy:
 
 ```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralControllerWithExistingDescriptor.json
+npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralControllerWithExistingDescriptor.json --verify
 ```
 
 ### Path C: New RewardPoolFactory + New Controller Setup
@@ -63,7 +63,7 @@ Set `tokenAddress` in:
 Then deploy:
 
 ```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactory.json
+npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactory.json --verify
 ```
 
 ### Path D: New RewardPoolFactory + Existing Controller
@@ -77,7 +77,7 @@ Set values in:
 Then deploy:
 
 ```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactoryWithExistingController.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactoryWithExistingController.json
+npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactoryWithExistingController.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactoryWithExistingController.json --verify
 ```
 
 ## Important Notes

@@ -37,11 +37,11 @@ Repository structure:
 - Gas report: enabled by default in hardhat config and writes to gas-report-matic.txt when tests run
 - List tasks: `npx hardhat --help`
 - Run a task: `npx hardhat <task-name> --network <network> --<param> <value>` (see tasks/)
-- Deploy via Ignition:
-  - `npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <MY_NETWORK>`
-  - `npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralControllerWithExistingDescriptor.json`
-  - `npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactory.json`
-  - `npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactoryWithExistingController.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactoryWithExistingController.json`
+- Deploy via Ignition (always verify by default):
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <MY_NETWORK> --verify`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralControllerWithExistingDescriptor.json --verify`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactory.json --verify`
+  - `npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactoryWithExistingController.ts --network <MY_NETWORK> --parameters ignition/parameters/<MY_NETWORK>/CollateralRewardPoolFactoryWithExistingController.json --verify`
 
 ## Testing Instructions
 

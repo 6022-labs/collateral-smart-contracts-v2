@@ -118,3 +118,4 @@ Follow these patterns exactly as seen in contracts:
 - Keep factories/controllers/vaults/reward-pools responsibilities consistent with existing flows.
 - Use `viaIR`-compatible Solidity code patterns (no reliance on undefined behavior) and maintain optimizer assumptions.
 - Keep deployment docs and parameter JSON files synchronized with Ignition module changes.
+- In CLI docs and examples, include `--verify` on Ignition deploy commands by default.

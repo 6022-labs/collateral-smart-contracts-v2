@@ -10,4 +10,10 @@ interface ICollateralVaultErrors {
 
     /// @dev Error when trying to withdraw without enough NFTs
     error NotEnoughNFTToWithdraw();
+
+    /// @dev Error when one of the fee percent is above the precision limit
+    error InvalidFeePercent(string feeName, uint256 feePercent);
+
+    /// @dev Error when trying to configure fees on a ERC721 collateral vault
+    error FeesNotSupportedForERC721Collateral();
 }

@@ -168,6 +168,68 @@ contract CollateralRewardPool is Ownable, ICollateralRewardPool {
         onlyWhenLifetimeVaultExist
         onlyWhenLifetimeVaultIsRewardable
     {
+        _createVault(
+            _name,
+            _image,
+            _lockedUntil,
+            _wantedAmount,
+            _wantedTokenAddress,
+            _storageType,
+            _backedValueProtocolToken,
+            0,
+            0,
+            0,
+            address(0)
+        );
+    }
+
+    /// @notice This method will create a new vault with custom collateral fees.
+    function createVaultWithFees(
+        string memory _name,
+        string memory _image,
+        uint256 _lockedUntil,
+        uint256 _wantedAmount,
+        address _wantedTokenAddress,
+        VaultStorageEnum _storageType,
+        uint256 _backedValueProtocolToken,
+        uint256 _depositFeePercent,
+        uint256 _withdrawEarlyFeePercent,
+        uint256 _withdrawLateFeePercent,
+        address _feeBeneficiary
+    )
+        public
+        onlyOwner
+        onlyWhenLifetimeVaultExist
+        onlyWhenLifetimeVaultIsRewardable
+    {
+        _createVault(
+            _name,
+            _image,
+            _lockedUntil,
+            _wantedAmount,
+            _wantedTokenAddress,
+            _storageType,
+            _backedValueProtocolToken,
+            _depositFeePercent,
+            _withdrawEarlyFeePercent,
+            _withdrawLateFeePercent,
+            _feeBeneficiary
+        );
+    }
+
+    function _createVault(
+        string memory _name,
+        string memory _image,
+        uint256 _lockedUntil,
+        uint256 _wantedAmount,
+        address _wantedTokenAddress,
+        VaultStorageEnum _storageType,
+        uint256 _backedValueProtocolToken,
+        uint256 _depositFeePercent,
+        uint256 _withdrawEarlyFeePercent,
+        uint256 _withdrawLateFeePercent,
+        address _feeBeneficiary
+    ) internal {
         if (block.timestamp + 1 minutes > _lockedUntil) {
             revert LockedUntilTooShort();
         }
@@ -201,7 +263,11 @@ contract CollateralRewardPool is Ownable, ICollateralRewardPool {
             _wantedAmount,
             address(this),
             _wantedTokenAddress,
-            _storageType
+            _storageType,
+            _depositFeePercent,
+            _withdrawEarlyFeePercent,
+            _withdrawLateFeePercent,
+            _feeBeneficiary
         );
 
         allVaults.push(address(vault));

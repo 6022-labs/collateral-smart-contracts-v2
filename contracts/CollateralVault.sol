@@ -25,8 +25,11 @@ import {ICollateralVaultDescriptorActions} from "./interfaces/ICollateralVaultDe
 contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, ICollateralVault {
     // ----------------- CONST ----------------- //
     uint public constant MAX_TOKENS = 3;
+
     uint public constant WITHDRAW_NFTS_EARLY = 2;
     uint public constant WITHDRAW_NFTS_LATE = 1;
+
+    uint256 public constant FEES_PERCENT_PRECISION = 100_000;
 
     // ----------------- VARIABLES ----------------- //
     /// @notice Creator of the contract
@@ -53,6 +56,18 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
     /// @notice Indicate if the 'wantedTokenAddress' is a ERC20 or ERC721 token
     VaultStorageEnum public storageType;
 
+    /// @notice Fee beneficiary (default = creator)
+    address public immutable feeBeneficiary;
+
+    /// @notice Deposit fee percent (100_000 = 100%)
+    uint256 public immutable depositFeePercent;
+
+    /// @notice Withdraw early fee percent (100_000 = 100%)
+    uint256 public immutable withdrawEarlyFeePercent;
+
+    /// @notice Withdraw late fee percent (100_000 = 100%)
+    uint256 public immutable withdrawLateFeePercent;
+
     constructor(
         address _creator,
         string memory _name,
@@ -61,14 +76,45 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
         uint256 _wantedAmount,
         address _rewardPoolAddress,
         address _wantedTokenAddress,
-        VaultStorageEnum _storageType
+        VaultStorageEnum _storageType,
+        uint256 _depositFeePercent,
+        uint256 _withdrawEarlyFeePercent,
+        uint256 _withdrawLateFeePercent,
+        address _feeBeneficiary
     ) ERC721(_name, "6022") CollateralBaseVault(_rewardPoolAddress, _wantedAmount) {
+        if (_depositFeePercent > FEES_PERCENT_PRECISION) {
+            revert InvalidFeePercent("DEPOSIT", _depositFeePercent);
+        }
+        if (_withdrawLateFeePercent > FEES_PERCENT_PRECISION) {
+            revert InvalidFeePercent("WITHDRAW_LATE", _withdrawLateFeePercent);
+        }
+        if (_withdrawEarlyFeePercent > FEES_PERCENT_PRECISION) {
+            revert InvalidFeePercent("WITHDRAW_EARLY", _withdrawEarlyFeePercent);
+        }
+
+        if (
+            _storageType == VaultStorageEnum.ERC721 &&
+            (
+                _depositFeePercent > 0 ||
+                _withdrawEarlyFeePercent > 0 ||
+                _withdrawLateFeePercent > 0
+            )
+        ) {
+            revert FeesNotSupportedForERC721Collateral();
+        }
+
         creator = _creator;
         image = _image;
         lockedUntil = _lockedUntil;
         storageType = _storageType;
         creationTimestamp = block.timestamp;
         wantedTokenAddress = _wantedTokenAddress;
+        depositFeePercent = _depositFeePercent;
+        withdrawEarlyFeePercent = _withdrawEarlyFeePercent;
+        withdrawLateFeePercent = _withdrawLateFeePercent;
+        feeBeneficiary = _feeBeneficiary == address(0)
+            ? _creator
+            : _feeBeneficiary;
 
         // Mint tokens to the creator (transaction signer)
         for (uint i = 1; i <= MAX_TOKENS; i++) {
@@ -85,13 +131,32 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
             revert TooLateToDeposit();
         }
 
-        ICollateralTokenOperation wantedToken = ICollateralTokenOperation(wantedTokenAddress);
-        wantedToken.transferFrom(msg.sender, address(this), wantedAmount);
+        if (storageType == VaultStorageEnum.ERC721) {
+            IERC721 wantedErc721 = IERC721(wantedTokenAddress);
+            wantedErc721.transferFrom(msg.sender, address(this), wantedAmount);
 
-        isDeposited = true;
-        depositTimestamp = block.timestamp;
+            emit Deposited(msg.sender, wantedAmount);
 
-        emit Deposited(msg.sender, wantedAmount);
+            _onDeposit();
+
+            return;
+        }
+
+        IERC20 wantedErc20 = IERC20(wantedTokenAddress);
+
+        wantedErc20.transferFrom(msg.sender, address(this), wantedAmount);
+
+        uint256 fees = _computeFeesFromPercent(
+            wantedAmount,
+            depositFeePercent
+        );
+        if (fees > 0) {
+            wantedErc20.transfer(feeBeneficiary, fees);
+        }
+
+        emit Deposited(msg.sender, wantedAmount - fees);
+
+        _onDeposit();
     }
 
     /// @notice Once the vault is withdrawn, the vault is considered as a "dead" smart contract.
@@ -107,18 +172,41 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
         }
 
         if (storageType == VaultStorageEnum.ERC721) {
-            IERC721 wantedToken = IERC721(wantedTokenAddress);
+            IERC721 wantedErc721 = IERC721(wantedTokenAddress);
 
-            wantedToken.transferFrom(address(this), msg.sender, wantedAmount);
+            wantedErc721.transferFrom(address(this), msg.sender, wantedAmount);
             emit Withdrawn(msg.sender, wantedAmount);
-        } else {
-            IERC20 wantedToken = IERC20(wantedTokenAddress);
-            uint256 balance = wantedToken.balanceOf(address(this));
 
-            wantedToken.transfer(msg.sender, balance);
-            emit Withdrawn(msg.sender, balance);
+            _onWithdraw(requiredNFTs);
+
+            return;
         }
 
+        IERC20 wantedErc20 = IERC20(wantedTokenAddress);
+        uint256 balance = wantedErc20.balanceOf(address(this));
+
+        uint256 feePercent = requiredNFTs == WITHDRAW_NFTS_LATE
+            ? withdrawLateFeePercent
+            : withdrawEarlyFeePercent;
+
+        uint256 fees = _computeFeesFromPercent(balance, feePercent);
+        uint256 amountToWithdraw = balance - fees;
+
+        if (fees > 0) {
+            wantedErc20.transfer(feeBeneficiary, fees);
+        }
+        wantedErc20.transfer(msg.sender, amountToWithdraw);
+        emit Withdrawn(msg.sender, amountToWithdraw);
+
+        _onWithdraw(requiredNFTs);
+    }
+
+    function _onDeposit() internal {
+        isDeposited = true;
+        depositTimestamp = block.timestamp;
+    }
+
+    function _onWithdraw(uint256 requiredNFTs) internal {
         // We put "isWithdrawn" to true to put the vault as non rewardable
         // As the vault will be considered as a "dead" smart contract
         // We don't want to reward it anymore via other contracts creation or via the reinvest method
@@ -137,6 +225,13 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
             block.timestamp < lockedUntil
                 ? WITHDRAW_NFTS_EARLY
                 : WITHDRAW_NFTS_LATE;
+    }
+
+    function _computeFeesFromPercent(
+        uint256 amount,
+        uint256 feesPercent
+    ) internal pure returns (uint256) {
+        return (amount * feesPercent) / FEES_PERCENT_PRECISION;
     }
 
     function isRewardable() external view returns (bool) {

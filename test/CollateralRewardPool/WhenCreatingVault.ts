@@ -1,22 +1,22 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import {
-  CollateralRewardPool,
-  MockERC20,
-  CollateralVault,
-} from "../../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import {
-  computeFeesFromCollateral,
-  createDepositedVault,
-  getRewardableVaults,
-  parseVaultFromVaultCreatedLogs,
-  rewardPoolTotalCollectedRewards,
-} from "../utils";
 import {
   reset,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import {
+  MockERC20,
+  CollateralVault,
+  CollateralRewardPool,
+} from "../../typechain-types";
+import {
+  getRewardableVaults,
+  createDepositedVault,
+  computeFeesFromCollateral,
+  parseVaultFromVaultCreatedLogs,
+  rewardPoolTotalCollectedRewards,
+} from "../utils";
 
 describe("When creating vault from reward pool 6022", function () {
   const lockedDuring = 60 * 60 * 24;
@@ -323,6 +323,26 @@ describe("When creating vault from reward pool 6022", function () {
       const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
 
       expect(await vault.isDeposited()).to.be.false;
+    });
+
+    it("Should set default collateral fees to zero and beneficiary to creator", async function () {
+      const tx = await _rewardPool.createVault(
+        "TestVault",
+        "vault-image.png",
+        lockedUntil,
+        wantedAmountInTheVault,
+        await _rewardPool.protocolToken(),
+        BigInt(0),
+        wantedAmountInTheVault,
+      );
+      const txReceipt = await tx.wait();
+
+      const vault = await parseVaultFromVaultCreatedLogs(txReceipt!.logs);
+
+      expect(await vault.depositFeePercent()).to.equal(0);
+      expect(await vault.withdrawEarlyFeePercent()).to.equal(0);
+      expect(await vault.withdrawLateFeePercent()).to.equal(0);
+      expect(await vault.feeBeneficiary()).to.equal(_owner.address);
     });
 
     describe("And there is only the lifetime vault as rewardable vault", async function () {

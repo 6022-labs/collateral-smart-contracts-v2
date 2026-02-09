@@ -32,27 +32,7 @@ npx hardhat test
 
 Use one of these deployment paths depending on your setup.
 
-### Path A: New Controller + New VaultDescriptor
-
-Deploys `CollateralController`, deploys `CollateralVaultDescriptor`, then calls `updateVaultDescriptor`.
-
-```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralController.ts --network <NETWORK> --verify
-```
-
-### Path B: New Controller + Existing VaultDescriptor
-
-Set `collateralVaultDescriptorAddress` in:
-
-- `ignition/parameters/<NETWORK>/CollateralControllerWithExistingDescriptor.json`
-
-Then deploy:
-
-```bash
-npx hardhat ignition deploy ./ignition/modules/CollateralControllerWithExistingDescriptor.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralControllerWithExistingDescriptor.json --verify
-```
-
-### Path C: New RewardPoolFactory + New Controller Setup
+### Path A: New RewardPoolFactory + New Controller + New VaultDescriptor
 
 This module deploys factory and reuses `CollateralController` module setup.
 
@@ -66,7 +46,7 @@ Then deploy:
 npx hardhat ignition deploy ./ignition/modules/CollateralRewardPoolFactory.ts --network <NETWORK> --parameters ignition/parameters/<NETWORK>/CollateralRewardPoolFactory.json --verify
 ```
 
-### Path D: New RewardPoolFactory + Existing Controller
+### Path B: New RewardPoolFactory + Existing Controller
 
 Set values in:
 

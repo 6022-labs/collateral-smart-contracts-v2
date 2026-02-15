@@ -7,30 +7,29 @@ const ControllerWithExistingDescriptorModule = buildModule(
   "CollateralControllerWithExistingDescriptor",
   (m) => {
     const collateralVaultDescriptorAddress = m.getParameter(
-      "collateralVaultDescriptorAddress"
+      "collateralVaultDescriptorAddress",
     );
 
     const CollateralController = m.contract("CollateralController");
     const CollateralVaultDescriptor = m.contractAt(
       "CollateralVaultDescriptor",
-      collateralVaultDescriptorAddress
+      collateralVaultDescriptorAddress,
     );
 
-    const updateVaultDescriptor = m.call(
+    m.call(
       CollateralController,
       "updateVaultDescriptor",
       [CollateralVaultDescriptor],
       {
         after: [CollateralController, CollateralVaultDescriptor],
-      }
+      },
     );
 
     return {
       CollateralController,
       CollateralVaultDescriptor,
-      updateVaultDescriptor,
     };
-  }
+  },
 );
 
 export default ControllerWithExistingDescriptorModule;

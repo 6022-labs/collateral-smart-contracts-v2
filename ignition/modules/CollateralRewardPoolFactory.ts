@@ -16,11 +16,11 @@ const RewardPoolFactoryModule = buildModule(
       [CollateralController, tokenAddress],
       {
         after: [CollateralController],
-      }
+      },
     );
 
     return { CollateralRewardPoolFactory };
-  }
+  },
 );
 
 export default RewardPoolFactoryModule;

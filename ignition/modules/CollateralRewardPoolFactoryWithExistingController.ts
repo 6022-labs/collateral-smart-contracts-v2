@@ -7,13 +7,13 @@ const RewardPoolFactoryWithExistingControllerModule = buildModule(
   "CollateralRewardPoolFactoryWithExistingController",
   (m) => {
     const collateralControllerAddress = m.getParameter(
-      "collateralControllerAddress"
+      "collateralControllerAddress",
     );
     const tokenAddress = m.getParameter("tokenAddress");
 
     const CollateralController = m.contractAt(
       "CollateralController",
-      collateralControllerAddress
+      collateralControllerAddress,
     );
 
     const CollateralRewardPoolFactory = m.contract(
@@ -21,11 +21,11 @@ const RewardPoolFactoryWithExistingControllerModule = buildModule(
       [CollateralController, tokenAddress],
       {
         after: [CollateralController],
-      }
+      },
     );
 
     return { CollateralController, CollateralRewardPoolFactory };
-  }
+  },
 );
 
 export default RewardPoolFactoryWithExistingControllerModule;

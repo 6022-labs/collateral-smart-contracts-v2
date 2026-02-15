@@ -17,7 +17,7 @@ const ControllerModule = buildModule("CollateralController", (m) => {
     [CollateralVaultDescriptor],
     {
       after: [CollateralController, CollateralVaultDescriptor],
-    }
+    },
   );
 
   return { CollateralController };

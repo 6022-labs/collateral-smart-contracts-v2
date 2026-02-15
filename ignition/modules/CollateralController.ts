@@ -7,11 +7,18 @@ import VaultDescriptorModule from "./CollateralVaultDescriptor";
 const ControllerModule = buildModule("CollateralController", (m) => {
   const { CollateralVaultDescriptor } = m.useModule(VaultDescriptorModule);
 
-  const CollateralController = m.contract("CollateralController");
+  const CollateralController = m.contract("CollateralController", [], {
+    after: [CollateralVaultDescriptor],
+  });
 
-  m.call(CollateralController, "updateVaultDescriptor", [
-    CollateralVaultDescriptor,
-  ]);
+  m.call(
+    CollateralController,
+    "updateVaultDescriptor",
+    [CollateralVaultDescriptor],
+    {
+      after: [CollateralController, CollateralVaultDescriptor],
+    }
+  );
 
   return { CollateralController };
 });

@@ -18,7 +18,10 @@ const RewardPoolFactoryWithExistingControllerModule = buildModule(
 
     const CollateralRewardPoolFactory = m.contract(
       "CollateralRewardPoolFactory",
-      [CollateralController, tokenAddress]
+      [CollateralController, tokenAddress],
+      {
+        after: [CollateralController],
+      }
     );
 
     return { CollateralController, CollateralRewardPoolFactory };

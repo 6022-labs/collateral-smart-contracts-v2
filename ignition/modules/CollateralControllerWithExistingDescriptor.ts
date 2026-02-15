@@ -19,7 +19,10 @@ const ControllerWithExistingDescriptorModule = buildModule(
     const updateVaultDescriptor = m.call(
       CollateralController,
       "updateVaultDescriptor",
-      [CollateralVaultDescriptor]
+      [CollateralVaultDescriptor],
+      {
+        after: [CollateralController, CollateralVaultDescriptor],
+      }
     );
 
     return {

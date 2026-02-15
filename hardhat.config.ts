@@ -23,6 +23,9 @@ const config: HardhatUserConfig = {
       viaIR: true,
     },
   },
+  ignition: {
+    requiredConfirmations: 2,
+  },
   etherscan: {
     apiKey: {
       polygon: process?.env?.ETHERSCAN_API_KEY ?? "",

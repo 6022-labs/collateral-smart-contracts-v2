@@ -11,10 +11,13 @@ const RewardPoolFactoryModule = buildModule(
 
     const tokenAddress = m.getParameter("tokenAddress");
 
-    const CollateralRewardPoolFactory = m.contract("CollateralRewardPoolFactory", [
-      CollateralController,
-      tokenAddress,
-    ]);
+    const CollateralRewardPoolFactory = m.contract(
+      "CollateralRewardPoolFactory",
+      [CollateralController, tokenAddress],
+      {
+        after: [CollateralController],
+      }
+    );
 
     return { CollateralRewardPoolFactory };
   }

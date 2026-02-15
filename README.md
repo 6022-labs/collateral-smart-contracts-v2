@@ -10,10 +10,10 @@ Smart contract suite for the collateral protocol (Controller, VaultDescriptor, R
 
 Supported network names:
 
-- `amoy`
 - `polygon`
-- `citreaTestnet`
 - `citrea`
+- `amoy-testnet`
+- `citrea-testnet`
 
 ## Install
 

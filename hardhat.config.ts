@@ -53,9 +53,9 @@ const config: HardhatUserConfig = {
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: process?.env?.POLYGON_MAINNET_URL ?? "",
+      url: process?.env?.RPC_URL_POLYGON ?? "",
     },
-    amoy: {
+    "amoy-testnet": {
       gas: "auto",
       chainId: 80002,
       gasMultiplier: 2,
@@ -63,9 +63,9 @@ const config: HardhatUserConfig = {
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: process?.env?.POLYGON_AMOY_URL ?? "",
+      url: process?.env?.RPC_URL_AMOY_TESTNET ?? "",
     },
-    citreaTestnet: {
+    "citrea-testnet": {
       gas: "auto",
       chainId: 5115,
       gasMultiplier: 2,
@@ -73,9 +73,9 @@ const config: HardhatUserConfig = {
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: process?.env?.CITREA_TESTNET_URL ?? "",
+      url: process?.env?.RPC_URL_CITREA_TESTNET ?? "",
     },
-    citrea: {
+    "citrea-mainnet": {
       gas: "auto",
       chainId: 4114,
       gasMultiplier: 2,
@@ -83,7 +83,7 @@ const config: HardhatUserConfig = {
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
-      url: process?.env?.CITREA_MAINNET_URL ?? "",
+      url: process?.env?.RPC_URL_CITREA ?? "",
     },
   },
 };

@@ -1,0 +1,6 @@
+{
+  "CollateralRewardPoolFactoryWithExistingController": {
+    "collateralControllerAddress": "tbd",
+    "tokenAddress": "0xf8100FecD5A9F5fAd8F39863B33Be281cD4a13B1"
+  }
+}

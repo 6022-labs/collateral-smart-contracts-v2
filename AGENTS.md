@@ -24,10 +24,10 @@ Repository structure:
 - Install dependencies: `npm install`
 - Create `.env` and fill required values used in `hardhat.config.ts`:
   - `PRIVATE_KEY`
-  - `POLYGON_MAINNET_URL`
-  - `POLYGON_AMOY_URL`
-  - `CITREA_TESTNET_URL`
-  - `CITREA_MAINNET_URL`
+  - `RPC_URL_POLYGON`
+  - `RPC_URL_AMOY_TESTNET`
+  - `RPC_URL_CITREA_TESTNET`
+  - `RPC_URL_CITREA`
   - `ETHERSCAN_API_KEY`
 
 ## Development Workflow

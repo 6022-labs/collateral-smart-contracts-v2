@@ -19,6 +19,10 @@ const RewardPoolFactoryModule = buildModule(
       },
     );
 
+    m.call(CollateralController, "addFactory", [CollateralRewardPoolFactory], {
+      after: [CollateralController, CollateralRewardPoolFactory],
+    });
+
     return { CollateralRewardPoolFactory };
   },
 );

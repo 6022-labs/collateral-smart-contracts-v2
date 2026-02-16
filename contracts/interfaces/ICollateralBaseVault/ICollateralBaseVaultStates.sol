@@ -19,4 +19,14 @@ interface ICollateralBaseVaultStates {
      * @notice Returns a boolean indicating if the vault is rewardable.
      */
     function isRewardable() external view returns (bool);
+
+    /**
+     * @notice Returns the reward pool address.
+     */
+    function rewardPool() external view returns (address);
+
+    /**
+     * @notice Returns the wanted deposit amount.
+     */
+    function wantedAmount() external view returns (uint256);
 }

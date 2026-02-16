@@ -2,8 +2,9 @@
 pragma solidity ^0.8.28;
 
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
-import {VaultOverview} from "./structs/VaultOverview.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+
 import {ICollateralVaultStates} from "./interfaces/ICollateralVault/ICollateralVaultStates.sol";
 import {ICollateralVaultDescriptor} from "./interfaces/ICollateralVaultDescriptor/ICollateralVaultDescriptor.sol";
 
@@ -31,14 +32,13 @@ contract CollateralVaultDescriptor is AccessControl, ICollateralVaultDescriptor 
         address vault,
         uint256 tokenId
     ) external view returns (string memory) {
-        ICollateralVaultStates vaultContract = ICollateralVaultStates(vault);
-        VaultOverview memory overview = vaultContract.vaultOverview();
+        IERC721Metadata vaultContract = IERC721Metadata(vault);
 
-        string memory name = _escapeQuotes(overview.name);
+        string memory name = _escapeQuotes(vaultContract.name());
         string memory description = _escapeQuotes(
             "Keys to collateral vaults."
         );
-        string memory imageUrl = _generateImageUrl(_getImage(vaultContract, tokenId));
+        string memory imageUrl = _generateImageUrl(_getImage(vault, tokenId));
 
         return
             string(
@@ -87,9 +87,10 @@ contract CollateralVaultDescriptor is AccessControl, ICollateralVaultDescriptor 
     }
 
     function _getImage(
-        ICollateralVaultStates vaultContract,
+        address vault,
         uint256 /* tokenId */
     ) internal view returns (string memory) {
+        ICollateralVaultStates vaultContract = ICollateralVaultStates(vault);
         string memory image = vaultContract.image();
         if (bytes(image).length == 0) {
             revert MissingImage();

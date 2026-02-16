@@ -7,7 +7,6 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {CollateralBaseVault} from "./CollateralBaseVault.sol";
-import {VaultOverview} from "./structs/VaultOverview.sol";
 import {VaultStorageEnum} from "./enums/VaultStorageEnum.sol";
 import {ICollateralTokenOperation} from "./interfaces/ICollateralTokenOperation.sol";
 import {ICollateralVault} from "./interfaces/ICollateralVault/ICollateralVault.sol";
@@ -236,60 +235,6 @@ contract CollateralVault is ERC721, CollateralBaseVault, ReentrancyGuard, IColla
 
     function isRewardable() external view returns (bool) {
         return lockedUntil > block.timestamp && isDeposited && !isWithdrawn;
-    }
-
-    function vaultOverview() external view returns (VaultOverview memory) {
-        string memory wantedTokenSymbol = "N/A";
-        (bool success, bytes memory data) = wantedTokenAddress.staticcall(
-            abi.encodeWithSignature("symbol()")
-        );
-        if (success) {
-            wantedTokenSymbol = abi.decode(data, (string));
-        } else {
-            (success, data) = wantedTokenAddress.staticcall(
-                abi.encodeWithSignature("name()")
-            );
-            if (success) {
-                wantedTokenSymbol = abi.decode(data, (string));
-            }
-        }
-
-        uint8 wantedTokenDecimals = 0;
-        (success, data) = wantedTokenAddress.staticcall(
-            abi.encodeWithSignature("decimals()")
-        );
-        if (success) {
-            wantedTokenDecimals = abi.decode(data, (uint8));
-        }
-
-        ICollateralTokenOperation wantedToken = ICollateralTokenOperation(wantedTokenAddress);
-        ICollateralRewardPoolStates rewardPoolStates = ICollateralRewardPoolStates(
-            rewardPool
-        );
-
-        return
-            VaultOverview({
-                name: name(),
-                creator: creator,
-                isDeposited: isDeposited,
-                isWithdrawn: isWithdrawn,
-                lockedUntil: lockedUntil,
-                storageType: storageType,
-                wantedAmount: wantedAmount,
-                depositTimestamp: depositTimestamp,
-                withdrawTimestamp: withdrawTimestamp,
-                creationTimestamp: creationTimestamp,
-                wantedTokenSymbol: wantedTokenSymbol,
-                rewardPoolAddress: address(rewardPool),
-                wantedTokenAddress: wantedTokenAddress,
-                wantedTokenDecimals: wantedTokenDecimals,
-                rewardWeight: rewardPoolStates.vaultsRewardWeight(address(this)),
-                balanceOfWantedToken: wantedToken.balanceOf(address(this)),
-                collectedRewards: rewardPoolStates.collectedRewards(address(this)),
-                backedValueProtocolToken: (rewardPoolStates.vaultsRewardWeight(
-                    address(this)
-                ) * 100) / rewardPoolStates.FEES_PERCENT()
-            });
     }
 
     function tokenURI(uint256 tokenId)

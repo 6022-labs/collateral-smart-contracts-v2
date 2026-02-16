@@ -1,5 +1,5 @@
 {
-  "CollateralVaultDescriptor#CollateralVaultDescriptor": "0x8D3Ce1809BD7fc9f75D6994a8D6ce1D3E125BaE6",
-  "CollateralController#CollateralController": "0xA36FF6AE86776E1Db8ef89D7B021a5748c29889B",
-  "CollateralRewardPoolFactory#CollateralRewardPoolFactory": "0x4fF33118Ed7A9d6acE229a68D7fcD61FDE3A6928"
+  "CollateralVaultDescriptor#CollateralVaultDescriptor": "0x58F3FC68c66b96519FE16BD6072c68Af30f5F8F2",
+  "CollateralController#CollateralController": "0x5eda2CD828D24D17fEde2f2072B5173B27d22e06",
+  "CollateralRewardPoolFactory#CollateralRewardPoolFactory": "0x398F9681c808596A56FC7CD55E13200aE5724Bf5"
 }

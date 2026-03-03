@@ -10,10 +10,18 @@ Smart contract suite for the collateral protocol (Controller, VaultDescriptor, R
 
 Supported network names:
 
-- `polygon`
+Mainnets:
+
 - `citrea`
+- `polygon`
+
+Testnets:
+
+- `adi-testnet`
 - `amoy-testnet`
 - `citrea-testnet`
+- `base-sepolia-testnet`
+- `ethereum-sepolia-testnet`
 
 ## Install
 

@@ -30,6 +30,8 @@ const config: HardhatUserConfig = {
     apiKey: {
       polygon: process?.env?.ETHERSCAN_API_KEY ?? "",
       polygonAmoy: process?.env?.ETHERSCAN_API_KEY ?? "",
+      sepolia: process?.env?.ETHERSCAN_API_KEY ?? "",
+      baseSepolia: process?.env?.ETHERSCAN_API_KEY ?? "",
     },
   },
   paths: {
@@ -87,6 +89,37 @@ const config: HardhatUserConfig = {
       throwOnTransactionFailures: true,
       allowUnlimitedContractSize: true,
       url: process?.env?.RPC_URL_CITREA ?? "",
+    },
+    "adi-testnet": {
+      gas: "auto",
+      chainId: 99999,
+      gasMultiplier: 2,
+      timeout: 1_800_000, // 30 minutes, ADI testnet is very slow
+      accounts: [privateKey],
+      throwOnCallFailures: true,
+      throwOnTransactionFailures: true,
+      allowUnlimitedContractSize: true,
+      url: process?.env?.RPC_URL_ADI_TESTNET ?? "",
+    },
+    "base-sepolia-testnet": {
+      gas: "auto",
+      chainId: 84532,
+      gasMultiplier: 2,
+      accounts: [privateKey],
+      throwOnCallFailures: true,
+      throwOnTransactionFailures: true,
+      allowUnlimitedContractSize: true,
+      url: process?.env?.RPC_URL_BASE_SEPOLIA_TESTNET ?? "",
+    },
+    "ethereum-sepolia-testnet": {
+      gas: "auto",
+      chainId: 11155111,
+      gasMultiplier: 2,
+      accounts: [privateKey],
+      throwOnCallFailures: true,
+      throwOnTransactionFailures: true,
+      allowUnlimitedContractSize: true,
+      url: process?.env?.RPC_URL_ETHEREUM_SEPOLIA_TESTNET ?? "",
     },
   },
 };
